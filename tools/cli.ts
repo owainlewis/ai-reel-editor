@@ -136,6 +136,13 @@ async function cmdCapture(slug: string, url: string) {
     await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: has("dark") ? "dark" : "light" }]);
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
     await new Promise((r) => setTimeout(r, parseInt(flag("wait") ?? "800")));
+    // Sticky and fixed bars repeat across a full-page or element screenshot; pin them in place.
+    await page.evaluate(() => {
+      document.querySelectorAll("*").forEach((el) => {
+        const p = getComputedStyle(el).position;
+        if (p === "sticky") (el as HTMLElement).style.position = "static";
+      });
+    });
     // Remove cookie banners rather than accepting them.
     await page.evaluate(() => {
       document.querySelectorAll('[id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i]').forEach((el) => {
