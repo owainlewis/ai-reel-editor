@@ -11,7 +11,8 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
   const chunk: Chunk | undefined = r.chunks.find((c) => time >= c.start && time < c.end);
   if (!chunk) return null;
 
-  const onCanvas = shot.layout === "split" || shot.layout === "media";
+  // In the 50/50 split the caption sits on the speaker's half; in the inset it sits on the canvas seam.
+  const onCanvas = shot.layout === "media" || (shot.layout === "split" && r.split === "inset");
   const serifAll = shot.layout === "media";
   // On the speaker the caption sits on the chest, below the chin and clear of the mouth.
   // face.h is the head's height, so the chin sits half of it below the centre.

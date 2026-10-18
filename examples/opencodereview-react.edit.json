@@ -365,6 +365,6 @@
     "contrast": 1.06,
     "saturate": 1.0
   },
-  "split": "inset",
+  "split": "half",
   "header": "*Alibaba* open sourced its AI code reviewer"
 }

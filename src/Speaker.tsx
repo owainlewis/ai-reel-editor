@@ -11,7 +11,7 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
   switch (layout) {
     case "split": {
       const inset = r.split === "inset";
-      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.62 : 0.55, faceAt: inset ? 0.48 : 0.42, visible: true };
+      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.62 : 0.6, faceAt: inset ? 0.48 : 0.4, visible: true };
     }
     case "punch":
       // Punch is always visibly tighter than full: at least 1.25x the full framing.

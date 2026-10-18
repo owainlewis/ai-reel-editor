@@ -5,6 +5,7 @@ Newest first. "Where" says what enforces it.
 
 | Date | Note | Rule | Where |
 | --- | --- | --- | --- |
+| 2026-10-18 | "I prefer a simple split screen 50/50 over the awkward top half (my face small at the bottom and loads above it)." | `split: "half"` is a clean 50/50 and the default; captions sit on the speaker's half. | `src/theme.ts`, `src/Captions.tsx` |
 | 2026-10-18 | "My face is cut off in the reel." (inset window) | The inset window narrows to fit the whole head when footage is framed tight. Speaker framing works from the footage's own shape, portrait or landscape. | `src/Speaker.tsx` |
 | 2026-10-18 | (self-review on Nate's clip) Logos, lists and the CTA floated small in the taller inset panel; punch-ins on landscape footage looked the same as full shots. | Those visuals size from their panel. Punch is at least 1.25x the full framing. | `src/Visuals.tsx`, `src/Speaker.tsx` |
 | 2026-10-18 | (study of 4 top reels) No on-screen text in frame 1; viewers lose the topic when muted. | `header` lands large in frame 1 and docks above the panel; shots can start chapters. | `src/Reel.tsx`, `src/schema.ts` |

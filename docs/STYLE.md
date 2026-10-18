@@ -28,13 +28,13 @@ Why react for tool drops: the viewer judges a new tool by its evidence and by th
 
 ## Split size
 
-`split: "half"` gives the speaker the bottom half edge to edge. `split: "inset"` gives the visual about 60% of the frame and puts the speaker in a rounded window. Use inset when the visuals carry the reel (captures with text to read); use half when the speaker's delivery carries it.
+`split: "half"` (the default, and Owain's preference) is a clean 50/50: the visual on the top half, the speaker edge to edge on the bottom half, captions low on the speaker's half. `split: "inset"` gives the visual about 60% and puts the speaker in a rounded window; keep it for other speakers' footage or captures dense with text.
 
 ## Layouts (1080 x 1920, hard cuts between them)
 
 | Layout | What it is | Use it for |
 | --- | --- | --- |
-| `split` | visual on top (y 150 to 880), caption on the seam, speaker below | evidence, logos, diagrams. The first frame. |
+| `split` | 50/50: visual on the top half, speaker on the bottom half, caption on the speaker | evidence, logos, diagrams. The first frame. |
 | `full` | speaker fills the frame, slow push-in | conviction lines, setups |
 | `punch` | tight on the face | emphasis, the turn, the last line |
 | `media` | visual fills the frame, caption in large serif below | the one visual that matters most |
