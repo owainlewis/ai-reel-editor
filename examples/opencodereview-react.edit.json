@@ -1,5 +1,6 @@
 {
   "title": "OpenCodeReview",
+  "format": "react",
   "face": {
     "x": 0.49,
     "y": 0.22,
@@ -17,7 +18,6 @@
     {
       "at": "If you're building",
       "layout": "split",
-      "note": "Hook: open on the product working, a real review running in its terminal",
       "visual": {
         "kind": "image",
         "src": "assets/captures/site.png",
@@ -35,11 +35,16 @@
           0.36,
           0.2
         ]
-      }
+      },
+      "note": "Hook: the product running a review"
     },
     {
       "at": "having a good",
-      "layout": "full"
+      "layout": "split",
+      "visual": {
+        "kind": "video",
+        "src": "broll:1-4"
+      }
     },
     {
       "at": "is essential",
@@ -62,55 +67,46 @@
     {
       "at": "open sourced",
       "layout": "split",
-      "note": "Proof: the real repo, then the star count",
+      "note": "Proof: #1 repository badges",
       "visual": {
         "kind": "image",
-        "src": "assets/captures/repo.png",
+        "src": "assets/captures/readme-mobile.png",
         "frame": "browser",
         "url": "github.com/alibaba/open-code-review",
         "from": [
+          0,
           0.0,
-          0.05,
-          0.62,
-          0.37
+          1,
+          0.0422
         ],
         "to": [
-          0.7,
-          0.1,
-          0.3,
-          0.176
+          0,
+          0.016,
+          1,
+          0.0422
         ],
-        "highlight": [
-          {
-            "rect": [
-              0.888,
-              0.128,
-              0.086,
-              0.018
-            ],
-            "at": "AI code review"
-          }
-        ]
+        "highlight": []
       }
     },
     {
       "at": "which they've been",
-      "layout": "media",
+      "layout": "split",
       "visual": {
         "kind": "image",
         "src": "assets/captures/readme-mobile.png",
-        "frame": "card",
+        "frame": "browser",
+        "url": "github.com/alibaba/open-code-review",
         "from": [
           0,
-          0.09,
+          0.094,
           1,
-          0.0671
+          0.0422
         ],
         "to": [
           0,
           0.1,
           1,
-          0.0671
+          0.0422
         ],
         "highlight": [
           {
@@ -150,72 +146,125 @@
     },
     {
       "at": "The big problem",
-      "layout": "full"
+      "layout": "punch"
+    },
+    {
+      "at": "AI code review tools",
+      "layout": "split",
+      "visual": {
+        "kind": "video",
+        "src": "broll:1-6"
+      }
     },
     {
       "at": "they flag",
       "layout": "split",
-      "visual": {
-        "kind": "title",
-        "kicker": "The big problem",
-        "text": "Too many *false* positives"
-      }
-    },
-    {
-      "at": "This tool fixes",
-      "layout": "punch"
-    },
-    {
-      "at": "by not letting",
-      "layout": "full"
-    },
-    {
-      "at": "Deterministic code will",
-      "layout": "split",
-      "note": "The mechanism, in Alibaba's own words",
+      "note": "Their own metric for false alarms",
       "visual": {
         "kind": "image",
-        "src": "assets/captures/repo.png",
+        "src": "assets/captures/readme-mobile.png",
         "frame": "browser",
         "url": "github.com/alibaba/open-code-review",
         "from": [
-          0.755,
-          0.195,
-          0.235,
-          0.14
+          0,
+          0.236,
+          1,
+          0.0422
         ],
         "to": [
-          0.76,
-          0.225,
-          0.21,
-          0.125
+          0,
+          0.243,
+          1,
+          0.0422
         ],
         "highlight": [
           {
             "rect": [
-              0.762,
-              0.25,
-              0.208,
-              0.016
+              0.645,
+              0.2518,
+              0.32,
+              0.0077
             ],
-            "at": "search your"
+            "at": "false positives"
           }
         ]
       }
     },
     {
-      "at": "to find the files",
-      "layout": "media",
+      "at": "This tool fixes",
+      "layout": "full"
+    },
+    {
+      "at": "by not letting",
+      "layout": "split",
       "visual": {
-        "kind": "steps",
-        "title": "*Code* decides",
-        "items": [
+        "kind": "image",
+        "src": "assets/captures/readme-mobile.png",
+        "frame": "browser",
+        "url": "github.com/alibaba/open-code-review",
+        "from": [
+          0,
+          0.396,
+          1,
+          0.0422
+        ],
+        "to": [
+          0,
+          0.4,
+          1,
+          0.0422
+        ],
+        "highlight": [
           {
-            "text": "Which files to read",
+            "rect": [
+              0,
+              0.4065,
+              0.98,
+              0.0075
+            ],
+            "at": "AI do everything"
+          }
+        ]
+      }
+    },
+    {
+      "at": "Deterministic code will",
+      "layout": "split",
+      "note": "Slow scroll through the design section; each bullet lights up on its words",
+      "visual": {
+        "kind": "image",
+        "src": "assets/captures/readme-mobile.png",
+        "frame": "browser",
+        "url": "github.com/alibaba/open-code-review",
+        "from": [
+          0,
+          0.425,
+          1,
+          0.0422
+        ],
+        "to": [
+          0,
+          0.443,
+          1,
+          0.0422
+        ],
+        "highlight": [
+          {
+            "rect": [
+              0.07,
+              0.4412,
+              0.9,
+              0.0027
+            ],
             "at": "find the files"
           },
           {
-            "text": "What to check for",
+            "rect": [
+              0.07,
+              0.4744,
+              0.9,
+              0.0027
+            ],
             "at": "what to check"
           }
         ]
@@ -239,7 +288,11 @@
     },
     {
       "at": "It runs locally",
-      "layout": "full"
+      "layout": "split",
+      "visual": {
+        "kind": "video",
+        "src": "broll:1-3"
+      }
     },
     {
       "at": "install it as",

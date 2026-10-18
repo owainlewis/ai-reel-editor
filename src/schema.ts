@@ -68,6 +68,10 @@ export const Shot = z.object({
 
 export const Edit = z.object({
   title: z.string(),
+  // react: the default for tool drops. The speaker stays on screen in a split while the
+  //   top panel walks through the source, a highlight on each claim as it is said.
+  // mixed: for how-it-works and setup reels. Every layout, b-roll cutaways, faster cuts.
+  format: z.enum(["react", "mixed"]).default("react"),
   // Where the speaker's face is in the source, as fractions of the frame:
   // centre x, centre y, and head height (crown to chin). Used to frame every speaker layout.
   face: z.object({ x: z.number(), y: z.number(), h: z.number() }),

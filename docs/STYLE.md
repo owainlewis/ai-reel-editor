@@ -9,6 +9,17 @@ The default look and pacing for Owain's reels. A brief from the user wins over a
 - White cards with a soft shadow and a thin edge. Real captures sit in a card or a browser frame.
 - No neon, no gradients on type, no emoji, no cartoon icons.
 
+## Formats
+
+Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
+
+| Format | Series | Shape | Rules `validate` checks |
+| --- | --- | --- | --- |
+| `react` (default) | Tool drop | Face stays on screen in a split for 70 to 85% of the reel. The top panel walks through the real source (site, repo, README, post), panning and highlighting each claim as it is said. Punch in on the hook's stake and the last line. | Split at least 60%. No `media` or `cutaway`. Never two face-only shots in a row. At least 2 source captures. Shots up to about 3.8 s, since a scroll with highlights earns the time. |
+| `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Shots under about 2.8 s. No layout three times in a row. Speaker never away more than 3.5 s. |
+
+Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
+
 ## Layouts (1080 x 1920, hard cuts between them)
 
 | Layout | What it is | Use it for |

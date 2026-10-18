@@ -67,14 +67,28 @@ describe("chunkWords", () => {
 });
 
 describe("lintShots", () => {
-  it("flags long holds and a split without a visual", () => {
-    const issues = lintShots(
-      [
-        { start: 0, end: 4, layout: "split", anchor: "a" },
-        { start: 4, end: 5, layout: "full", anchor: "b" },
-      ],
-      5,
-    );
-    expect(issues.map((i) => i.level)).toEqual(["warn", "error"]);
+  const img = { kind: "image" as const, src: "a.png", frame: "card" as const, highlight: [] };
+  const shot = (start: number, end: number, layout: "split" | "full" | "punch" | "media" | "cutaway", visual?: typeof img) =>
+    ({ start, end, layout, anchor: `${start}`, visual });
+
+  it("mixed: flags long holds, a split without a visual and three in a row", () => {
+    const issues = lintShots([shot(0, 4, "split"), shot(4, 5, "full"), shot(5, 6, "full"), shot(6, 7, "full")], 7, "mixed");
+    const text = issues.map((i) => i.message).join("\n");
+    expect(issues.some((i) => i.level === "error" && /no visual/.test(i.message))).toBe(true);
+    expect(text).toMatch(/holds 4.0s/);
+    expect(text).toMatch(/third full shot in a row/);
+  });
+
+  it("react: allows longer split holds and runs of splits", () => {
+    const issues = lintShots([shot(0, 4, "split", img), shot(4, 7, "split", img), shot(7, 8, "punch"), shot(8, 10, "split", img)], 10, "react");
+    expect(issues).toEqual([]);
+  });
+
+  it("react: warns when the speaker leaves or the source is missing", () => {
+    const issues = lintShots([shot(0, 2, "split", img), shot(2, 4, "cutaway", img), shot(4, 5, "full"), shot(5, 6, "punch")], 6, "react");
+    const text = issues.map((i) => i.message).join("\n");
+    expect(text).toMatch(/hides the speaker/);
+    expect(text).toMatch(/two face-only shots in a row/);
+    expect(text).toMatch(/split is 33%/);
   });
 });

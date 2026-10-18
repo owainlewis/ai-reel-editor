@@ -141,27 +141,43 @@ export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
   return ev.sort((a, b) => a.t - b.t);
 };
 
-// House rules from docs/STYLE.md that can be checked mechanically.
-export const lintShots = (shots: ResolvedShot[], duration: number): Issue[] => {
+// House rules from docs/STYLE.md that can be checked mechanically. Each format has its own.
+//   react: the speaker stays on screen in a split while the top panel walks through the source.
+//   mixed: every layout, cut fast, the speaker can step away for b-roll and full visuals.
+export type Format = "react" | "mixed";
+
+export const lintShots = (shots: ResolvedShot[], duration: number, format: Format = "react"): Issue[] => {
   const issues: Issue[] = [];
   const speaker = (l: string) => l !== "media" && l !== "cutaway";
+  const total = (pred: (s: ResolvedShot) => boolean) => shots.filter(pred).reduce((t, s) => t + s.end - s.start, 0);
+  const maxHold = format === "react" ? 4.2 : 3.2;
   let away = 0;
   shots.forEach((s, i) => {
     const len = s.end - s.start;
     const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
-    if (len > 3.2) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep shots under about 2.8s` });
+    if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${maxHold - 0.4}s` });
     if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
     if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway") && !s.visual)
       issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
+    if (format === "react" && !speaker(s.layout))
+      issues.push({ level: "warn", message: `${label}: ${s.layout} hides the speaker; react reels keep the face on screen (use split)` });
     away = speaker(s.layout) ? 0 : away + len;
     if (away > 3.5) issues.push({ level: "warn", message: `${label}: speaker off screen for ${away.toFixed(1)}s` });
     const prev = shots[i - 1];
     const prev2 = shots[i - 2];
-    if (prev && prev2 && prev.layout === s.layout && prev2.layout === s.layout)
+    if (format === "mixed" && prev && prev2 && prev.layout === s.layout && prev2.layout === s.layout)
       issues.push({ level: "warn", message: `${label}: third ${s.layout} shot in a row` });
+    if (format === "react" && prev && s.layout !== "split" && prev.layout !== "split")
+      issues.push({ level: "warn", message: `${label}: two face-only shots in a row; react reels return to the split` });
   });
   if (shots[0] && shots[0].layout !== "split")
     issues.push({ level: "warn", message: "first shot should be a split with the topic on top" });
+  if (format === "react" && duration > 0) {
+    const split = total((s) => s.layout === "split") / duration;
+    if (split < 0.6) issues.push({ level: "warn", message: `split is ${Math.round(split * 100)}% of the reel; react reels sit around 70 to 85%` });
+    const sources = shots.filter((s) => s.visual?.kind === "image").length;
+    if (sources < 2) issues.push({ level: "warn", message: `only ${sources} source captures; a react reel walks through the source (repo, README, post)` });
+  }
   const last = shots[shots.length - 1];
   if (last && last.end < duration - 0.05) issues.push({ level: "error", message: "shots do not reach the end" });
   return issues;

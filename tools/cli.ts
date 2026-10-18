@@ -189,7 +189,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   }
   const plan = parsed.data;
   const { shots, issues } = resolveShots(plan, words, meta.duration, FPS);
-  issues.push(...lintShots(shots, meta.duration));
+  issues.push(...lintShots(shots, meta.duration, plan.format));
 
   // Library clips ("broll:<id>") are copied into the project so Remotion can serve them.
   for (const s of shots) {
@@ -250,7 +250,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   writeJson(join(dir, "build/audio.json"), { duration: meta.duration, music: plan.music, voiceGain: plan.voiceGain, sfx: resolved.sfx });
 
   if (!quiet) {
-    console.log(`\n${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
+    console.log(`\n${plan.format} format: ${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
     for (const s of shots)
       console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
     const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway"].map((l) => [l, 0]));

@@ -5,6 +5,7 @@ Newest first. "Where" says what enforces it.
 
 | Date | Note | Rule | Where |
 | --- | --- | --- | --- |
+| 2026-10-18 | "React split is the best. Make it a format option with its own lint rules, and use it as the default for tool drops." | `format` in edit.json: `react` (default, tool drops) or `mixed`. Each has its own lint rules. | `src/schema.ts`, `lintShots`, tested |
 | 2026-10-18 | (self-review) GitHub's sticky README tab bar was baked into a full-element capture, mid-page. | `capture` sets sticky elements to static before the screenshot. | `tools/cli.ts` |
 | 2026-10-18 | (self-review) A full-frame card showed over the previous shot for one frame. | Shot boundaries snap to the frame grid so a layout and its visual switch on the same frame. | `tools/resolve.ts`, tested |
 | 2026-10-18 | (self-review) True peak measured -0.98 dBTP after AAC encoding. | Master to -1.5 dBTP so the encoded file stays under -1. `check` flags anything hotter. | `audio/mix.py`, `tools/cli.ts` |

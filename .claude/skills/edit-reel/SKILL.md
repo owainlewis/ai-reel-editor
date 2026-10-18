@@ -56,7 +56,11 @@ npm run reel -- broll typing     # list clips, best matches first
 - Put b-roll on human or abstract lines ("if you're building with AI", "it runs locally"). Keep captures and logos on factual claims. B-roll is never evidence.
 - A shot can't run longer than its clip; `validate` errors if it does. Each clip once per reel.
 
-## 4. Plan the story, then the shots
+## 4. Pick the format, plan the story, then the shots
+
+Set `format` first (see `docs/STYLE.md`):
+- **Tool drop** (a new repo, release, feature or post): `react`. Plan it as a walk through the source: every claim gets a capture with a highlight on the words being said. Use b-roll only inside the split panel.
+- **How it works** or **my setup**: `mixed`.
 
 Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in your head or in a `note`:
 

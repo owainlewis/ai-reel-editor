@@ -69,11 +69,14 @@ npx remotion studio src/index.ts --props=projects/ig1/build/edit.resolved.json
 
 ## The edit plan
 
-`edit.json` is the whole edit. The schema is `src/schema.ts`; `examples/opencodereview.edit.json` is a complete plan.
+`edit.json` is the whole edit. The schema is `src/schema.ts`. Two complete plans for the same clip: `examples/opencodereview-react.edit.json` (the tool-drop format) and `examples/opencodereview-mixed.edit.json`.
+
+`format` is `react` (the default, for tool drops: your face stays on screen while the top panel walks through the source) or `mixed` (every layout, b-roll cutaways). `validate` checks the rules for each; see `docs/STYLE.md`.
 
 ```json
 {
   "title": "OpenCodeReview",
+  "format": "react",
   "face": { "x": 0.49, "y": 0.22, "h": 0.36 },
   "accents": ["essential", "OpenCodeReview"],
   "music": false,
