@@ -1,0 +1,31 @@
+{
+  "name": "ai-reel-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn a talking head clip into an edited Instagram reel, with Claude Code as the editor.",
+  "scripts": {
+    "reel": "tsx tools/cli.ts",
+    "studio": "remotion studio src/index.ts",
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "@remotion/fonts": "4.0.532",
+    "@remotion/media": "4.0.532",
+    "@remotion/renderer": "4.0.532",
+    "puppeteer-core": "25.12.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.532",
+    "tsx": "4.23.15",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3",
+    "vitest": "5.0.3"
+  }
+}

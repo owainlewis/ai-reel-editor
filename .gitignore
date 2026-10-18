@@ -1,0 +1,15 @@
+node_modules
+.DS_Store
+.cache
+
+# Footage, captures and renders stay local. Only the example project's plan is tracked.
+projects/*
+!projects/README.md
+
+# Licensed audio and fonts are never published.
+sounds/**/*
+!sounds/README.md
+music/**/*
+!music/README.md
+
+__pycache__

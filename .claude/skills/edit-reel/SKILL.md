@@ -1,0 +1,98 @@
+---
+name: edit-reel
+description: Edit a talking head clip into a finished 9:16 Instagram reel with real captures, logos, motion graphics, captions, music and sound. Use when asked to edit, cut, make or improve a reel or short from a video file, or to apply a note to a reel draft.
+---
+
+# Edit a reel
+
+You are the editor. The `reel` CLI does the mechanical work; you make every creative call.
+Read `docs/STYLE.md` and `docs/RULES.md` before planning. Rules in RULES.md came from real notes and override everything else here.
+
+## 1. Set up
+
+```sh
+npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]
+npm run reel -- transcribe <slug>
+```
+
+- Read `projects/<slug>/transcript.txt` end to end. Fix misheard names in `transcript.json` (tools, companies, people). Never change what was said.
+- Look at `checks/frame.jpg` and measure the face: centre x, centre y and head height (crown to chin) as fractions of the frame. These go in `face`.
+- If the footage already has music under it, set `"music": false`.
+
+## 2. Research before you design
+
+Every named tool, company, repo, number or claim gets checked against its source before it goes on screen.
+
+- Find the primary source (the repo, the docs, the company's site). Read it. Note facts that support what the speaker says.
+- If the speaker says something the source contradicts, stop and tell the user. Do not "fix" it with a graphic.
+- Never invent numbers, results, quotes or UI. A graphic can only show what was said or what the source shows.
+
+## 3. Collect real visuals
+
+Preference order (see STYLE.md): the user's b-roll, the real product or page, official logos, then designed graphics.
+
+```sh
+npm run reel -- capture <slug> <url> --name repo --width 1280 --height 1500
+npm run reel -- capture <slug> <url> --name readme --width 520 --selector "article.markdown-body"
+npm run reel -- fetch <slug> <logo-url> --name github.svg
+```
+
+- Capture at 1280 wide for page chrome and headers. For paragraphs, capture at 520 wide so text wraps into a column you can read on a phone.
+- Logos come from the brand's own site, repo or media kit. Never redraw or approximate one. A GitHub org avatar is an official logo.
+- Look at every capture with the Read tool and note the exact rectangles you will frame and highlight.
+- Everything you capture or download is logged in `assets/ledger.json` with its source.
+
+## 4. Plan the story, then the shots
+
+Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in your head or in a `note`:
+
+- **Hook (0 to 3 s):** what the viewer sees in frame one that makes them stay. Prefer the product working or the real thing named.
+- **Proof:** one shot of evidence that the claim is real (the repo, the source line, the number on the page).
+- **Mechanism:** how it works, as a diagram or the source's own words highlighted.
+- **Payoff:** what the viewer can now do. End on the speaker's face.
+
+Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb:
+
+- One idea per shot. Average 1.2 to 1.6 s. Nothing over 2.8 s unless a reveal inside it earns the time.
+- Every list item, step and logo gets its own `at` so it lands on its word.
+- Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual.
+- A graphic shows the example or relationship. It does not repeat the caption.
+- `accents`: four to six words in the whole reel, the ones that carry the meaning.
+
+### Framing captures
+
+For `image` visuals, `from` and `to` are rectangles `[x, y, w, h]` in 0 to 1 image coordinates. The rectangle fills the panel and the camera eases from one to the other.
+
+- Match the panel's shape: split panels with a browser frame are about 1.44 wide to 1 tall; media cards about 0.9 to 1. Convert using the image's pixel size.
+- End tight. `validate` warns when page text would be too small to read on a phone.
+- Use `highlight` with an `at` to sweep a marker over the exact words being spoken.
+
+## 5. Check before rendering
+
+```sh
+npm run reel -- validate <slug>   # resolves timings, prints the shot table, lints the house rules
+npm run reel -- stills <slug>     # one frame per shot -> checks/stills.jpg
+```
+
+Read `checks/stills.jpg`. For each shot ask: can I read it at phone size? Does it fill the panel? Is anything over the mouth? Does it show something new? Fix and repeat until every shot passes.
+
+## 6. Render and verify
+
+```sh
+npm run reel -- render <slug>     # mixes audio, renders projects/<slug>/renders/final.mp4
+npm run reel -- check <slug>      # cut strips, opening frames, loudness, word check
+```
+
+Read `checks/opening.jpg` (the first 2.5 s) and `checks/cuts.jpg` (frames each side of every cut). Look for one-frame flashes, captions in the wrong style, empty panels. Loudness should be -14 LUFS, true peak at or under -1 dBTP.
+
+Send the user the MP4. Say plainly what you checked and what you could not (you cannot hear the mix; say so).
+
+## 7. Turn notes into rules
+
+When the user gives a note on a draft:
+
+1. Fix the edit.
+2. Decide where the fix belongs: a rule in `docs/RULES.md`, a check in `tools/`, or a change to a component in `src/`. Prefer a check or code change over a written rule when the problem can be detected or prevented mechanically.
+3. Add a row to the log in `docs/RULES.md`: the note, in the user's words, and what changed.
+
+The same note should never be needed twice.

@@ -1,0 +1,307 @@
+{
+  "title": "OpenCodeReview",
+  "face": {
+    "x": 0.49,
+    "y": 0.22,
+    "h": 0.36
+  },
+  "accents": [
+    "essential",
+    "OpenCodeReview",
+    "false",
+    "Deterministic",
+    "automatically"
+  ],
+  "music": false,
+  "shots": [
+    {
+      "at": "If you're building",
+      "layout": "split",
+      "note": "Hook: open on the product working, a real review running in its terminal",
+      "visual": {
+        "kind": "image",
+        "src": "assets/captures/site.png",
+        "frame": "browser",
+        "url": "open-codereview.ai",
+        "from": [
+          0.445,
+          0.118,
+          0.47,
+          0.277
+        ],
+        "to": [
+          0.455,
+          0.14,
+          0.36,
+          0.2
+        ]
+      }
+    },
+    {
+      "at": "having a good",
+      "layout": "full"
+    },
+    {
+      "at": "is essential",
+      "layout": "punch"
+    },
+    {
+      "at": "One of the biggest",
+      "layout": "split",
+      "visual": {
+        "kind": "logos",
+        "items": [
+          {
+            "src": "assets/logos/alibaba.png",
+            "name": "Alibaba",
+            "at": "biggest"
+          }
+        ]
+      }
+    },
+    {
+      "at": "open sourced",
+      "layout": "split",
+      "note": "Proof: the real repo, then the star count",
+      "visual": {
+        "kind": "image",
+        "src": "assets/captures/repo.png",
+        "frame": "browser",
+        "url": "github.com/alibaba/open-code-review",
+        "from": [
+          0.0,
+          0.05,
+          0.62,
+          0.37
+        ],
+        "to": [
+          0.7,
+          0.1,
+          0.3,
+          0.176
+        ],
+        "highlight": [
+          {
+            "rect": [
+              0.888,
+              0.128,
+              0.086,
+              0.018
+            ],
+            "at": "AI code review"
+          }
+        ]
+      }
+    },
+    {
+      "at": "which they've been",
+      "layout": "media",
+      "visual": {
+        "kind": "image",
+        "src": "assets/captures/readme-mobile.png",
+        "frame": "card",
+        "from": [
+          0,
+          0.09,
+          1,
+          0.0671
+        ],
+        "to": [
+          0,
+          0.1,
+          1,
+          0.0671
+        ],
+        "highlight": [
+          {
+            "rect": [
+              0.21,
+              0.1097,
+              0.53,
+              0.0031
+            ],
+            "at": "internally"
+          },
+          {
+            "rect": [
+              0.22,
+              0.1129,
+              0.375,
+              0.003
+            ],
+            "at": "past two years"
+          }
+        ]
+      }
+    },
+    {
+      "at": "It's called",
+      "layout": "split",
+      "visual": {
+        "kind": "logos",
+        "items": [
+          {
+            "src": "assets/logos/ocr.svg",
+            "name": "OpenCodeReview",
+            "at": "OpenCodeReview"
+          }
+        ]
+      }
+    },
+    {
+      "at": "The big problem",
+      "layout": "full"
+    },
+    {
+      "at": "they flag",
+      "layout": "split",
+      "visual": {
+        "kind": "title",
+        "kicker": "The big problem",
+        "text": "Too many *false* positives"
+      }
+    },
+    {
+      "at": "This tool fixes",
+      "layout": "punch"
+    },
+    {
+      "at": "by not letting",
+      "layout": "full"
+    },
+    {
+      "at": "Deterministic code will",
+      "layout": "split",
+      "note": "The mechanism, in Alibaba's own words",
+      "visual": {
+        "kind": "image",
+        "src": "assets/captures/repo.png",
+        "frame": "browser",
+        "url": "github.com/alibaba/open-code-review",
+        "from": [
+          0.755,
+          0.195,
+          0.235,
+          0.14
+        ],
+        "to": [
+          0.76,
+          0.225,
+          0.21,
+          0.125
+        ],
+        "highlight": [
+          {
+            "rect": [
+              0.762,
+              0.25,
+              0.208,
+              0.016
+            ],
+            "at": "search your"
+          }
+        ]
+      }
+    },
+    {
+      "at": "to find the files",
+      "layout": "media",
+      "visual": {
+        "kind": "steps",
+        "title": "*Code* decides",
+        "items": [
+          {
+            "text": "Which files to read",
+            "at": "find the files"
+          },
+          {
+            "text": "What to check for",
+            "at": "what to check"
+          }
+        ]
+      }
+    },
+    {
+      "at": "and then AI",
+      "layout": "split",
+      "visual": {
+        "kind": "compare",
+        "left": {
+          "label": "Code",
+          "text": "Finds the files"
+        },
+        "right": {
+          "label": "AI",
+          "text": "Finds the real issues",
+          "at": "real issues"
+        }
+      }
+    },
+    {
+      "at": "It runs locally",
+      "layout": "full"
+    },
+    {
+      "at": "install it as",
+      "layout": "split",
+      "visual": {
+        "kind": "terminal",
+        "title": "Claude Code",
+        "lines": [
+          {
+            "text": "/plugin marketplace add alibaba/open-code-review",
+            "at": "plugin"
+          },
+          {
+            "text": "/plugin install open-code-review",
+            "at": "Claude Code"
+          }
+        ]
+      }
+    },
+    {
+      "at": "and you can also",
+      "layout": "punch"
+    },
+    {
+      "at": "on GitHub",
+      "layout": "split",
+      "visual": {
+        "kind": "logos",
+        "items": [
+          {
+            "src": "assets/logos/github.svg",
+            "name": "GitHub",
+            "at": "GitHub"
+          }
+        ]
+      }
+    },
+    {
+      "at": "every single time",
+      "layout": "split",
+      "visual": {
+        "kind": "steps",
+        "items": [
+          {
+            "text": "Push a change",
+            "at": "push a change"
+          },
+          {
+            "text": "Reviewed *automatically*",
+            "at": "automatically"
+          }
+        ]
+      }
+    },
+    {
+      "at": "reviewed",
+      "layout": "punch"
+    }
+  ],
+  "grade": {
+    "brightness": 1.12,
+    "contrast": 1.06,
+    "saturate": 1.0
+  }
+}

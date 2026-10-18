@@ -1,0 +1,352 @@
+import React from "react";
+import { Video } from "@remotion/media";
+import { Img, interpolate, staticFile } from "remotion";
+import { clamp, ease, t } from "./theme";
+import type { ResolvedShot, ResolvedVisual } from "./schema";
+
+type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number };
+type V<K extends ResolvedVisual["kind"]> = Extract<ResolvedVisual, { kind: K }> & { times?: number[]; size?: [number, number] };
+
+const src = (slug: string, p: string) => (/^https?:/.test(p) ? p : staticFile(`${slug}/${p}`));
+// 0 to 1 over `dur` seconds from `at`, eased.
+const prog = (time: number, at: number, dur = 0.45) => interpolate(time, [at, at + dur], [0, 1], { ...clamp, easing: ease });
+
+// Text with *one accent* set in Signifier italic.
+export const Accented: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {text.split(/(\*[^*]+\*)/).map((part, i) =>
+      part.startsWith("*") ? (
+        <span key={i} style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5 }}>
+          {part.slice(1, -1)}
+        </span>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      ),
+    )}
+  </>
+);
+
+// A real capture, framed as a card or a browser window, with a camera that moves
+// from one region to another and a marker that sweeps across what is being said.
+const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w, h, v }) => {
+  const [iw, ih] = v.size ?? [1600, 1000];
+  const chrome = v.frame === "browser" ? 64 : 0;
+  const pad = v.frame === "none" ? 0 : 0;
+  const vw = w - pad * 2;
+  const vh = h - chrome - pad * 2;
+  // Default camera: the top of the image at full width, easing slightly closer.
+  const topRect: [number, number, number, number] = [0, 0, 1, Math.min(1, (vh / vw) * (iw / ih))];
+  const from = v.from ?? topRect;
+  const to = v.to ?? [from[0] + from[2] * 0.03, from[1] + from[3] * 0.03, from[2] * 0.94, from[3] * 0.94];
+  const p = interpolate(time, [shot.start, shot.end], [0, 1], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 2.2) });
+  const rect = from.map((a, i) => a + (to[i] - a) * p) as [number, number, number, number];
+  // The rect fills the viewport; whichever side overflows is cropped. Small UI never floats in empty space.
+  const k = Math.max(vw / (rect[2] * iw), vh / (rect[3] * ih));
+  const left = vw / 2 - (rect[0] + rect[2] / 2) * iw * k;
+  const top = vh / 2 - (rect[1] + rect[3] / 2) * ih * k;
+  const enter = prog(time, shot.start, 0.35);
+
+  return (
+    <div
+      style={{
+        width: w,
+        height: h,
+        borderRadius: v.frame === "none" ? 0 : 26,
+        overflow: "hidden",
+        background: t.card,
+        boxShadow: v.frame === "none" ? "none" : t.shadow,
+        border: v.frame === "none" ? "none" : `1px solid ${t.line}`,
+        translate: `0 ${(1 - enter) * 30}px`,
+      }}
+    >
+      {v.frame === "browser" && (
+        <div style={{ height: chrome, display: "flex", alignItems: "center", gap: 12, padding: "0 26px", borderBottom: `1px solid ${t.line}`, background: "#FAFAF8" }}>
+          {["#E5E3DE", "#E5E3DE", "#E5E3DE"].map((c, i) => (
+            <div key={i} style={{ width: 16, height: 16, borderRadius: 8, background: c }} />
+          ))}
+          {v.url && (
+            <div style={{ marginLeft: 18, flex: 1, height: 38, borderRadius: 19, background: "#EFEDE8", display: "flex", alignItems: "center", padding: "0 20px", fontFamily: t.sans, fontSize: 22, color: t.muted, whiteSpace: "nowrap", overflow: "hidden" }}>
+              {v.url}
+            </div>
+          )}
+        </div>
+      )}
+      <div style={{ position: "relative", width: vw, height: vh, overflow: "hidden" }}>
+        <div style={{ position: "absolute", left, top, width: iw * k, height: ih * k }}>
+          <Img src={src(slug, v.src)} style={{ width: "100%", height: "100%", display: "block" }} />
+          {v.highlight.map((hl, i) => {
+            const at = v.times?.[i] ?? shot.start + 0.3;
+            const sweep = prog(time, at, 0.35);
+            return (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: `${hl.rect[0] * 100}%`,
+                  top: `${hl.rect[1] * 100}%`,
+                  width: `${hl.rect[2] * 100}%`,
+                  height: `${hl.rect[3] * 100}%`,
+                  background: t.highlight,
+                  borderRadius: 6,
+                  scale: `${sweep} 1`,
+                  transformOrigin: "left center",
+                  mixBlendMode: "multiply",
+                }}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w, h, v }) => {
+  const p = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
+  return (
+    <div style={{ width: w, height: h, overflow: "hidden", borderRadius: 26, boxShadow: t.shadow }}>
+      <Video src={src(slug, v.src)} muted trimBefore={Math.round(v.start * 30)} objectFit="cover" style={{ width: "100%", height: "100%", scale: String(1.02 + 0.05 * p) }} />
+    </div>
+  );
+};
+
+// Official logos on white tiles. Each one lands on its spoken word.
+const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w, h, v }) => {
+  const n = v.items.length;
+  const tile = n === 1 ? Math.min(400, h * 0.55) : n === 2 ? 300 : n === 3 ? 250 : 210;
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 46 }}>
+      <div style={{ display: "flex", gap: n > 3 ? 30 : 48, flexWrap: "wrap", justifyContent: "center", maxWidth: w }}>
+        {v.items.map((it, i) => {
+          const at = v.times?.[i] ?? shot.start + i * 0.12;
+          const p = prog(time, at, 0.5);
+          const settle = interpolate(time, [at, at + 0.5], [1.12, 1], { ...clamp, easing: ease });
+          return (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, opacity: p, translate: `0 ${(1 - p) * 40}px` }}>
+              <div style={{ width: tile, height: tile, borderRadius: tile * 0.22, background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, display: "flex", alignItems: "center", justifyContent: "center", scale: String(settle) }}>
+                <Img src={src(slug, it.src)} style={{ width: tile * 0.58, height: tile * 0.58, objectFit: "contain" }} />
+              </div>
+              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: n === 1 ? 64 : 40, letterSpacing: -1, color: t.ink }}>{it.name}</div>}
+            </div>
+          );
+        })}
+      </div>
+      {v.caption && (
+        <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: 52, color: t.muted, opacity: prog(time, shot.start + 0.3) }}>{v.caption}</div>
+      )}
+    </div>
+  );
+};
+
+// A headline that builds word by word, with a rule drawing under it.
+const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v }) => {
+  const words = v.text.split(/\s+/);
+  const size = v.text.length > 34 ? 92 : v.text.length > 20 ? 112 : 132;
+  let k = 0;
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 36 }}>
+      {v.kicker && (
+        <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 30, letterSpacing: 6, textTransform: "uppercase", color: t.muted, opacity: prog(time, shot.start) }}>{v.kicker}</div>
+      )}
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: `0 ${size * 0.26}px`, maxWidth: w - 40 }}>
+        {words.map((word, i) => {
+          const accent = word.startsWith("*");
+          const p = prog(time, shot.start + 0.06 * k++, 0.4);
+          return (
+            <span key={i} style={{ display: "inline-block", overflow: "hidden", paddingBottom: size * 0.12 }}>
+              <span
+                style={{
+                  display: "inline-block",
+                  translate: `0 ${(1 - p) * size}px`,
+                  fontFamily: accent ? t.serif : t.sans,
+                  fontStyle: accent ? "italic" : "normal",
+                  fontWeight: accent ? 400 : 700,
+                  fontSize: accent ? size * 1.08 : size,
+                  letterSpacing: accent ? -1 : -size * 0.035,
+                  lineHeight: 1,
+                  color: t.ink,
+                }}
+              >
+                {word.replace(/\*/g, "")}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+      <div style={{ width: 200, height: 3, background: t.ink, scale: `${prog(time, shot.start + 0.25, 0.6)} 1`, transformOrigin: "left" }} />
+    </div>
+  );
+};
+
+// Rows that arrive as each item is spoken; the newest is active, earlier ones step back.
+const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v }) => {
+  const n = v.items.length;
+  const times = v.times ?? v.items.map((_, i) => shot.start + i * 0.12);
+  const current = v.active ?? Math.max(0, times.filter((x) => time >= x).length - 1);
+  const rowH = Math.min(150, (h - (v.title ? 120 : 0)) / n - 18);
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
+      {v.title && (
+        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 64, letterSpacing: -2, color: t.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
+          <Accented text={v.title} />
+        </div>
+      )}
+      {v.items.map((it, i) => {
+        const p = prog(time, times[i], 0.45);
+        const on = i === current;
+        return (
+          <div
+            key={i}
+            style={{
+              height: rowH,
+              display: "flex",
+              alignItems: "center",
+              gap: 34,
+              padding: "0 40px",
+              borderRadius: 24,
+              background: t.card,
+              border: `1.5px solid ${on ? t.ink : t.line}`,
+              boxShadow: on ? t.shadow : "none",
+              opacity: p * (on ? 1 : 0.55),
+              translate: `${(1 - p) * 80}px 0`,
+            }}
+          >
+            <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: rowH * 0.5, color: on ? t.accent : t.faint, width: rowH * 0.4 }}>{i + 1}</div>
+            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.min(56, rowH * 0.4), letterSpacing: -1, color: t.ink }}>
+              <Accented text={it.text} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// A process: nodes join by a line that draws as each step is spoken.
+const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v }) => {
+  const n = v.items.length;
+  const times = v.times ?? v.items.map((_, i) => shot.start + i * 0.3);
+  const gap = Math.min(250, (h - (v.title ? 140 : 0)) / n);
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 30 }}>
+      {v.title && (
+        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 84, letterSpacing: -3, color: t.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
+          <Accented text={v.title} />
+        </div>
+      )}
+      <div style={{ position: "relative", height: gap * n }}>
+        {v.items.map((it, i) => {
+          const p = prog(time, times[i], 0.45);
+          const line = i < n - 1 ? interpolate(time, [times[i] + 0.1, times[i + 1] ?? times[i] + 0.6], [0, 1], { ...clamp, easing: ease }) : 0;
+          const dot = 72;
+          return (
+            <React.Fragment key={i}>
+              {i < n - 1 && (
+                <div style={{ position: "absolute", left: dot / 2 - 1.5, top: i * gap + dot, width: 3, height: gap - dot, background: t.ink, scale: `1 ${line}`, transformOrigin: "top" }} />
+              )}
+              <div style={{ position: "absolute", top: i * gap, left: 0, display: "flex", alignItems: "center", gap: 36, opacity: 0.25 + 0.75 * p }}>
+                <div style={{ width: dot, height: dot, borderRadius: dot, border: `3px solid ${t.ink}`, background: p > 0.5 ? t.ink : t.canvas, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.serif, fontStyle: "italic", fontSize: 38, color: p > 0.5 ? t.canvas : t.ink }}>
+                  {i + 1}
+                </div>
+                <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 70, letterSpacing: -2, color: t.ink, translate: `${(1 - p) * 40}px 0` }}>
+                  <Accented text={it.text} />
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Old way against new way. When the new way lands, the old one is struck through.
+const CompareVisual: React.FC<Props & { v: V<"compare"> }> = ({ shot, time, w, h, v }) => {
+  const rightAt = v.times?.[0] ?? shot.start + 0.6;
+  const pl = prog(time, shot.start, 0.45);
+  const pr = prog(time, rightAt, 0.5);
+  const card = (label: string, text: string, p: number, right: boolean) => (
+    <div style={{ flex: 1, height: h * 0.8, borderRadius: 28, padding: 44, background: t.card, border: `1.5px solid ${right ? t.ink : t.line}`, boxShadow: right ? t.shadow : "none", display: "flex", flexDirection: "column", justifyContent: "space-between", opacity: p, translate: `0 ${(1 - p) * 50}px` }}>
+      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 28, letterSpacing: 5, textTransform: "uppercase", color: t.muted }}>{label}</div>
+      <div style={{ position: "relative", fontFamily: right ? t.serif : t.sans, fontStyle: right ? "italic" : "normal", fontWeight: right ? 400 : 700, fontSize: right ? 84 : 68, lineHeight: 1.02, letterSpacing: right ? -1 : -1.5, color: right ? t.ink : t.muted }}>
+        {text}
+        {!right && <div style={{ position: "absolute", left: -6, right: -6, top: "52%", height: 5, background: t.ink, scale: `${pr} 1`, transformOrigin: "left" }} />}
+      </div>
+    </div>
+  );
+  return (
+    <div style={{ width: w, height: h, display: "flex", alignItems: "center", gap: 28 }}>
+      {card(v.left.label, v.left.text, pl, false)}
+      {card(v.right.label, v.right.text, pr, true)}
+    </div>
+  );
+};
+
+const StatVisual: React.FC<Props & { v: V<"stat"> }> = ({ shot, time, w, h, v }) => {
+  const m = v.value.match(/^([^\d]*)([\d,.]+)(.*)$/);
+  const p = prog(time, shot.start, 0.9);
+  let shown = v.value;
+  if (m) {
+    const target = parseFloat(m[2].replace(/,/g, ""));
+    const decimals = (m[2].split(".")[1] || "").length;
+    shown = m[1] + (target * p).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + m[3];
+  }
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
+      <div style={{ fontFamily: t.serif, fontSize: v.value.length > 6 ? 220 : 300, lineHeight: 0.9, letterSpacing: -8, color: t.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
+      <div style={{ width: 160, height: 3, background: t.ink, scale: `${prog(time, shot.start + 0.3, 0.6)} 1`, transformOrigin: "left" }} />
+      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 52, letterSpacing: -1, color: t.muted, opacity: prog(time, shot.start + 0.2) }}>
+        <Accented text={v.label} />
+      </div>
+    </div>
+  );
+};
+
+// A terminal that types each line on its spoken word.
+const TerminalVisual: React.FC<Props & { v: V<"terminal"> }> = ({ shot, time, w, h, v }) => {
+  const times = v.times ?? v.lines.map((_, i) => shot.start + 0.2 + i * 0.6);
+  const enter = prog(time, shot.start, 0.35);
+  return (
+    <div style={{ width: w, minHeight: h * 0.5, borderRadius: 26, background: t.terminal, boxShadow: t.shadow, overflow: "hidden", translate: `0 ${(1 - enter) * 30}px` }}>
+      <div style={{ height: 66, display: "flex", alignItems: "center", gap: 12, padding: "0 28px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        {["#FF5F57", "#FEBC2E", "#28C840"].map((c) => (
+          <div key={c} style={{ width: 16, height: 16, borderRadius: 8, background: c, opacity: 0.85 }} />
+        ))}
+        {v.title && <div style={{ marginLeft: 16, fontFamily: t.sans, fontSize: 24, color: "rgba(255,255,255,0.5)" }}>{v.title}</div>}
+      </div>
+      <div style={{ padding: "44px 48px", display: "flex", flexDirection: "column", gap: 34 }}>
+        {v.lines.map((ln, i) => {
+          const at = times[i];
+          const typed = Math.floor(Math.max(0, (time - at) * 38));
+          if (time < at) return null;
+          const out = ln.text.startsWith(">");
+          const text = out ? ln.text.slice(1).trim() : ln.text;
+          const shown = out ? text : text.slice(0, typed);
+          const cursor = !out && typed < text.length + 8 && Math.floor(time * 2.5) % 2 === 0;
+          return (
+            <div key={i} style={{ fontFamily: t.mono, fontSize: 46, lineHeight: 1.28, color: out ? "rgba(255,255,255,0.55)" : "#F4F2EE", whiteSpace: "pre-wrap" }}>
+              {!out && <span style={{ color: "#8FA8E8" }}>$ </span>}
+              {shown}
+              {cursor && <span style={{ background: "#F4F2EE", color: "transparent" }}>_</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
+  const v = p.v;
+  switch (v.kind) {
+    case "image": return <ImageVisual {...p} v={v} />;
+    case "video": return <VideoVisual {...p} v={v} />;
+    case "logos": return <LogosVisual {...p} v={v} />;
+    case "title": return <TitleVisual {...p} v={v} />;
+    case "list": return <ListVisual {...p} v={v} />;
+    case "steps": return <StepsVisual {...p} v={v} />;
+    case "compare": return <CompareVisual {...p} v={v} />;
+    case "stat": return <StatVisual {...p} v={v} />;
+    case "terminal": return <TerminalVisual {...p} v={v} />;
+  }
+};

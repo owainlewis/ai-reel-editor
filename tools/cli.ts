@@ -1,0 +1,328 @@
+// reel: the mechanical half of the editor. Claude Code makes the creative calls
+// (see .claude/skills/edit-reel/SKILL.md); these commands do the rest.
+//
+//   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]
+//   npm run reel -- transcribe <slug>
+//   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
+//   npm run reel -- fetch <slug> <url> --name <file>
+//   npm run reel -- validate <slug>
+//   npm run reel -- stills <slug>
+//   npm run reel -- render <slug> [--draft]
+//   npm run reel -- check <slug>
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname, extname, join, resolve } from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { Edit, type Resolved, type Word } from "../src/schema.ts";
+import { chunkWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const FPS = 30;
+const project = (slug: string) => join(ROOT, "projects", slug);
+
+const args = process.argv.slice(2);
+const cmd = args[0];
+const flag = (name: string) => {
+  const i = args.indexOf(`--${name}`);
+  return i >= 0 ? args[i + 1] : undefined;
+};
+const has = (name: string) => args.includes(`--${name}`);
+// Positional arguments come before any --flag.
+const firstFlag = args.findIndex((a) => a.startsWith("--"));
+const positional = firstFlag < 0 ? args : args.slice(0, firstFlag);
+
+const run = (bin: string, argv: string[], opts: { cwd?: string; quiet?: boolean } = {}) => {
+  if (!opts.quiet) console.log(`  $ ${bin} ${argv.join(" ")}`.slice(0, 220));
+  const r = spawnSync(bin, argv, { cwd: opts.cwd ?? ROOT, stdio: opts.quiet ? "pipe" : "inherit", encoding: "utf8" });
+  if (r.status !== 0) throw new Error(`${bin} failed${opts.quiet ? `:\n${(r.stderr || "").slice(-2000)}` : ""}`);
+  return r;
+};
+const ffmpeg = (argv: string[]) => run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...argv]);
+const probeDuration = (file: string) =>
+  parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file], { encoding: "utf8" }));
+const sha = (file: string) => createHash("sha256").update(readFileSync(file)).digest("hex").slice(0, 16);
+const readJson = <T>(file: string): T => JSON.parse(readFileSync(file, "utf8"));
+const writeJson = (file: string, data: unknown) => {
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+};
+
+// Every captured or downloaded asset is logged with where it came from.
+const ledger = (dir: string, entry: Record<string, unknown>) => {
+  const file = join(dir, "assets", "ledger.json");
+  const rows: Record<string, unknown>[] = existsSync(file) ? readJson(file) : [];
+  writeJson(file, [...rows.filter((r) => r.file !== entry.file), { ...entry, at: new Date().toISOString() }]);
+};
+
+// Pixel size of a PNG or JPEG, so the renderer can frame captures exactly.
+const imageSize = (file: string): [number, number] | undefined => {
+  const b = readFileSync(file);
+  if (b.readUInt32BE(0) === 0x89504e47) return [b.readUInt32BE(16), b.readUInt32BE(20)];
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i < b.length) {
+      const marker = b[i + 1];
+      const len = b.readUInt16BE(i + 2);
+      if (marker >= 0xc0 && marker <= 0xc3) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];
+      i += 2 + len;
+    }
+  }
+  return undefined;
+};
+
+// Names Whisper otherwise mishears ("CodeCode" for Claude Code).
+const VOCAB = "Claude Code, Codex, Claude, Anthropic, OpenAI, GitHub, MCP, LLM, AI agents, Cursor, Gemini.";
+
+const VF = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30,setsar=1";
+
+function cmdNew(slug: string, video: string) {
+  const dir = project(slug);
+  for (const d of ["source", "assets/captures", "assets/logos", "assets/broll", "build", "renders", "checks"]) mkdirSync(join(dir, d), { recursive: true });
+  console.log("Normalising footage to 1080x1920 at 30 fps");
+  ffmpeg(["-i", video, "-vf", VF, "-c:v", "libx264", "-crf", "14", "-preset", "medium", "-pix_fmt", "yuv420p", "-an", join(dir, "source/talking.mp4")]);
+  ffmpeg(["-i", video, "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s24le", join(dir, "source/voice.wav")]);
+  ffmpeg(["-ss", "1", "-i", join(dir, "source/talking.mp4"), "-frames:v", "1", "-q:v", "3", join(dir, "checks/frame.jpg")]);
+  const broll = args.slice(args.indexOf("--broll") + 1).filter((a) => !a.startsWith("--"));
+  if (has("broll"))
+    for (const b of broll) {
+      const out = join(dir, "assets/broll", basename(b, extname(b)) + ".mp4");
+      ffmpeg(["-i", b, "-vf", VF, "-an", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", out]);
+      ledger(dir, { file: `assets/broll/${basename(out)}`, source: resolve(b), sha: sha(out) });
+    }
+  writeJson(join(dir, "project.json"), { slug, original: resolve(video), duration: probeDuration(join(dir, "source/talking.mp4")) });
+  console.log(`Created ${dir}\nNext: npm run reel -- transcribe ${slug}, then look at checks/frame.jpg to set "face" in edit.json`);
+}
+
+function cmdTranscribe(slug: string) {
+  const dir = project(slug);
+  const tmp = join(dir, "build/whisper");
+  mkdirSync(tmp, { recursive: true });
+  const vocab = flag("prompt") ?? VOCAB;
+  console.log("Transcribing with mlx-whisper (large-v3-turbo)");
+  run("uvx", ["--from", "mlx-whisper", "mlx_whisper", join(dir, "source/voice.wav"), "--model", "mlx-community/whisper-large-v3-turbo",
+    "--language", "en", "--word-timestamps", "True", "--output-format", "json", "--output-dir", tmp, "--initial-prompt", vocab], { quiet: true });
+  const data = readJson<{ segments: { words?: { word: string; start: number; end: number }[] }[] }>(join(tmp, "voice.json"));
+  const words: Word[] = data.segments.flatMap((s) => s.words ?? []).filter((w) => w.word.trim())
+    .map((w) => ({ text: w.word.trim(), start: +w.start.toFixed(3), end: +w.end.toFixed(3) }));
+  writeJson(join(dir, "transcript.json"), words);
+  const lines = words.map((w, i) => `${String(i).padStart(3)}  ${w.start.toFixed(2).padStart(6)}-${w.end.toFixed(2).padEnd(6)} ${w.text}`);
+  writeFileSync(join(dir, "transcript.txt"), lines.join("\n") + "\n");
+  console.log(words.map((w) => w.text).join(" "));
+  console.log(`\n${words.length} words -> transcript.json, transcript.txt. Check names are spelled right; fix transcript.json by hand if not.`);
+}
+
+const chromePath = () => {
+  const candidates = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/Applications/Chromium.app/Contents/MacOS/Chromium"];
+  const found = candidates.find(existsSync);
+  if (!found) throw new Error("Chrome not found. Install Google Chrome.");
+  return found;
+};
+
+async function cmdCapture(slug: string, url: string) {
+  const name = flag("name");
+  if (!name) throw new Error("--name is required");
+  const { default: puppeteer } = await import("puppeteer-core");
+  const dir = project(slug);
+  const width = parseInt(flag("width") ?? "1280");
+  const height = parseInt(flag("height") ?? "1600");
+  const browser = await puppeteer.launch({ executablePath: chromePath(), headless: true, args: ["--hide-scrollbars"] });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width, height, deviceScaleFactor: 2 });
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: has("dark") ? "dark" : "light" }]);
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    await new Promise((r) => setTimeout(r, parseInt(flag("wait") ?? "800")));
+    // Remove cookie banners rather than accepting them.
+    await page.evaluate(() => {
+      document.querySelectorAll('[id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i]').forEach((el) => {
+        const s = getComputedStyle(el as Element);
+        if (s.position === "fixed" || s.position === "sticky") (el as HTMLElement).remove();
+      });
+    });
+    const out = join(dir, "assets/captures", `${name}.png`);
+    const selector = flag("selector");
+    if (selector) {
+      const el = await page.$(selector);
+      if (!el) throw new Error(`selector not found: ${selector}`);
+      await el.screenshot({ path: out as `${string}.png` });
+    } else {
+      await page.screenshot({ path: out as `${string}.png`, fullPage: has("full") });
+    }
+    ledger(dir, { file: `assets/captures/${name}.png`, url, viewport: `${width}x${height}@2x`, selector, sha: sha(out) });
+    console.log(`Saved ${out}`);
+  } finally {
+    await browser.close();
+  }
+}
+
+async function cmdFetch(slug: string, url: string) {
+  const name = flag("name");
+  if (!name) throw new Error("--name is required, with extension, e.g. github.svg");
+  const dir = project(slug);
+  const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 ai-reel-editor" } });
+  if (!res.ok) throw new Error(`${res.status} ${url}`);
+  const out = join(dir, "assets/logos", name);
+  writeFileSync(out, Buffer.from(await res.arrayBuffer()));
+  ledger(dir, { file: `assets/logos/${name}`, url, sha: sha(out) });
+  console.log(`Saved ${out}`);
+}
+
+function cmdValidate(slug: string, quiet = false): Resolved {
+  const dir = project(slug);
+  const meta = readJson<{ duration: number }>(join(dir, "project.json"));
+  const words = readJson<Word[]>(join(dir, "transcript.json"));
+  const parsed = Edit.safeParse(readJson(join(dir, "edit.json")));
+  if (!parsed.success) {
+    console.error(parsed.error.issues.map((i) => `  error  ${i.path.join(".")}: ${i.message}`).join("\n"));
+    throw new Error("edit.json does not match the schema (src/schema.ts)");
+  }
+  const plan = parsed.data;
+  const { shots, issues } = resolveShots(plan, words, meta.duration, FPS);
+  issues.push(...lintShots(shots, meta.duration));
+
+  // Assets must exist, and a b-roll clip is used once per reel.
+  const seen = new Set<string>();
+  for (const s of shots) {
+    const v = s.visual;
+    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" ? v.items.map((i) => i.src) : [];
+    for (const src of srcs) if (!existsSync(join(dir, src))) issues.push({ level: "error", message: `missing asset ${src}` });
+    if (v?.kind === "image" && existsSync(join(dir, v.src))) {
+      const size = imageSize(join(dir, v.src));
+      s.visual = { ...v, size };
+      // Readability: captures are taken at 2x, so page text of 16 CSS px is 32 image px.
+      // On the 1080 frame it should be at least about 32 px, or it is unreadable on a phone.
+      if (size && v.to) {
+        const vw = 960;
+        const vh = (s.layout === "split" ? 730 : 1060) - (v.frame === "browser" ? 64 : 0);
+        const k = Math.max(vw / (v.to[2] * size[0]), vh / (v.to[3] * size[1]));
+        if (k * 32 < 30) issues.push({ level: "warn", message: `"${s.anchor}": ${v.src} ends too wide; 16px page text shows at ${Math.round(k * 32)}px. Tighten "to".` });
+      }
+    }
+    if (v?.kind === "video") {
+      if (seen.has(v.src)) issues.push({ level: "error", message: `b-roll ${v.src} is used twice` });
+      seen.add(v.src);
+    }
+  }
+  const allText = words.map((w) => w.text.toLowerCase()).join(" ");
+  for (const a of plan.accents) if (!allText.includes(a.toLowerCase())) issues.push({ level: "warn", message: `accent word not spoken: "${a}"` });
+
+  const resolved: Resolved = {
+    slug,
+    title: plan.title,
+    duration: meta.duration,
+    fps: FPS,
+    video: `${slug}/source/talking.mp4`,
+    audio: existsSync(join(dir, "build/mix.wav")) ? `${slug}/build/mix.wav` : null,
+    face: plan.face,
+    grade: plan.grade,
+    shots,
+    chunks: chunkWords(words, plan.accents, shots.map((s) => s.start).slice(1), FPS),
+    sfx: sfxEvents(shots),
+  };
+  writeJson(join(dir, "build/edit.resolved.json"), resolved);
+  writeJson(join(dir, "build/audio.json"), { duration: meta.duration, music: plan.music, voiceGain: plan.voiceGain, sfx: resolved.sfx });
+
+  if (!quiet) {
+    console.log(`\n${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
+    for (const s of shots)
+      console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
+    const mix = Object.fromEntries(["full", "punch", "split", "media"].map((l) => [l, 0]));
+    for (const s of shots) mix[s.layout] += s.end - s.start;
+    const avg = meta.duration / shots.length;
+    console.log(`\n  average shot ${avg.toFixed(2)}s; ` + Object.entries(mix).map(([l, t]) => `${l} ${Math.round((100 * t) / meta.duration)}%`).join(", "));
+  }
+  for (const i of issues) console.log(`  ${i.level === "error" ? "ERROR" : "warn "}  ${i.message}`);
+  if (issues.some((i) => i.level === "error")) throw new Error("fix the errors above");
+  return resolved;
+}
+
+function cmdAudio(slug: string) {
+  const dir = project(slug);
+  run("uv", ["run", "--quiet", "--with", "numpy", "--with", "scipy", "--with", "soundfile", "python", "-m", "audio.mix", dir]);
+}
+
+const remotion = (argv: string[]) => run("npx", ["remotion", ...argv]);
+
+function cmdRender(slug: string) {
+  const dir = project(slug);
+  cmdValidate(slug, true);
+  cmdAudio(slug);
+  const resolved = cmdValidate(slug, true);
+  const draft = has("draft");
+  const out = join(dir, "renders", draft ? "draft.mp4" : "final.mp4");
+  remotion(["render", "src/index.ts", "Reel", out, `--props=${join(dir, "build/edit.resolved.json")}`, ...(draft ? ["--scale=0.5", "--crf=26"] : [])]);
+  console.log(`\nRendered ${out} (${resolved.duration.toFixed(1)}s)`);
+}
+
+function cmdStills(slug: string) {
+  const dir = project(slug);
+  const r = cmdValidate(slug, true);
+  const out = join(dir, "checks/stills");
+  mkdirSync(out, { recursive: true });
+  for (const f of readdirSync(out)) if (f.endsWith(".jpg")) execFileSync("rm", [join(out, f)]);
+  // One still per shot, a little after the cut so reveals have started.
+  r.shots.forEach((s, i) => {
+    const t = Math.min(s.end - 0.05, s.start + Math.min(0.9, (s.end - s.start) * 0.7));
+    remotion(["still", "src/index.ts", "Reel", join(out, `${String(i + 1).padStart(2, "0")}.jpg`), `--props=${join(dir, "build/edit.resolved.json")}`,
+      `--frame=${Math.round(t * FPS)}`, "--scale=0.4", "--log=error"]);
+  });
+  ffmpeg(["-pattern_type", "glob", "-i", join(out, "*.jpg"), "-vf", `tile=${Math.min(8, r.shots.length)}x${Math.ceil(r.shots.length / 8)}:padding=8:color=white`, join(dir, "checks/stills.jpg")]);
+  console.log(`Contact sheet: ${join(dir, "checks/stills.jpg")}`);
+}
+
+function cmdCheck(slug: string) {
+  const dir = project(slug);
+  const file = existsSync(join(dir, "renders/final.mp4")) ? join(dir, "renders/final.mp4") : join(dir, "renders/draft.mp4");
+  const r = readJson<Resolved>(join(dir, "build/edit.resolved.json"));
+  const checks = join(dir, "checks");
+  console.log(`Checking ${file}`);
+  // Two frames each side of every cut, in order, to catch one-frame glitches.
+  mkdirSync(join(checks, "cuts"), { recursive: true });
+  r.shots.slice(1).forEach((s, i) => {
+    const t0 = Math.max(0, s.start - 2 / FPS);
+    ffmpeg(["-ss", t0.toFixed(3), "-i", file, "-vf", "scale=180:-1,tile=4x1", "-frames:v", "1", join(checks, "cuts", `${String(i + 2).padStart(2, "0")}.jpg`)]);
+  });
+  ffmpeg(["-pattern_type", "glob", "-i", join(checks, "cuts", "*.jpg"), "-vf", "tile=2x10:padding=6:color=white", join(checks, "cuts.jpg")]);
+  // The first 2.5 seconds frame by frame at low size: the hook gate.
+  ffmpeg(["-i", file, "-t", "2.5", "-vf", "fps=6,scale=180:-1,tile=8x2", "-frames:v", "1", join(checks, "opening.jpg")]);
+  // Loudness of the delivered file.
+  const ln = spawnSync("ffmpeg", ["-hide_banner", "-i", file, "-af", "loudnorm=print_format=json", "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const stats = JSON.parse(ln.slice(ln.lastIndexOf("{"), ln.lastIndexOf("}") + 1));
+  console.log(`  loudness ${stats.input_i} LUFS, true peak ${stats.input_tp} dBTP (target -14, <= -1)${stats.input_tp > -1 ? "  TOO HOT" : ""}`);
+  // Every word survives: re-transcribe the render and compare.
+  const tmp = join(dir, "build/check-whisper");
+  mkdirSync(tmp, { recursive: true });
+  ffmpeg(["-i", file, "-vn", "-ac", "1", "-ar", "16000", join(tmp, "render.wav")]);
+  run("uvx", ["--from", "mlx-whisper", "mlx_whisper", join(tmp, "render.wav"), "--model", "mlx-community/whisper-large-v3-turbo", "--language", "en",
+    "--output-format", "txt", "--output-dir", tmp, "--initial-prompt", VOCAB], { quiet: true });
+  // Compare without apostrophes or spaces, so "you're" and "OpenCodeReview" match however Whisper splits them.
+  const heard = readFileSync(join(tmp, "render.txt"), "utf8").toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "");
+  const orig = readJson<Word[]>(join(dir, "transcript.json")).map((w) => w.text.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "")).filter(Boolean);
+  const missing = orig.filter((w) => !heard.includes(w));
+  console.log(`  words: ${orig.length} in source, ${missing.length} not heard in render${missing.length ? `: ${missing.slice(0, 12).join(", ")}` : ""}`);
+  console.log(`  review: checks/opening.jpg, checks/cuts.jpg, checks/stills.jpg`);
+}
+
+async function main() {
+  const [, slug, third] = positional;
+  switch (cmd) {
+    case "new": return cmdNew(slug, third);
+    case "transcribe": return cmdTranscribe(slug);
+    case "capture": return cmdCapture(slug, third);
+    case "fetch": return cmdFetch(slug, third);
+    case "validate": return void cmdValidate(slug);
+    case "audio": cmdValidate(slug, true); return cmdAudio(slug);
+    case "stills": return cmdStills(slug);
+    case "render": return cmdRender(slug);
+    case "check": return cmdCheck(slug);
+    default:
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 13).join("\n"));
+  }
+}
+
+main().catch((e) => {
+  console.error(`\n${e.message}`);
+  process.exit(1);
+});
+
