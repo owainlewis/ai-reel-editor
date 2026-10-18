@@ -5,6 +5,8 @@ Newest first. "Where" says what enforces it.
 
 | Date | Note | Rule | Where |
 | --- | --- | --- | --- |
+| 2026-10-18 | (study of 4 top reels) No on-screen text in frame 1; viewers lose the topic when muted. | `header` lands large in frame 1 and docks above the panel; shots can start chapters. | `src/Reel.tsx`, `src/schema.ts` |
+| 2026-10-18 | (self-review) Changing the panel's shape clipped text in every capture framed for the old shape. | A capture rect is the region that must stay visible; the camera widens it to the panel with surrounding page. | `src/camera.ts`, tested |
 | 2026-10-18 | "React split is the best. Make it a format option with its own lint rules, and use it as the default for tool drops." | `format` in edit.json: `react` (default, tool drops) or `mixed`. Each has its own lint rules. | `src/schema.ts`, `lintShots`, tested |
 | 2026-10-18 | (self-review) GitHub's sticky README tab bar was baked into a full-element capture, mid-page. | `capture` sets sticky elements to static before the screenshot. | `tools/cli.ts` |
 | 2026-10-18 | (self-review) A full-frame card showed over the previous shot for one frame. | Shot boundaries snap to the frame grid so a layout and its visual switch on the same frame. | `tools/resolve.ts`, tested |

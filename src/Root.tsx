@@ -14,6 +14,7 @@ const empty: Resolved = {
   audio: null,
   face: { x: 0.5, y: 0.25, h: 0.2 },
   grade: { brightness: 1, contrast: 1, saturate: 1 },
+  split: "half",
   shots: [],
   chunks: [],
   sfx: [],

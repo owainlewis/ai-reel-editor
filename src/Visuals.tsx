@@ -1,6 +1,7 @@
 import React from "react";
 import { Video } from "@remotion/media";
 import { Img, interpolate, staticFile } from "remotion";
+import { frameRect } from "./camera";
 import { clamp, ease, t } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
@@ -40,10 +41,8 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
   const to = v.to ?? [from[0] + from[2] * 0.03, from[1] + from[3] * 0.03, from[2] * 0.94, from[3] * 0.94];
   const p = interpolate(time, [shot.start, shot.end], [0, 1], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 2.2) });
   const rect = from.map((a, i) => a + (to[i] - a) * p) as [number, number, number, number];
-  // The rect fills the viewport; whichever side overflows is cropped. Small UI never floats in empty space.
-  const k = Math.max(vw / (rect[2] * iw), vh / (rect[3] * ih));
-  const left = vw / 2 - (rect[0] + rect[2] / 2) * iw * k;
-  const top = vh / 2 - (rect[1] + rect[3] / 2) * ih * k;
+  // The rect must stay visible; the camera fills the rest of the panel with the page around it.
+  const { k, left, top } = frameRect(rect, iw, ih, vw, vh);
   const enter = prog(time, shot.start, 0.35);
 
   return (
@@ -93,6 +92,34 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
                   mixBlendMode: "multiply",
                 }}
               />
+            );
+          })}
+          {/* Callouts: a label above the highlighted region, joined by a short line. */}
+          {v.highlight.map((hl, i) => {
+            if (!hl.label) return null;
+            const at = (v.times?.[i] ?? shot.start + 0.3) + 0.15;
+            const p = prog(time, at, 0.35);
+            return (
+              <div
+                key={`c${i}`}
+                style={{
+                  position: "absolute",
+                  left: `${hl.rect[0] * 100}%`,
+                  top: `${hl.rect[1] * 100}%`,
+                  translate: "0 -100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  opacity: p,
+                  scale: String(0.9 + 0.1 * p),
+                  transformOrigin: "left bottom",
+                }}
+              >
+                <div style={{ padding: "8px 18px", borderRadius: 12, background: t.ink, color: "#fff", fontFamily: t.sans, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, whiteSpace: "nowrap", boxShadow: t.shadow }}>
+                  {hl.label}
+                </div>
+                <div style={{ width: 2, height: 22, marginLeft: 22, background: t.ink }} />
+              </div>
             );
           })}
         </div>
@@ -200,8 +227,10 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
         </div>
       )}
       {v.items.map((it, i) => {
-        const p = prog(time, times[i], 0.45);
-        const on = i === current;
+        const arrived = prog(time, times[i], 0.45);
+        // With preview, every item is visible from the start, dimmed and soft, and sharpens as it is reached.
+        const p = v.preview ? 1 : arrived;
+        const on = i === current && time >= times[i] - 0.05;
         return (
           <div
             key={i}
@@ -215,7 +244,8 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
               background: t.card,
               border: `1.5px solid ${on ? t.ink : t.line}`,
               boxShadow: on ? t.shadow : "none",
-              opacity: p * (on ? 1 : 0.55),
+              opacity: v.preview ? 0.3 + 0.7 * (on ? 1 : arrived * 0.6) : p * (on ? 1 : 0.55),
+              filter: v.preview ? `blur(${(1 - arrived) * 4}px)` : undefined,
               translate: `${(1 - p) * 80}px 0`,
             }}
           >
@@ -344,6 +374,48 @@ const TerminalVisual: React.FC<Props & { v: V<"terminal"> }> = ({ shot, time, w,
   );
 };
 
+// A chat input where a prompt types itself out, like the real app.
+const PromptVisual: React.FC<Props & { v: V<"prompt"> }> = ({ shot, time, w, h, v }) => {
+  const at = v.times?.[0] ?? shot.start + 0.2;
+  const typed = Math.floor(Math.max(0, (time - at) * 32));
+  const shown = v.text.slice(0, typed);
+  const done = typed >= v.text.length;
+  const enter = prog(time, shot.start, 0.35);
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36, translate: `0 ${(1 - enter) * 30}px` }}>
+      <div style={{ fontFamily: t.serif, fontSize: 64, color: t.ink, textAlign: "center" }}>{v.app}</div>
+      <div style={{ borderRadius: 32, background: t.card, border: `1.5px solid ${t.line}`, boxShadow: t.shadow, padding: "36px 40px 28px", display: "flex", flexDirection: "column", gap: 28 }}>
+        <div style={{ minHeight: 120, fontFamily: t.sans, fontSize: 46, lineHeight: 1.3, color: t.ink, whiteSpace: "pre-wrap" }}>
+          {shown || <span style={{ color: t.faint }}>Reply to {v.app}...</span>}
+          {!done && Math.floor(time * 2.5) % 2 === 0 && <span style={{ borderLeft: `3px solid ${t.ink}`, marginLeft: 2 }} />}
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ width: 64, height: 64, borderRadius: 18, background: done ? t.accent : t.faint, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: 36 }}>↑</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// The end card: what to comment, what they get, and the resource itself when there is one.
+const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, v }) => {
+  const a = prog(time, shot.start, 0.4);
+  const b = prog(time, shot.start + 0.15, 0.5);
+  return (
+    <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 34 }}>
+      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 96, letterSpacing: -3, color: t.ink, textAlign: "center", lineHeight: 1, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
+        Comment <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -1 }}>“{v.keyword}”</span>
+      </div>
+      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 46, color: t.muted, textAlign: "center", opacity: a }}>{v.text}</div>
+      {v.src && (
+        <div style={{ width: w * 0.86, height: h * 0.5, borderRadius: 26, overflow: "hidden", background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, opacity: b, translate: `0 ${(1 - b) * 40}px` }}>
+          <Img src={src(slug, v.src)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
   const v = p.v;
   switch (v.kind) {
@@ -356,5 +428,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "compare": return <CompareVisual {...p} v={v} />;
     case "stat": return <StatVisual {...p} v={v} />;
     case "terminal": return <TerminalVisual {...p} v={v} />;
+    case "prompt": return <PromptVisual {...p} v={v} />;
+    case "cta": return <CtaVisual {...p} v={v} />;
   }
 };

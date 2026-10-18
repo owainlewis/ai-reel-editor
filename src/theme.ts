@@ -18,11 +18,22 @@ export const t = {
   shadow: "0 2px 4px rgba(20,20,30,0.04), 0 18px 50px rgba(20,20,30,0.12)",
 };
 
-export const W = 1080;
+const W_ = 1080;
+export const W = W_;
 export const H = 1920;
 
 // Split layout: visual panel on top, caption on the seam, speaker below.
-export const SPLIT = { panelTop: 150, panelBottom: 880, seam: 965, speakerTop: 1040 };
+// "half" gives the speaker the bottom half edge to edge. "inset" gives the visual about
+// 60% of the frame and puts the speaker in a rounded window with a margin.
+export type SplitMode = "half" | "inset";
+export type Box = { left: number; top: number; width: number; height: number; radius: number };
+export const splitGeom = (mode: SplitMode) =>
+  mode === "inset"
+    ? { panelTop: 200, panelBottom: 1090, seam: 1165, speaker: { left: 60, top: 1240, width: W_ - 120, height: 620, radius: 40 } as Box }
+    : { panelTop: 200, panelBottom: 880, seam: 965, speaker: { left: 0, top: 1040, width: W_, height: 880, radius: 40 } as Box };
+// The persistent header sits above the panel on split and media shots. Without a header
+// the panel starts 50 px higher.
+export const HEADER = { top: 64, height: 120 };
 // Media layout: the visual fills most of the frame, caption below it.
 export const MEDIA = { panelTop: 200, panelBottom: 1260, caption: 1400 };
 

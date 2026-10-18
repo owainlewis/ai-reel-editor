@@ -17,6 +17,8 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Edit, type Resolved, type Word } from "../src/schema.ts";
+import { frameRect } from "../src/camera.ts";
+import { HEADER, MEDIA, splitGeom } from "../src/theme.ts";
 import { chunkWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
 import { indexLibrary, listLibrary, useClip } from "./broll.ts";
 
@@ -206,7 +208,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   const seen = new Set<string>();
   for (const s of shots) {
     const v = s.visual;
-    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" ? v.items.map((i) => i.src) : [];
+    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
     for (const src of srcs) if (!existsSync(join(dir, src))) issues.push({ level: "error", message: `missing asset ${src}` });
     if (v?.kind === "image" && existsSync(join(dir, v.src))) {
       const size = imageSize(join(dir, v.src));
@@ -215,8 +217,10 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       // On the 1080 frame it should be at least about 32 px, or it is unreadable on a phone.
       if (size && v.to) {
         const vw = 960;
-        const vh = (s.layout === "split" ? 730 : 1060) - (v.frame === "browser" ? 64 : 0);
-        const k = Math.max(vw / (v.to[2] * size[0]), vh / (v.to[3] * size[1]));
+        const top = s.header ? HEADER.top + 104 + 20 : 150;
+        const bottom = s.layout === "split" ? splitGeom(plan.split).panelBottom : MEDIA.panelBottom;
+        const vh = bottom - top - (v.frame === "browser" ? 64 : 0);
+        const { k } = frameRect(v.to, size[0], size[1], vw, vh);
         if (k * 32 < 30) issues.push({ level: "warn", message: `"${s.anchor}": ${v.src} ends too wide; 16px page text shows at ${Math.round(k * 32)}px. Tighten "to".` });
       }
     }
@@ -242,6 +246,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     audio: existsSync(join(dir, "build/mix.wav")) ? `${slug}/build/mix.wav` : null,
     face: plan.face,
     grade: plan.grade,
+    split: plan.split,
     shots,
     chunks: chunkWords(words, plan.accents, shots.map((s) => s.start).slice(1), FPS),
     sfx: sfxEvents(shots),

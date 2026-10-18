@@ -62,6 +62,8 @@ Set `format` first (see `docs/STYLE.md`):
 - **Tool drop** (a new repo, release, feature or post): `react`. Plan it as a walk through the source: every claim gets a capture with a highlight on the words being said. Use b-roll only inside the split panel.
 - **How it works** or **my setup**: `mixed`.
 
+Then set `header` to the hook as a short title (it is the on-screen text in frame 1) and plan chapters: a new `header` on the shot where each section starts. Choose `split`: `inset` when captures with text carry the reel, `half` when the delivery does.
+
 Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in your head or in a `note`:
 
 - **Hook (0 to 3 s):** what the viewer sees in frame one that makes them stay. Prefer the product working or the real thing named.
@@ -81,9 +83,9 @@ Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb
 
 For `image` visuals, `from` and `to` are rectangles `[x, y, w, h]` in 0 to 1 image coordinates. The rectangle fills the panel and the camera eases from one to the other.
 
-- Match the panel's shape: split panels with a browser frame are about 1.44 wide to 1 tall; media cards about 0.9 to 1. Convert using the image's pixel size.
 - End tight. `validate` warns when page text would be too small to read on a phone.
-- Use `highlight` with an `at` to sweep a marker over the exact words being spoken.
+- Use `highlight` with an `at` to sweep a marker over the exact words being spoken. Add a `label` for a callout tag.
+- The rect is the region that must stay visible; the camera widens it to the panel's shape with the page around it. You don't need to match the panel's proportions.
 
 ## 5. Check before rendering
 

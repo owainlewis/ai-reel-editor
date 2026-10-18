@@ -1,5 +1,5 @@
 import React from "react";
-import { H, MEDIA, SPLIT, t } from "./theme";
+import { H, MEDIA, splitGeom, t } from "./theme";
 import type { Chunk, Resolved, ResolvedShot } from "./schema";
 
 const clean = (s: string) => s.replace(/^["“'(]+|["”,.;:)]+$/g, "");
@@ -18,7 +18,7 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
   const chin = (r.face.y + r.face.h * 0.5) * H;
   const y =
     shot.layout === "split"
-      ? SPLIT.seam
+      ? splitGeom(r.split).seam
       : shot.layout === "media"
         ? MEDIA.caption
         : shot.layout === "cutaway"

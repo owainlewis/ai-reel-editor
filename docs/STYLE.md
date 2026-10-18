@@ -20,6 +20,16 @@ Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
 
 Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
 
+## Frame 1 and the header
+
+- Every reel sets `header`: the hook as a short title. It is on screen, large, from the very first frame, then docks as a small header above the panel on every split and media shot. A muted viewer always knows the topic.
+- Start a new chapter with `header` on a shot ("How it *works*", "How to *use* it"). Three or four chapters in a 30 to 60 s reel.
+- Headers state the topic in plain words and one Signifier accent. They never claim more than the source shows.
+
+## Split size
+
+`split: "half"` gives the speaker the bottom half edge to edge. `split: "inset"` gives the visual about 60% of the frame and puts the speaker in a rounded window. Use inset when the visuals carry the reel (captures with text to read); use half when the speaker's delivery carries it.
+
 ## Layouts (1080 x 1920, hard cuts between them)
 
 | Layout | What it is | Use it for |
@@ -37,7 +47,13 @@ Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run
 1. The user's own b-roll (`broll/` library) or footage of the real thing. B-roll sets mood; it never stands in for evidence.
 2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
 3. Official logos, on white tiles, each landing on its spoken name.
-4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `title`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+
+Patterns that work (from studying top creator reels):
+- **Agenda callback.** For a numbered reel ("four systems"), show the whole list early with `preview: true`, an open loop. Bring the same list back before each item with `active` on it.
+- **Callouts.** Give a highlight a `label` to point at the part of a page being discussed.
+- **Typing prompt.** Show a prompt being typed into the real app with `prompt`, not a description of it.
+- **End card.** Close on `cta` ("Comment KEYWORD", what they get, and the resource shown) only when a real resource exists.
 
 Never:
 - invent a number, result, UI or quote;

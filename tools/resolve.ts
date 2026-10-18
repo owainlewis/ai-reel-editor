@@ -28,6 +28,7 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
   const issues: Issue[] = [];
   const shots: (ResolvedShot & { index: number })[] = [];
   let cursor = 0;
+  let header = plan.header;
   for (const s of plan.shots) {
     const i = findPhrase(words, s.at, cursor);
     if (i < 0) {
@@ -36,7 +37,9 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
     }
     cursor = i + 1;
     const start = shots.length === 0 ? 0 : snap(Math.max(0, words[i].start - CUT_LEAD), fps);
-    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i });
+    // The header carries forward until a shot sets a new one, or false to hide it.
+    header = s.header === false ? undefined : (s.header ?? header);
+    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header });
   }
   for (let k = 0; k < shots.length - 1; k++) shots[k].end = shots[k + 1].start;
 
@@ -54,7 +57,9 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
             ? v.highlight.map((h) => h.at)
             : v.kind === "compare"
               ? [v.right.at]
-              : [];
+              : v.kind === "prompt"
+                ? [v.at]
+                : [];
     if (!anchors.length) continue;
     let from = shot.index;
     const times = anchors.map((a, n) => {
@@ -132,7 +137,7 @@ export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
     if (s.sfx) ev.push({ kind: s.sfx, t: s.start });
     const v = s.visual;
     if (!v?.times) continue;
-    const kind = v.kind === "terminal" ? "key" : v.kind === "image" ? "blip" : "pop";
+    const kind = v.kind === "terminal" || v.kind === "prompt" ? "key" : v.kind === "image" ? "blip" : "pop";
     v.times.forEach((t, n) => {
       if (n === 0 && Math.abs(t - s.start) < 0.05 && s.sfx) return;
       ev.push({ kind, t, gain: 0.45 });
