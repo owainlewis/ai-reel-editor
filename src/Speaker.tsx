@@ -11,10 +11,11 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
   switch (layout) {
     case "split": {
       const inset = r.split === "inset";
-      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.8 : 0.55, faceAt: inset ? 0.5 : 0.42, visible: true };
+      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.62 : 0.55, faceAt: inset ? 0.48 : 0.42, visible: true };
     }
     case "punch":
-      return { box: FULL, faceH: 0.5, faceAt: 0.3, visible: true };
+      // Punch is always visibly tighter than full: at least 1.25x the full framing.
+      return { box: FULL, faceH: Math.max(0.5, r.face.h * Math.max(W / r.videoSize[0], H / r.videoSize[1]) * (r.videoSize[1] / H) * 1.25), faceAt: 0.3, visible: true };
     case "media":
     case "cutaway":
       return { box: FULL, faceH: 0, faceAt: 0, visible: false };
@@ -26,24 +27,32 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
 // One continuous speaker video. It is never unmounted, so playback never seeks
 // between shots; each layout only changes its box and framing.
 export const Speaker: React.FC<{ r: Resolved; shot: ResolvedShot; time: number }> = ({ r, shot, time }) => {
+  const [sw, sh] = r.videoSize;
   const f = framing(shot.layout, r);
-  const { box } = f;
-  // Scale so the face fills `faceH` of the box, but never so small the video stops covering the box.
-  const cover = Math.max(box.width / W, box.height / H);
-  const faceScale = f.faceH ? (f.faceH * box.height) / (r.face.h * H) : 0;
+  let box = f.box;
+  const inset = shot.layout === "split" && r.split === "inset";
+  // Scale so the head fills `faceH` of the box, but never so small the video stops covering the box.
+  const faceScale = f.faceH ? (f.faceH * box.height) / (r.face.h * sh) : 0;
+  if (inset && faceScale && faceScale < Math.max(box.width / sw, box.height / sh)) {
+    // Tight footage: narrow the window to fit the whole head instead of cropping it.
+    const width = Math.max(box.height * 0.8, sw * faceScale);
+    box = { ...box, left: box.left + (box.width - width) / 2, width };
+  }
+  const cover = Math.max(box.width / sw, box.height / sh);
   const base = Math.max(cover, faceScale);
   // Every shot moves: a slow push-in across the shot.
   const progress = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
   const scale = base * (1 + 0.035 * progress);
-  const vw = W * scale;
-  const vh = H * scale;
+  const vw = sw * scale;
+  const vh = sh * scale;
   // Put the face centre at the target point in the box, without exposing the edges.
-  const anchorY = f.faceH ? box.height * f.faceAt : box.height * r.face.y;
+  // Full shots keep a portrait source's own framing; landscape footage puts the face a third down.
+  const naturalY = sw > sh ? 0.36 : r.face.y;
+  const anchorY = box.height * (f.faceH ? f.faceAt : naturalY);
   let x = box.width / 2 - r.face.x * vw;
   let y = anchorY - r.face.y * vh;
   x = Math.min(0, Math.max(box.width - vw, x));
   y = Math.min(0, Math.max(box.height - vh, y));
-  const inset = shot.layout === "split" && r.split === "inset";
 
   return (
     <div

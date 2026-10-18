@@ -148,7 +148,8 @@ const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w,
 // Official logos on white tiles. Each one lands on its spoken word.
 const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w, h, v }) => {
   const n = v.items.length;
-  const tile = n === 1 ? Math.min(400, h * 0.55) : n === 2 ? 300 : n === 3 ? 250 : 210;
+  // Tiles grow with the panel so logos never float small in empty space.
+  const tile = n === 1 ? Math.min(460, h * 0.55) : n === 2 ? Math.min(400, h * 0.42, (w - 48) / 2) : n === 3 ? Math.min(290, (w - 96) / 3) : 210;
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 46 }}>
       <div style={{ display: "flex", gap: n > 3 ? 30 : 48, flexWrap: "wrap", justifyContent: "center", maxWidth: w }}>
@@ -161,7 +162,7 @@ const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w,
               <div style={{ width: tile, height: tile, borderRadius: tile * 0.22, background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, display: "flex", alignItems: "center", justifyContent: "center", scale: String(settle) }}>
                 <Img src={src(slug, it.src)} style={{ width: tile * 0.58, height: tile * 0.58, objectFit: "contain" }} />
               </div>
-              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: n === 1 ? 64 : 40, letterSpacing: -1, color: t.ink }}>{it.name}</div>}
+              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.max(40, tile * 0.15), letterSpacing: -1, color: t.ink }}>{it.name}</div>}
             </div>
           );
         })}
@@ -218,7 +219,7 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
   const n = v.items.length;
   const times = v.times ?? v.items.map((_, i) => shot.start + i * 0.12);
   const current = v.active ?? Math.max(0, times.filter((x) => time >= x).length - 1);
-  const rowH = Math.min(150, (h - (v.title ? 120 : 0)) / n - 18);
+  const rowH = Math.min(n <= 3 ? 210 : 160, (h - (v.title ? 120 : 0)) / n - 22);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
       {v.title && (
@@ -250,7 +251,7 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
             }}
           >
             <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: rowH * 0.5, color: on ? t.accent : t.faint, width: rowH * 0.4 }}>{i + 1}</div>
-            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.min(56, rowH * 0.4), letterSpacing: -1, color: t.ink }}>
+            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.min(68, rowH * 0.36), letterSpacing: -1.5, color: t.ink }}>
               <Accented text={it.text} />
             </div>
           </div>
@@ -403,10 +404,10 @@ const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, 
   const b = prog(time, shot.start + 0.15, 0.5);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 34 }}>
-      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 96, letterSpacing: -3, color: t.ink, textAlign: "center", lineHeight: 1, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
+      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: v.src ? 96 : 128, letterSpacing: -3, color: t.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
         Comment <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -1 }}>“{v.keyword}”</span>
       </div>
-      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 46, color: t.muted, textAlign: "center", opacity: a }}>{v.text}</div>
+      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: v.src ? 46 : 60, color: t.muted, textAlign: "center", opacity: a }}>{v.text}</div>
       {v.src && (
         <div style={{ width: w * 0.86, height: h * 0.5, borderRadius: 26, overflow: "hidden", background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, opacity: b, translate: `0 ${(1 - b) * 40}px` }}>
           <Img src={src(slug, v.src)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />

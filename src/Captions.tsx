@@ -15,7 +15,9 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
   const serifAll = shot.layout === "media";
   // On the speaker the caption sits on the chest, below the chin and clear of the mouth.
   // face.h is the head's height, so the chin sits half of it below the centre.
-  const chin = (r.face.y + r.face.h * 0.5) * H;
+  // Landscape footage is framed with the face a third down (see Speaker), portrait keeps its own framing.
+  const faceY = r.videoSize[0] > r.videoSize[1] ? 0.36 : r.face.y;
+  const chin = (faceY + r.face.h * 0.5) * H;
   const y =
     shot.layout === "split"
       ? splitGeom(r.split).seam

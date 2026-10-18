@@ -46,6 +46,10 @@ const run = (bin: string, argv: string[], opts: { cwd?: string; quiet?: boolean 
 const ffmpeg = (argv: string[]) => run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...argv]);
 const probeDuration = (file: string) =>
   parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file], { encoding: "utf8" }));
+const probeSize = (file: string): [number, number] => {
+  const [w, h] = execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", file], { encoding: "utf8" }).trim().split(",").map(Number);
+  return [w, h];
+};
 const sha = (file: string) => createHash("sha256").update(readFileSync(file)).digest("hex").slice(0, 16);
 const readJson = <T>(file: string): T => JSON.parse(readFileSync(file, "utf8"));
 const writeJson = (file: string, data: unknown) => {
@@ -85,7 +89,12 @@ function cmdNew(slug: string, video: string) {
   const dir = project(slug);
   for (const d of ["source", "assets/captures", "assets/logos", "assets/broll", "build", "renders", "checks"]) mkdirSync(join(dir, d), { recursive: true });
   console.log("Normalising footage to 1080x1920 at 30 fps");
-  ffmpeg(["-i", video, "-vf", VF, "-c:v", "libx264", "-crf", "14", "-preset", "medium", "-pix_fmt", "yuv420p", "-an", join(dir, "source/talking.mp4")]);
+  // Keep the speaker footage's own shape (portrait 1080x1920 or landscape 1920x1080) so every
+  // layout can frame it; the renderer crops per shot around the face.
+  const [sw, sh] = probeSize(video);
+  const size: [number, number] = sw > sh ? [1920, 1080] : [1080, 1920];
+  const vf = `scale=${size[0]}:${size[1]}:force_original_aspect_ratio=increase,crop=${size[0]}:${size[1]},fps=30,setsar=1`;
+  ffmpeg(["-i", video, "-vf", vf, "-c:v", "libx264", "-crf", "14", "-preset", "medium", "-pix_fmt", "yuv420p", "-an", join(dir, "source/talking.mp4")]);
   ffmpeg(["-i", video, "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s24le", join(dir, "source/voice.wav")]);
   ffmpeg(["-ss", "1", "-i", join(dir, "source/talking.mp4"), "-frames:v", "1", "-q:v", "3", join(dir, "checks/frame.jpg")]);
   const broll = args.slice(args.indexOf("--broll") + 1).filter((a) => !a.startsWith("--"));
@@ -95,7 +104,7 @@ function cmdNew(slug: string, video: string) {
       ffmpeg(["-i", b, "-vf", VF, "-an", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", out]);
       ledger(dir, { file: `assets/broll/${basename(out)}`, source: resolve(b), sha: sha(out) });
     }
-  writeJson(join(dir, "project.json"), { slug, original: resolve(video), duration: probeDuration(join(dir, "source/talking.mp4")) });
+  writeJson(join(dir, "project.json"), { slug, original: resolve(video), size, duration: probeDuration(join(dir, "source/talking.mp4")) });
   console.log(`Created ${dir}\nNext: npm run reel -- transcribe ${slug}, then look at checks/frame.jpg to set "face" in edit.json`);
 }
 
@@ -182,7 +191,7 @@ async function cmdFetch(slug: string, url: string) {
 
 function cmdValidate(slug: string, quiet = false): Resolved {
   const dir = project(slug);
-  const meta = readJson<{ duration: number }>(join(dir, "project.json"));
+  const meta = readJson<{ duration: number; size?: [number, number] }>(join(dir, "project.json"));
   const words = readJson<Word[]>(join(dir, "transcript.json"));
   const parsed = Edit.safeParse(readJson(join(dir, "edit.json")));
   if (!parsed.success) {
@@ -243,6 +252,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     duration: meta.duration,
     fps: FPS,
     video: `${slug}/source/talking.mp4`,
+    videoSize: meta.size ?? [1080, 1920],
     audio: existsSync(join(dir, "build/mix.wav")) ? `${slug}/build/mix.wav` : null,
     face: plan.face,
     grade: plan.grade,

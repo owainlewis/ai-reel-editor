@@ -86,7 +86,7 @@ export const Edit = z.object({
   // The reel's title. It lands large in frame 1 (the on-screen hook) and then docks as a small
   // header above the panel on every split and media shot. Wrap one word in *asterisks* for the accent.
   header: z.string().optional(),
-  // Where the speaker's face is in the source, as fractions of the frame:
+  // Where the speaker's face is in the source footage, as fractions of its frame:
   // centre x, centre y, and head height (crown to chin). Used to frame every speaker layout.
   face: z.object({ x: z.number(), y: z.number(), h: z.number() }),
   // Words to set in Signifier italic in the captions, matched case-insensitively.
@@ -127,6 +127,8 @@ export type Resolved = {
   duration: number;
   fps: number;
   video: string;
+  // Pixel size of the speaker footage: 1080x1920 portrait or 1920x1080 landscape.
+  videoSize: [number, number];
   audio: string | null;
   face: { x: number; y: number; h: number };
   grade: { brightness: number; contrast: number; saturate: number };
