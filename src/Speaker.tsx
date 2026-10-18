@@ -14,6 +14,7 @@ const framing = (layout: ResolvedShot["layout"]): { box: Box; faceH: number; fac
     case "punch":
       return { box: { top: 0, height: H, radius: 0 }, faceH: 0.5, faceAt: 0.3, visible: true };
     case "media":
+    case "cutaway":
       return { box: { top: 0, height: H, radius: 0 }, faceH: 0, faceAt: 0, visible: false };
     default:
       return { box: { top: 0, height: H, radius: 0 }, faceH: 0, faceAt: 0, visible: true };

@@ -9,6 +9,8 @@
 //   npm run reel -- stills <slug>
 //   npm run reel -- render <slug> [--draft]
 //   npm run reel -- check <slug>
+//   npm run reel -- index                 split broll/ files into shots, update broll/index.json
+//   npm run reel -- broll [words...]      list library clips, best matches first
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
@@ -16,6 +18,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Edit, type Resolved, type Word } from "../src/schema.ts";
 import { chunkWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
+import { indexLibrary, listLibrary, useClip } from "./broll.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FPS = 30;
@@ -181,6 +184,17 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   const { shots, issues } = resolveShots(plan, words, meta.duration, FPS);
   issues.push(...lintShots(shots, meta.duration));
 
+  // Library clips ("broll:<id>") are copied into the project so Remotion can serve them.
+  for (const s of shots) {
+    const v = s.visual;
+    if (v?.kind === "video" && v.src.startsWith("broll:")) {
+      const rel = useClip(ROOT, dir, v.src.slice(6));
+      if (!rel) issues.push({ level: "error", message: `no library clip ${v.src}; run reel index` });
+      else s.visual = { ...v, src: rel };
+    }
+    if (s.layout === "cutaway" && v?.kind !== "video") issues.push({ level: "error", message: `cutaway at "${s.anchor}" needs a video visual` });
+  }
+
   // Assets must exist, and a b-roll clip is used once per reel.
   const seen = new Set<string>();
   for (const s of shots) {
@@ -198,6 +212,11 @@ function cmdValidate(slug: string, quiet = false): Resolved {
         const k = Math.max(vw / (v.to[2] * size[0]), vh / (v.to[3] * size[1]));
         if (k * 32 < 30) issues.push({ level: "warn", message: `"${s.anchor}": ${v.src} ends too wide; 16px page text shows at ${Math.round(k * 32)}px. Tighten "to".` });
       }
+    }
+    if (v?.kind === "video" && existsSync(join(dir, v.src))) {
+      const left = probeDuration(join(dir, v.src)) - v.start;
+      if (s.end - s.start > left + 0.04)
+        issues.push({ level: "error", message: `"${s.anchor}": shot is ${(s.end - s.start).toFixed(2)}s but ${v.src} has ${left.toFixed(2)}s from start ${v.start}` });
     }
     if (v?.kind === "video") {
       if (seen.has(v.src)) issues.push({ level: "error", message: `b-roll ${v.src} is used twice` });
@@ -227,7 +246,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     console.log(`\n${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
     for (const s of shots)
       console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
-    const mix = Object.fromEntries(["full", "punch", "split", "media"].map((l) => [l, 0]));
+    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway"].map((l) => [l, 0]));
     for (const s of shots) mix[s.layout] += s.end - s.start;
     const avg = meta.duration / shots.length;
     console.log(`\n  average shot ${avg.toFixed(2)}s; ` + Object.entries(mix).map(([l, t]) => `${l} ${Math.round((100 * t) / meta.duration)}%`).join(", "));
@@ -283,7 +302,7 @@ function cmdCheck(slug: string) {
     const t0 = Math.max(0, s.start - 2 / FPS);
     ffmpeg(["-ss", t0.toFixed(3), "-i", file, "-vf", "scale=180:-1,tile=4x1", "-frames:v", "1", join(checks, "cuts", `${String(i + 2).padStart(2, "0")}.jpg`)]);
   });
-  ffmpeg(["-pattern_type", "glob", "-i", join(checks, "cuts", "*.jpg"), "-vf", "tile=2x10:padding=6:color=white", join(checks, "cuts.jpg")]);
+  ffmpeg(["-pattern_type", "glob", "-i", join(checks, "cuts", "*.jpg"), "-vf", `tile=2x${Math.ceil((r.shots.length - 1) / 2)}:padding=6:color=white`, "-frames:v", "1", join(checks, "cuts.jpg")]);
   // The first 2.5 seconds frame by frame at low size: the hook gate.
   ffmpeg(["-i", file, "-t", "2.5", "-vf", "fps=6,scale=180:-1,tile=8x2", "-frames:v", "1", join(checks, "opening.jpg")]);
   // Loudness of the delivered file.
@@ -316,6 +335,8 @@ async function main() {
     case "stills": return cmdStills(slug);
     case "render": return cmdRender(slug);
     case "check": return cmdCheck(slug);
+    case "index": return void indexLibrary(ROOT);
+    case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
       console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 13).join("\n"));
   }

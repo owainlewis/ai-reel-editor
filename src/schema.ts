@@ -24,7 +24,8 @@ export const Visual = z.discriminatedUnion("kind", [
     url: z.string().optional(),
     highlight: z.array(z.object({ rect: Rect, at: Anchor.optional() })).default([]),
   }),
-  // B-roll footage. `start` is the offset into the clip in seconds.
+  // B-roll footage: a project file, or "broll:<id>" for a clip from the library.
+  // `start` is the offset into the clip in seconds.
   z.object({ kind: z.literal("video"), src: z.string(), start: z.number().default(0) }),
   // One or more official logos, never redrawn.
   z.object({
@@ -51,6 +52,7 @@ export const Layout = z.enum([
   "punch", // tight on the speaker, for emphasis and the CTA
   "split", // visual on top, speaker below, caption on the seam
   "media", // visual fills the frame, voice continues
+  "cutaway", // b-roll fills the whole frame edge to edge, voice continues
 ]);
 
 export const SfxKind = z.enum(["whoosh", "pop", "impact", "thud", "blip", "chime", "key"]);

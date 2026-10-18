@@ -17,12 +17,13 @@ The default look and pacing for Owain's reels. A brief from the user wins over a
 | `full` | speaker fills the frame, slow push-in | conviction lines, setups |
 | `punch` | tight on the face | emphasis, the turn, the last line |
 | `media` | visual fills the frame, caption in large serif below | the one visual that matters most |
+| `cutaway` | b-roll edge to edge, white caption low on the frame | human and abstract lines; makes the reel feel shot |
 
 Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run over about 2.8 s. The speaker is never off screen for more than 3.5 s.
 
 ## Visuals, in order of preference
 
-1. The user's b-roll or footage of the real thing.
+1. The user's own b-roll (`broll/` library) or footage of the real thing. B-roll sets mood; it never stands in for evidence.
 2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
 3. Official logos, on white tiles, each landing on its spoken name.
 4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `title`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.

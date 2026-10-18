@@ -4,7 +4,7 @@ import { Img, interpolate, staticFile } from "remotion";
 import { clamp, ease, t } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
-type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number };
+type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number; filter?: string; bleed?: boolean };
 type V<K extends ResolvedVisual["kind"]> = Extract<ResolvedVisual, { kind: K }> & { times?: number[]; size?: [number, number] };
 
 const src = (slug: string, p: string) => (/^https?:/.test(p) ? p : staticFile(`${slug}/${p}`));
@@ -101,11 +101,19 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
   );
 };
 
-const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w, h, v }) => {
+// B-roll. In a panel it sits in a rounded card; as a cutaway it fills the frame edge to edge.
+// Either way it gets a slow push-in on top of its own motion, and the speaker's colour grade.
+const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w, h, v, filter, bleed }) => {
   const p = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
   return (
-    <div style={{ width: w, height: h, overflow: "hidden", borderRadius: 26, boxShadow: t.shadow }}>
-      <Video src={src(slug, v.src)} muted trimBefore={Math.round(v.start * 30)} objectFit="cover" style={{ width: "100%", height: "100%", scale: String(1.02 + 0.05 * p) }} />
+    <div style={{ width: w, height: h, overflow: "hidden", borderRadius: bleed ? 0 : 26, boxShadow: bleed ? "none" : t.shadow }}>
+      <Video
+        src={src(slug, v.src)}
+        muted
+        trimBefore={Math.round(v.start * 30)}
+        objectFit="cover"
+        style={{ width: "100%", height: "100%", scale: String(1.02 + 0.05 * p), filter }}
+      />
     </div>
   );
 };

@@ -21,7 +21,9 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
       ? SPLIT.seam
       : shot.layout === "media"
         ? MEDIA.caption
-        : shot.layout === "punch"
+        : shot.layout === "cutaway"
+          ? 1480
+          : shot.layout === "punch"
           ? Math.min(H - 420, (0.3 + 0.5 * 0.5) * H + 110)
           : Math.min(H - 420, chin + 170);
 

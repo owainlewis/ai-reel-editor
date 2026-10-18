@@ -3,7 +3,7 @@ import { Audio } from "@remotion/media";
 import { AbsoluteFill, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Captions } from "./Captions";
 import { Speaker } from "./Speaker";
-import { MEDIA, SPLIT, t, W } from "./theme";
+import { H, MEDIA, SPLIT, t, W } from "./theme";
 import { VisualView } from "./Visuals";
 import type { Resolved, ResolvedShot } from "./schema";
 
@@ -30,6 +30,7 @@ export const Reel: React.FC<Resolved> = (r) => {
   const frame = useCurrentFrame();
   const time = frame / r.fps;
   const shot = r.shots.find((s) => time >= s.start && time < s.end) ?? r.shots[r.shots.length - 1];
+  const grade = `brightness(${r.grade.brightness}) contrast(${r.grade.contrast}) saturate(${r.grade.saturate})`;
 
   return (
     <AbsoluteFill style={{ background: t.canvas }}>
@@ -42,14 +43,24 @@ export const Reel: React.FC<Resolved> = (r) => {
       )}
 
       {r.shots.map((s, i) => {
-        if (!s.visual || (s.layout !== "split" && s.layout !== "media")) return null;
+        if (!s.visual) return null;
         const from = Math.round(s.start * r.fps);
         const dur = Math.max(1, Math.round(s.end * r.fps) - from);
+        if (s.layout === "cutaway")
+          return (
+            <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} cutaway`}>
+              <AbsoluteFill>
+                <VisualView slug={r.slug} shot={s} time={time} w={W} h={H} v={s.visual} filter={grade} bleed />
+                <AbsoluteFill style={{ background: "linear-gradient(transparent 55%, rgba(0,0,0,0.35) 80%, rgba(0,0,0,0.5))" }} />
+              </AbsoluteFill>
+            </Sequence>
+          );
+        if (s.layout !== "split" && s.layout !== "media") return null;
         const box = panel(s.layout);
         return (
           <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} ${s.layout} ${s.visual.kind}`}>
             <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} />
+              <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} filter={grade} />
             </div>
           </Sequence>
         );

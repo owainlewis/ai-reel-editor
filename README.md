@@ -52,6 +52,15 @@ npm run reel -- render ig1
 npm run reel -- check ig1
 ```
 
+Your own b-roll goes in `broll/` (git-ignored). Clips can be stitched together; `index` splits them into shots and crops any letterboxing:
+
+```sh
+npm run reel -- index
+npm run reel -- broll typing
+```
+
+Then use `{ "kind": "video", "src": "broll:1-4" }` in a plan.
+
 Preview a project live in Remotion Studio:
 
 ```sh
@@ -78,7 +87,7 @@ npx remotion studio src/index.ts --props=projects/ig1/build/edit.resolved.json
 }
 ```
 
-Layouts: `split`, `full`, `punch`, `media`. Visuals: `image` (with camera move and highlight), `video`, `logos`, `title`, `list`, `steps`, `compare`, `stat`, `terminal`.
+Layouts: `split`, `full`, `punch`, `media`, `cutaway`. Visuals: `image` (with camera move and highlight), `video`, `logos`, `title`, `list`, `steps`, `compare`, `stat`, `terminal`.
 
 ## Layout
 
@@ -90,6 +99,7 @@ src/                        Remotion composition (React)
 tools/                      the reel CLI and the timing resolver
 audio/                      mix, music bed and sound effect synthesis (Python, run with uv)
 examples/                   reference edit plans
+broll/                      your b-roll library and its index (git-ignored)
 projects/<slug>/            one folder per reel: source, assets, plan, renders, checks (git-ignored)
 ```
 

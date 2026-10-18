@@ -42,6 +42,20 @@ npm run reel -- fetch <slug> <logo-url> --name github.svg
 - Look at every capture with the Read tool and note the exact rectangles you will frame and highlight.
 - Everything you capture or download is logged in `assets/ledger.json` with its source.
 
+### B-roll library
+
+Owain's own cinematic shots (typing, working, desk details) live in `broll/`. They make a reel feel shot, not generated.
+
+```sh
+npm run reel -- index            # splits new files into shots, crops letterboxing, writes broll/index.json
+npm run reel -- broll typing     # list clips, best matches first
+```
+
+- After `index`, look at `broll/sheet.jpg` (or `broll/.clips/<id>.jpg`) and fill in each new clip's `description` and `tags` in `broll/index.json`. Describe what is visible, not what it means.
+- Use a clip with `{ "kind": "video", "src": "broll:<id>" }`. `validate` copies it into the project.
+- Put b-roll on human or abstract lines ("if you're building with AI", "it runs locally"). Keep captures and logos on factual claims. B-roll is never evidence.
+- A shot can't run longer than its clip; `validate` errors if it does. Each clip once per reel.
+
 ## 4. Plan the story, then the shots
 
 Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in your head or in a `note`:
@@ -55,7 +69,7 @@ Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb
 
 - One idea per shot. Average 1.2 to 1.6 s. Nothing over 2.8 s unless a reveal inside it earns the time.
 - Every list item, step and logo gets its own `at` so it lands on its word.
-- Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual.
+- Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual, cutaway for b-roll edge to edge.
 - A graphic shows the example or relationship. It does not repeat the caption.
 - `accents`: four to six words in the whole reel, the ones that carry the meaning.
 

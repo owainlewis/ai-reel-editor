@@ -144,14 +144,14 @@ export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
 // House rules from docs/STYLE.md that can be checked mechanically.
 export const lintShots = (shots: ResolvedShot[], duration: number): Issue[] => {
   const issues: Issue[] = [];
-  const speaker = (l: string) => l !== "media";
+  const speaker = (l: string) => l !== "media" && l !== "cutaway";
   let away = 0;
   shots.forEach((s, i) => {
     const len = s.end - s.start;
     const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
     if (len > 3.2) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep shots under about 2.8s` });
     if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
-    if ((s.layout === "split" || s.layout === "media") && !s.visual)
+    if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway") && !s.visual)
       issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
     away = speaker(s.layout) ? 0 : away + len;
     if (away > 3.5) issues.push({ level: "warn", message: `${label}: speaker off screen for ${away.toFixed(1)}s` });
