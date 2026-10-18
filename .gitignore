@@ -6,7 +6,11 @@ node_modules
 projects/*
 !projects/README.md
 
-# Licensed audio and fonts are never published.
+# Your b-roll library stays local.
+broll/*
+!broll/README.md
+
+# Licensed audio is never published.
 sounds/**/*
 !sounds/README.md
 music/**/*
