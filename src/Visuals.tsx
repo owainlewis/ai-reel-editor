@@ -465,7 +465,6 @@ const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h
   const num = prog(time, shot.start + 0.05, 0.55);
   const label = prog(time, shot.start + 0.3, 0.5);
   const c = pal(shot.tone);
-  const dark = shot.tone === "dark";
   const d = Math.min(w * 1.05, h * 0.95);
   return (
     <div style={{ position: "relative", width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
@@ -477,8 +476,8 @@ const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h
           width: d,
           height: d,
           borderRadius: d,
-          // Soft tech scenes are flat: no glow behind the number.
-          background: dark ? "transparent" : `radial-gradient(circle, #FFFFFF 0%, rgba(255,255,255,0.92) 28%, rgba(45,79,163,0.16) 56%, rgba(45,79,163,0) 72%)`,
+          // Flat: no glow behind the number, in either tone.
+          background: "transparent",
           opacity: glow,
           scale: String(0.7 + 0.3 * glow + 0.04 * interpolate(time, [shot.start, shot.end], [0, 1], clamp)),
         }}

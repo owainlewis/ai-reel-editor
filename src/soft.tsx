@@ -82,30 +82,51 @@ export const SoftAccented: React.FC<{ text: string; c: Pal }> = ({ text, c }) =>
   </>
 );
 
+// Where each digit column of an odometer sits as the value climbs to `target`, as a position in
+// 0 to 10 (a whole number means the digit sits exactly in its slot). A column only moves while the
+// column to its right rolls over from 9 to 0, like a real odometer, so when the roll ends every
+// column lands on a whole digit.
+export const odometerColumns = (target: number, places: number, p: number) => {
+  const v = p >= 1 ? target : target * Math.max(0, p);
+  return Array.from({ length: places }, (_, i) => {
+    const k = places - 1 - i;
+    const unit = Math.pow(10, k);
+    const whole = Math.floor(v / unit) % 10;
+    if (k === 0) return v % 10;
+    // Carry: the last unit of the lower columns turns this one by one digit.
+    const lower = v % unit;
+    return whole + Math.max(0, lower - (unit - 1));
+  });
+};
+
 // An odometer: each digit is a column of 0 to 9 that rolls to its place as the value climbs.
+// Every column shares one baseline and a slot tall enough that no glyph is ever clipped at rest.
 const Odometer: React.FC<{ value: string; p: number; size: number; c: Pal }> = ({ value, p, size, c }) => {
   const m = value.match(/^([^\d]*)([\d,]+)(.*)$/);
   if (!m) return <span>{value}</span>;
   const digits = m[2].replace(/,/g, "");
-  const v = parseInt(digits, 10) * p;
+  const target = parseInt(digits, 10);
+  const cols = odometerColumns(target, digits.length, p);
+  const v = p >= 1 ? target : target * p;
+  const slot = size * 1.2;
   return (
-    <span style={{ display: "inline-flex", alignItems: "flex-start", fontFamily: t.sans, fontWeight: 700, fontSize: size, lineHeight: 1, letterSpacing: -size * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontFamily: t.sans, fontWeight: 700, fontSize: size, lineHeight: `${slot}px`, letterSpacing: -size * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums" }}>
       {m[1]}
-      {digits.split("").map((_, i) => {
+      {cols.map((pos, i) => {
         const k = digits.length - 1 - i;
-        const pos = (v / Math.pow(10, k)) % 10;
+        // Leading zeros stay hidden until the value reaches them.
         const shown = v >= Math.pow(10, k) || k === 0 ? 1 : 0;
         return (
-          <span key={i} style={{ display: "inline-block", height: size, overflow: "hidden", opacity: shown, width: size * 0.6 }}>
-            <span style={{ display: "flex", flexDirection: "column", translate: `0 ${-pos * size}px` }}>
+          <span key={i} style={{ display: "block", height: slot, overflow: "hidden", opacity: shown, width: size * 0.6 }}>
+            <span style={{ display: "block", translate: `0 ${-pos * slot}px` }}>
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, j) => (
-                <span key={j} style={{ height: size, display: "block", textAlign: "center" }}>{d}</span>
+                <span key={j} style={{ height: slot, display: "block", textAlign: "center" }}>{d}</span>
               ))}
             </span>
           </span>
         );
       })}
-      <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, color: c.accent, marginLeft: size * 0.04 }}>{m[3]}</span>
+      <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, color: c.accent, marginLeft: size * 0.04, lineHeight: `${slot}px` }}>{m[3]}</span>
     </span>
   );
 };

@@ -369,6 +369,19 @@ function cmdCheck(slug: string) {
   ffmpeg(["-pattern_type", "glob", "-i", join(checks, "cuts", "*.jpg"), "-vf", `tile=2x${Math.ceil((r.shots.length - 1) / 2)}:padding=6:color=white`, "-frames:v", "1", join(checks, "cuts.jpg")]);
   // The first 2.5 seconds frame by frame at low size: the hook gate.
   ffmpeg(["-i", file, "-t", "2.5", "-vf", "fps=6,scale=180:-1,tile=8x2", "-frames:v", "1", join(checks, "opening.jpg")]);
+  // No frame of a scene may show black outside its canvas: sample the outermost columns of each
+  // scene shot at its start, middle and end. Pure black there means the frame is offset or a
+  // layer did not land at x = 0. Pure black decodes to 0 to 4; the dark canvas #141413 decodes to 14.
+  const edge = (t: number, x: string) =>
+    execFileSync("ffmpeg", ["-v", "error", "-ss", t.toFixed(3), "-i", file, "-frames:v", "1", "-vf", `crop=4:ih:${x}:0,scale=1:1,format=gray`, "-f", "rawvideo", "-"])[0];
+  const black: string[] = [];
+  for (const s of r.shots.filter((s) => s.layout === "scene")) {
+    for (const t of [s.start + 1 / FPS, (s.start + s.end) / 2, s.end - 2 / FPS]) {
+      const [l, rt] = [edge(t, "0"), edge(t, "iw-4")];
+      if (l < 8 || rt < 8) black.push(`${t.toFixed(2)}s (left ${l}, right ${rt})`);
+    }
+  }
+  console.log(black.length ? `  BLACK EDGE on scene frames: ${black.join(", ")}` : `  edges: no black at the frame edges on scene shots`);
   // Loudness of the delivered file.
   const ln = spawnSync("ffmpeg", ["-hide_banner", "-i", file, "-af", "loudnorm=print_format=json", "-f", "null", "-"], { encoding: "utf8" }).stderr;
   const stats = JSON.parse(ln.slice(ln.lastIndexOf("{"), ln.lastIndexOf("}") + 1));
