@@ -67,6 +67,13 @@ Preview a project live in Remotion Studio:
 npx remotion studio src/index.ts --props=projects/ig1/build/edit.resolved.json
 ```
 
+Review a draft shot by shot on the review board. Every shot loops in its own player, with Approve, Change and a note. Notes save to `projects/<slug>/review.json`; tell Claude "left comments, let's amend" and it reads them with `feedback`, changes only those shots, and they come back as waiting:
+
+```sh
+npm run reel -- review ig1
+npm run reel -- feedback ig1
+```
+
 ## The edit plan
 
 `edit.json` is the whole edit. The schema is `src/schema.ts`. Two complete plans for the same clip: `examples/opencodereview-react.edit.json` (the tool-drop format) and `examples/opencodereview-mixed.edit.json`.
