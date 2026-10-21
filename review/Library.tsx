@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Thumbnail } from "@remotion/player";
-import { Reel } from "../src/Reel";
+
 import type { Resolved } from "../src/schema";
 import type { Status } from "./model";
-import { Accented, ago, frames, playable, secs, usePlanEvents } from "./shared";
+import { Accented, ago, frames, playable, secs, stage, usePlanEvents } from "./shared";
 
 type Row = {
   slug: string;
@@ -39,14 +39,14 @@ export const Library: React.FC = () => {
             <div className="thumb">
               {p.resolved && (
                 <Thumbnail
-                  component={Reel}
+                  component={stage(p.resolved).component}
                   inputProps={playable(p.resolved)}
-                  compositionWidth={1080}
-                  compositionHeight={1920}
+                  compositionWidth={stage(p.resolved).compositionWidth}
+                  compositionHeight={stage(p.resolved).compositionHeight}
                   durationInFrames={frames(p.resolved)}
                   fps={p.resolved.fps}
                   frameToDisplay={Math.min(frames(p.resolved) - 1, 20)}
-                  style={{ height: "100%", aspectRatio: "9 / 16" }}
+                  style={stage(p.resolved).wide ? { width: "100%", aspectRatio: stage(p.resolved).aspect, alignSelf: "center" } : { height: "100%", aspectRatio: "9 / 16" }}
                 />
               )}
             </div>

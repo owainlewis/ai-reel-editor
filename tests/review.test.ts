@@ -15,6 +15,8 @@ const reel = (shots: ResolvedShot[]): Resolved => ({
   face: { x: 0.5, y: 0.3, h: 0.17 },
   grade: { brightness: 1, contrast: 1, saturate: 1 },
   split: "half",
+  canvas: "reel",
+  captions: true,
   shots,
   chunks: [
     { start: 0, end: 1, words: [{ text: "Most", start: 0.1, end: 0.3, accent: false }, { text: "people", start: 0.3, end: 0.6, accent: false }] },

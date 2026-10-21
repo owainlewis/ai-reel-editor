@@ -53,6 +53,8 @@ export const Visual = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("cta"), keyword: z.string(), text: z.string(), src: z.string().optional() }),
   // A terminal that types each line when it is spoken.
   z.object({ kind: z.literal("terminal"), title: z.string().optional(), lines: z.array(Item).min(1) }),
+  // A lower third over the speaker's picture: a name or point in serif, a short line in sans below it.
+  z.object({ kind: z.literal("lower"), title: z.string(), sub: z.string().optional() }),
   // A chapter card: a large number lands over a soft glow, the chapter's name tracked out below it.
   z.object({ kind: z.literal("chapter"), number: z.string(), label: z.string() }),
   // A diagram of how parts talk: cards joined by lines that draw on `at`. `chip` rides along an edge
@@ -104,6 +106,9 @@ export const Layout = z.enum([
   "media", // visual fills the frame, voice continues
   "cutaway", // b-roll fills the whole frame edge to edge, voice continues
   "scene", // a full-frame graphic scene: big headline on top, the visual below, light or dark
+  // YouTube (16:9) only:
+  "side", // the visual in a card, the speaker in a small rounded window at the side, voice continues
+  "over", // the speaker's picture as cut, with a quiet overlay on it (a lower third or a cinematic title)
 ]);
 
 export const SfxKind = z.enum(["whoosh", "pop", "impact", "thud", "blip", "chime", "key"]);
@@ -130,6 +135,11 @@ export const Shot = z.object({
 
 export const Edit = z.object({
   title: z.string(),
+  // reel: 9:16, 1080x1920. youtube: 16:9, 1920x1080, for a rough cut edited by hand: the plan only
+  // lays graphics and text over it, sparsely, and never re-cuts the picture.
+  canvas: z.enum(["reel", "youtube"]).default("reel"),
+  // Word captions. Reels have them; YouTube does not unless asked.
+  captions: z.boolean().optional(),
   // react: the default for tool drops. The speaker stays on screen in a split while the
   //   top panel walks through the source, a highlight on each claim as it is said.
   // mixed: for how-it-works and setup reels. Every layout, b-roll cutaways, faster cuts.
@@ -193,6 +203,8 @@ export type Resolved = {
   face: { x: number; y: number; h: number };
   grade: { brightness: number; contrast: number; saturate: number };
   split: "half" | "inset";
+  canvas: "reel" | "youtube";
+  captions: boolean;
   shots: ResolvedShot[];
   chunks: Chunk[];
   sfx: SfxEvent[];

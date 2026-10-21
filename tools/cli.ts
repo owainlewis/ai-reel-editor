@@ -1,7 +1,7 @@
 // reel: the mechanical half of the editor. Claude Code makes the creative calls
 // (see .claude/skills/edit-reel/SKILL.md); these commands do the rest.
 //
-//   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]
+//   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]   portrait for reels, landscape for YouTube
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
@@ -24,6 +24,7 @@ import { frameRect } from "../src/camera.ts";
 import { HEADER, MEDIA, splitGeom } from "../src/theme.ts";
 import { chunkWords, estimateWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
 import { indexLibrary, listLibrary, useClip } from "./broll.ts";
+import { compositionFor } from "../src/canvas.ts";
 import { formatFeedback } from "../review/model.ts";
 import { loadReel } from "../review/store.ts";
 
@@ -241,10 +242,14 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     throw new Error("edit.json does not match the schema (src/schema.ts)");
   }
   const plan = parsed.data;
-  const face = meta.script ? PLACEHOLDER_FACE : plan.face;
+  const youtube = plan.canvas === "youtube";
+  // On YouTube the face only frames the small side window, so a centred default will do to start.
+  const face = meta.script ? PLACEHOLDER_FACE : (plan.face ?? (youtube ? { x: 0.5, y: 0.38, h: 0.3 } : undefined));
   if (!face) throw new Error('edit.json needs "face": measure it on checks/frame.jpg');
   const { shots, issues } = resolveShots(plan, words, meta.duration, FPS);
-  issues.push(...lintShots(shots, meta.duration, plan.format));
+  issues.push(...lintShots(shots, meta.duration, plan.format, plan.canvas));
+  if (youtube && !plan.face && !meta.script) issues.push({ level: "warn", message: 'no "face" set; the side window frames the centre. Measure it on checks/frame.jpg' });
+  if (youtube && meta.size && meta.size[0] < meta.size[1]) issues.push({ level: "error", message: "youtube canvas needs landscape footage" });
 
   // Library clips ("broll:<id>") are copied into the project so Remotion can serve them.
   for (const s of shots) {
@@ -268,7 +273,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       s.visual = { ...v, size };
       // Readability: captures are taken at 2x, so page text of 16 CSS px is 32 image px.
       // On the 1080 frame it should be at least about 32 px, or it is unreadable on a phone.
-      if (size && v.to) {
+      if (size && v.to && !youtube) {
         const vw = 960;
         const top = s.header ? HEADER.top + 104 + 20 : 150;
         const bottom = s.layout === "split" ? splitGeom(plan.split).panelBottom : MEDIA.panelBottom;
@@ -303,6 +308,8 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     face,
     grade: plan.grade,
     split: plan.split,
+    canvas: plan.canvas,
+    captions: plan.captions ?? !youtube,
     shots,
     chunks: chunkWords(words, plan.accents, shots.map((s) => s.start).slice(1), FPS),
     sfx: sfxEvents(shots),
@@ -311,10 +318,10 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   writeJson(join(dir, "build/audio.json"), { duration: meta.duration, music: plan.music, voiceGain: plan.voiceGain, sfx: resolved.sfx });
 
   if (!quiet) {
-    console.log(`\n${plan.format} format: ${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
+    console.log(`\n${youtube ? "youtube (16:9)" : `${plan.format} format`}: ${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
     for (const s of shots)
       console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
-    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway", "scene"].map((l) => [l, 0]));
+    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway", "scene", "side", "over"].map((l) => [l, 0]));
     for (const s of shots) mix[s.layout] += s.end - s.start;
     const avg = meta.duration / shots.length;
     console.log(`\n  average shot ${avg.toFixed(2)}s; ` + Object.entries(mix).map(([l, t]) => `${l} ${Math.round((100 * t) / meta.duration)}%`).join(", "));
@@ -338,7 +345,7 @@ function cmdRender(slug: string) {
   const resolved = cmdValidate(slug, true);
   const draft = has("draft");
   const out = join(dir, "renders", draft ? "draft.mp4" : "final.mp4");
-  remotion(["render", "src/index.ts", "Reel", out, `--props=${join(dir, "build/edit.resolved.json")}`, ...(draft ? ["--scale=0.5", "--crf=26"] : [])]);
+  remotion(["render", "src/index.ts", compositionFor(resolved.canvas).id, out, `--props=${join(dir, "build/edit.resolved.json")}`, ...(draft ? ["--scale=0.5", "--crf=26"] : [])]);
   console.log(`\nRendered ${out} (${resolved.duration.toFixed(1)}s)`);
 }
 
@@ -351,7 +358,7 @@ function cmdStills(slug: string) {
   // One still per shot, a little after the cut so reveals have started.
   r.shots.forEach((s, i) => {
     const t = Math.min(s.end - 0.05, s.start + Math.min(0.9, (s.end - s.start) * 0.7));
-    remotion(["still", "src/index.ts", "Reel", join(out, `${String(i + 1).padStart(2, "0")}.jpg`), `--props=${join(dir, "build/edit.resolved.json")}`,
+    remotion(["still", "src/index.ts", compositionFor(r.canvas).id, join(out, `${String(i + 1).padStart(2, "0")}.jpg`), `--props=${join(dir, "build/edit.resolved.json")}`,
       `--frame=${Math.round(t * FPS)}`, "--scale=0.4", "--log=error"]);
   });
   ffmpeg(["-pattern_type", "glob", "-i", join(out, "*.jpg"), "-vf", `tile=${Math.min(8, r.shots.length)}x${Math.ceil(r.shots.length / 8)}:padding=8:color=white`, join(dir, "checks/stills.jpg")]);

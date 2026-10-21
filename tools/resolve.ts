@@ -195,8 +195,36 @@ const longestStill = (s: ResolvedShot) => {
   return Math.max(...beats.slice(1).map((b, i) => b - beats[i]));
 };
 
-export const lintShots = (shots: ResolvedShot[], duration: number, format: Format = "react"): Issue[] => {
+// YouTube (16:9) over a hand-edited rough cut: sparse and calm. Graphics hold longer, the
+// speaker is rarely away, and most of the video is the picture as cut.
+export const lintWide = (shots: ResolvedShot[], duration: number): Issue[] => {
   const issues: Issue[] = [];
+  let away = 0;
+  shots.forEach((s, i) => {
+    const len = s.end - s.start;
+    const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
+    if (s.layout === "split" || s.layout === "scene") issues.push({ level: "error", message: `${label}: ${s.layout} is a reel layout; use side, media or over on YouTube` });
+    if ((s.layout === "side" || s.layout === "media" || s.layout === "cutaway") && !s.visual) issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
+    if (s.layout === "over" && s.visual?.kind !== "lower" && s.visual?.kind !== "title")
+      issues.push({ level: "error", message: `${label}: over takes a lower third or a title` });
+    if (s.layout === "over" && len < 2.5) issues.push({ level: "warn", message: `${label}: an overlay for ${len.toFixed(1)}s is too quick to read` });
+    if (s.layout !== "full" && s.layout !== "punch" && !s.keep && len > 12) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; past 12s give it a reveal, a keep or return to the speaker` });
+    away = s.layout === "media" || s.layout === "cutaway" ? away + len : 0;
+    if (away > 8) issues.push({ level: "warn", message: `${label}: speaker off screen for ${away.toFixed(1)}s; use side to keep the face in a window` });
+  });
+  const graphics = shots.filter((s) => s.layout !== "full" && s.layout !== "punch" && !s.keep).length;
+  if (duration > 60 && graphics / (duration / 60) > 4)
+    issues.push({ level: "warn", message: `${graphics} graphics in ${(duration / 60).toFixed(1)} min; keep YouTube sparse, about one every 20 to 60 s` });
+  const last = shots[shots.length - 1];
+  if (last && last.end < duration - 0.05) issues.push({ level: "error", message: "shots do not reach the end" });
+  return issues;
+};
+
+export const lintShots = (shots: ResolvedShot[], duration: number, format: Format = "react", canvas: "reel" | "youtube" = "reel"): Issue[] => {
+  if (canvas === "youtube") return lintWide(shots, duration);
+  const issues: Issue[] = [];
+  for (const s of shots)
+    if (s.layout === "side" || s.layout === "over") issues.push({ level: "error", message: `"${s.anchor}": ${s.layout} is a YouTube layout; set "canvas": "youtube"` });
   const speaker = (l: string) => l !== "media" && l !== "cutaway" && l !== "scene";
   const total = (pred: (s: ResolvedShot) => boolean) => shots.filter(pred).reduce((t, s) => t + s.end - s.start, 0);
   const maxHold = format === "react" ? 4.2 : 3.2;

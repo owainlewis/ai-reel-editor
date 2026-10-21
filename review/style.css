@@ -98,3 +98,8 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); 
   .card { grid-template-columns: 1fr; }
   .card .shot-player { max-width: 220px; }
 }
+
+/* 16:9 YouTube plans: a wider player and wider shot previews. */
+.board.wide { grid-template-columns: 520px 1fr; }
+.board.wide .card { grid-template-columns: 380px 1fr; }
+@media (max-width: 1100px) { .board.wide { grid-template-columns: 1fr; } .board.wide .card { grid-template-columns: 1fr; } }

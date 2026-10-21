@@ -2,6 +2,28 @@
 
 The default look and pacing for Owain's reels. A brief from the user wins over anything here.
 
+## Principles (reels and YouTube)
+
+- Minimal. One idea on screen, lots of space, big type. Motion only to reveal, never to decorate.
+- Monochrome plus one muted accent. No glow, no neon, no gradients, nothing bouncing.
+- Serif for titles, a plain sans for labels. Things not yet said sit blurred and dim, then sharpen.
+- Real content or honest diagrams. An illustrative chart says "Illustration".
+- What we avoid: AI motion that is over the top. See `references/README.md`.
+
+## YouTube (16:9, `"canvas": "youtube"`)
+
+Owain edits the rough cut by hand. The plan only lays graphics and text over it, sparsely, and never re-cuts the picture.
+
+| Layout | What it is |
+| --- | --- |
+| `full` | the picture as cut. Most of the video. |
+| `over` | the picture with a quiet overlay: a `lower` third (serif title, sans line, no box) or a cinematic `title` (one small serif line in the centre, the picture dims a little). |
+| `side` | the visual on warm near-black, the speaker in a small rounded window on the right. One eased move in and out. |
+| `media` | the visual alone. Keep it short; the speaker is away. |
+| `cutaway` | b-roll edge to edge. |
+
+About one graphic every 20 to 60 seconds. Graphics hold 4 to 12 seconds and build with reveals or `keep`. No word captions unless `"captions": true`. `validate` checks these.
+
 ## Look: light editorial
 
 - Warm off-white canvas (`#F2F0EB`) with a faint dot grid. Ink black type. One muted cobalt for highlights.

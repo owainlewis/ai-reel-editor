@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Player, type PlayerRef } from "@remotion/player";
-import { Reel } from "../src/Reel";
+
 import type { Resolved } from "../src/schema";
 import type { Review, ShotInfo, Status } from "./model";
-import { Accented, frames, playable, secs, usePlanEvents } from "./shared";
+import { Accented, frames, playable, secs, stage, usePlanEvents } from "./shared";
 
 type Data = { resolved: Resolved; shots: ShotInfo[]; review: Review; reel: string };
 
@@ -162,19 +162,19 @@ export const Board: React.FC<{ slug: string }> = ({ slug }) => {
         </div>
       </div>
 
-      <div className="board">
+      <div className={`board ${stage(r).wide ? "wide" : ""}`}>
         <aside className="side">
           <div className="main-player">
             <Player
               ref={main}
-              component={Reel}
+              component={stage(r).component}
               inputProps={r}
               durationInFrames={total}
-              compositionWidth={1080}
-              compositionHeight={1920}
+              compositionWidth={stage(r).compositionWidth}
+              compositionHeight={stage(r).compositionHeight}
               fps={r.fps}
               controls
-              style={{ width: "100%", aspectRatio: "9 / 16" }}
+              style={{ width: "100%", aspectRatio: stage(r).aspect }}
             />
           </div>
           <Notes key={data.reel} review={data.review} onSave={(text) => put("notes", { text })} />
@@ -282,11 +282,11 @@ const ShotCard: React.FC<{
       <div className="shot-player" ref={ref}>
         <Player
           ref={player}
-          component={Reel}
+          component={stage(r).component}
           inputProps={r}
           durationInFrames={frames(r)}
-          compositionWidth={1080}
-          compositionHeight={1920}
+          compositionWidth={stage(r).compositionWidth}
+          compositionHeight={stage(r).compositionHeight}
           fps={r.fps}
           initialFrame={from}
           inFrame={from}
@@ -294,7 +294,7 @@ const ShotCard: React.FC<{
           loop
           initiallyMuted
           clickToPlay
-          style={{ width: "100%", aspectRatio: "9 / 16" }}
+          style={{ width: "100%", aspectRatio: stage(r).aspect }}
         />
       </div>
       <div>

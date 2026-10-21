@@ -1,8 +1,23 @@
 import React, { useEffect } from "react";
+import { Reel } from "../src/Reel";
+import { Wide } from "../src/Wide";
+import { compositionFor } from "../src/canvas";
 import type { Resolved } from "../src/schema";
 
 // A script project has no mixed audio until it is rendered; play its voice so the board is never silent.
 export const playable = (r: Resolved): Resolved => (r.audio || r.video ? r : { ...r, audio: `${r.slug}/source/voice.wav` });
+
+// The composition, size and shape a plan plays at: 9:16 reels, 16:9 YouTube.
+export const stage = (r: Resolved) => {
+  const c = compositionFor(r.canvas);
+  return {
+    component: (r.canvas === "youtube" ? Wide : Reel) as React.FC<Resolved>,
+    compositionWidth: c.width,
+    compositionHeight: c.height,
+    aspect: `${c.width} / ${c.height}`,
+    wide: r.canvas === "youtube",
+  };
+};
 
 export const frames = (r: Resolved) => Math.max(1, Math.round(r.duration * r.fps));
 

@@ -697,5 +697,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "grid": return <GridVisual {...p} v={v} />;
     case "funnel": return <FunnelVisual {...p} v={v} />;
     case "type": return <TypeVisual {...p} v={v} />;
+    // Drawn over the speaker's picture by the 16:9 composition (src/Wide.tsx), not in a panel.
+    case "lower": return null;
   }
 };

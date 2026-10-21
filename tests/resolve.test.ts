@@ -175,3 +175,36 @@ describe("camera and shared elements", () => {
     expect(text).toMatch(/needs a scene before it/);
   });
 });
+
+describe("youtube canvas", () => {
+  const wide = (shots: unknown[]) => Edit.parse({ title: "t", canvas: "youtube", shots });
+
+  it("defaults to the reel canvas", () => {
+    expect(Edit.parse({ title: "t", shots: [{ at: "If", layout: "full" }] }).canvas).toBe("reel");
+  });
+
+  it("allows side and over, and rejects reel layouts", () => {
+    const ok = resolveShots(
+      wide([
+        { at: "If", layout: "full" },
+        { at: "building", layout: "over", visual: { kind: "lower", title: "Owain Lewis" } },
+        { at: "having", layout: "side", visual: { kind: "title", text: "Code *review*" } },
+      ]),
+      words,
+      5,
+    );
+    expect(lintShots(ok.shots, 5, "react", "youtube").filter((i) => i.level === "error")).toEqual([]);
+    const bad = resolveShots(wide([{ at: "If", layout: "split", visual: { kind: "title", text: "x" } }]), words, 5);
+    expect(lintShots(bad.shots, 5, "react", "youtube").some((i) => i.level === "error")).toBe(true);
+  });
+
+  it("rejects youtube layouts on a reel", () => {
+    const { shots } = resolveShots(plan([{ at: "If", layout: "side", visual: { kind: "title", text: "x" } }]), words, 5);
+    expect(lintShots(shots, 5).some((i) => i.level === "error" && i.message.includes("youtube"))).toBe(true);
+  });
+
+  it("warns when graphics are dense", () => {
+    const shots = Array.from({ length: 12 }, (_, i) => ({ start: i * 10, end: i * 10 + 10, layout: "side", anchor: `a${i}`, visual: { kind: "title", text: "x" } })) as never;
+    expect(lintShots(shots, 120, "react", "youtube").some((i) => i.message.includes("sparse"))).toBe(true);
+  });
+});

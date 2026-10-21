@@ -125,6 +125,20 @@ When Owain says he left comments ("left comments, let's amend"):
 4. A note Owain has given before, or one that would apply to any reel, goes in `docs/RULES.md` (section 7), and into a check or component where it can be.
 5. Run `feedback` again to confirm nothing is still open, then tell Owain which shots to re-review, by number.
 
+## 6c. YouTube longform (16:9)
+
+Owain cuts the raw footage by hand. You add graphics and text to his rough cut; never re-cut it.
+
+```sh
+npm run reel -- new <slug> rough-cut.mp4      # landscape footage stays 1920x1080
+npm run reel -- transcribe <slug>
+```
+
+- Set `"canvas": "youtube"` in `edit.json`. Measure `face` on `checks/frame.jpg` for the side window.
+- Read the whole transcript first and pick the moments that earn a graphic: a number, a list, a structure, a before and after, a chapter. About one every 20 to 60 s. Everything else is `full`.
+- Start with `{ "at": "<first words>", "layout": "full" }`, then add `over` (lower thirds, chapter titles), `side` (a visual with the speaker in a window) and a return to `full` after each graphic.
+- Review it on the board (`npm run reel -- review <slug>`), then `render`.
+
 ## 7. Turn notes into rules
 
 When the user gives a note on a draft:
