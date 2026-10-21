@@ -10,6 +10,8 @@
 //   npm run reel -- stills <slug>
 //   npm run reel -- render <slug> [--draft]
 //   npm run reel -- check <slug>
+//   npm run reel -- review [slug] [--no-open]   the review board: watch and note each shot
+//   npm run reel -- feedback <slug>             the open notes from the review board
 //   npm run reel -- index                 split broll/ files into shots, update broll/index.json
 //   npm run reel -- broll [words...]      list library clips, best matches first
 import { createHash } from "node:crypto";
@@ -22,6 +24,8 @@ import { frameRect } from "../src/camera.ts";
 import { HEADER, MEDIA, splitGeom } from "../src/theme.ts";
 import { chunkWords, estimateWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
 import { indexLibrary, listLibrary, useClip } from "./broll.ts";
+import { formatFeedback } from "../review/model.ts";
+import { loadReel } from "../review/store.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FPS = 30;
@@ -382,6 +386,24 @@ function cmdCheck(slug: string) {
   console.log(`  review: checks/opening.jpg, checks/cuts.jpg, checks/stills.jpg`);
 }
 
+// The review board: a local page with every shot playing, Approve / Change and a note on each.
+// Notes save to projects/<slug>/review.json; `feedback` prints the open ones.
+async function cmdReview(slug?: string) {
+  if (slug) cmdValidate(slug, true);
+  const { startReview } = await import("../review/server.ts");
+  const { url } = await startReview(ROOT, parseInt(flag("port") ?? "4317"));
+  const page = slug ? `${url}/#/reel/${slug}` : url;
+  console.log(`Review board: ${page}\nCtrl+C to stop.`);
+  if (!has("no-open")) spawnSync("open", [page]);
+}
+
+function cmdFeedback(slug: string) {
+  const r = loadReel(project(slug));
+  const moved = [...r.changed.map((id) => `${id} changed`), ...r.added.map((id) => `${id} new`), ...r.removed.map((id) => `${id} removed`)];
+  console.log(formatFeedback(slug, r.review, r.shots));
+  if (moved.length) console.log(`\nSince the last review: ${moved.join(", ")}. These wait for Owain.`);
+}
+
 async function main() {
   const [, slug, third] = positional;
   switch (cmd) {
@@ -395,10 +417,12 @@ async function main() {
     case "stills": return cmdStills(slug);
     case "render": return cmdRender(slug);
     case "check": return cmdCheck(slug);
+    case "review": return cmdReview(slug);
+    case "feedback": return cmdFeedback(slug);
     case "index": return void indexLibrary(ROOT);
     case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
-      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 14).join("\n"));
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 16).join("\n"));
   }
 }
 

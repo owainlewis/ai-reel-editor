@@ -107,6 +107,24 @@ Read `checks/opening.jpg` (the first 2.5 s) and `checks/cuts.jpg` (frames each s
 
 Send the user the MP4. Say plainly what you checked and what you could not (you cannot hear the mix; say so).
 
+## 6b. Review board
+
+Owain reviews shot by shot on the board, not by watching renders:
+
+```sh
+npm run reel -- review <slug>     # opens http://localhost:4317 with every shot playing in the Player, no render needed
+```
+
+Each shot gets Approve or Change and a note; the whole reel gets a notes box. Everything saves to `projects/<slug>/review.json`, keyed by a shot id (from its anchor) and a hash of the shot. Start the board for Owain after `validate` when a draft is ready; it reloads by itself when `build/edit.resolved.json` changes.
+
+When Owain says he left comments ("left comments, let's amend"):
+
+1. `npm run reel -- feedback <slug>` prints the open changes: the whole-reel notes, then each shot to change with its time, what is said in it and the note. Ignore approved and waiting shots.
+2. Apply every change in `edit.json`. Change only the shots named, so approved shots keep their review. Changing a shot's anchor changes its neighbour's length too, and both go back to waiting.
+3. `npm run reel -- validate <slug>`. The board reloads; every changed shot goes back to "waiting" and its old note moves to history. Whole-reel notes move to history once the reel changes, so apply them in the same pass.
+4. A note Owain has given before, or one that would apply to any reel, goes in `docs/RULES.md` (section 7), and into a check or component where it can be.
+5. Run `feedback` again to confirm nothing is still open, then tell Owain which shots to re-review, by number.
+
 ## 7. Turn notes into rules
 
 When the user gives a note on a draft:
