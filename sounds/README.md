@@ -1,7 +1,8 @@
 # Sound effects
 
 One folder per kind. Any format ffmpeg reads. Files here are git-ignored.
-A kind with no files falls back to a synthesised sound.
+A kind with no files stays silent (synthesised sounds read as cheap).
+A git worktree has an empty copy of this folder, so the mixer uses the main checkout's.
 
 | Folder | Plays when |
 | --- | --- |
@@ -11,5 +12,5 @@ A kind with no files falls back to a synthesised sound.
 | `whoosh/` | a shot sets `"sfx": "whoosh"` (use rarely) |
 | `impact/`, `thud/`, `chime/` | a shot sets that `sfx` |
 
-Prefer soft taps, dry clicks and air over zaps and plops. Trim silence from the start of each file.
+Prefer soft taps, dry clicks and air over zaps and plops. The current set comes from `~/Downloads/sfx-reels`. Trim silence from the start of each file.
 Check every licence before you publish. Good free sources: Kenney (CC0), Pixabay, Freesound filtered to CC0.

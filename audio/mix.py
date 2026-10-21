@@ -18,11 +18,24 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
-from . import music, sfx
+from . import sfx
 from .dsp import SR
 from .library import SoundLibrary, decode, music_bed, music_files
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def library_root() -> Path:
+    """Where sounds/ and music/ live. They are git-ignored, so a git worktree has
+    empty copies; it uses the main checkout's instead. REEL_LIBRARY overrides both."""
+    import os
+
+    if os.environ.get("REEL_LIBRARY"):
+        return Path(os.environ["REEL_LIBRARY"]).expanduser()
+    common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    main = Path(common).parent if common else ROOT
+    has_audio = lambda root: any(p.is_file() and not p.name.startswith(".") and p.suffix != ".md" for p in (root / "sounds").rglob("*"))
+    return main if not has_audio(ROOT) and has_audio(main) else ROOT
 TARGET_LUFS = -14.0
 TRUE_PEAK = -1.5  # headroom for AAC encoding, which adds about 0.5 dB
 
@@ -61,23 +74,23 @@ def main(project: Path) -> None:
     voice = fit(decode(project / "source/voice.wav", cache))
     sf.write(work / "voice.wav", voice, SR, subtype="FLOAT")
 
+    lib = library_root()
     m = cfg.get("music")
-    if m:
-        tracks = [ROOT / "music" / m["track"]] if m.get("track") else music_files(ROOT / "music", m.get("mood", "focus"))
-        if tracks:
-            pick = tracks[sum(map(ord, project.name)) % len(tracks)]
-            bed = music_bed(pick, seconds, cache)
-            print(f"  music: {pick.name}")
-        else:
-            bed, _ = music.render(seconds, m.get("mood", "focus"), drums_in=2.5)
-            print("  music: synthesised bed")
+    tracks = ([lib / "music" / m["track"]] if m.get("track") else music_files(lib / "music", m.get("mood", "focus"))) if m else []
+    if m and tracks:
+        pick = tracks[sum(map(ord, project.name)) % len(tracks)]
+        bed = music_bed(pick, seconds, cache)
+        print(f"  music: {pick.name}")
         sf.write(work / "music.wav", fit(bed), SR, subtype="FLOAT")
         music_db = float(m.get("level", -20))
     else:
+        # A synthesised bed always sounded cheap; no music beats bad music.
+        if m:
+            print(f"  music: none (no tracks in {lib / 'music'}; add some to get a bed)")
         sf.write(work / "music.wav", np.zeros((n, 2), dtype=np.float32), SR, subtype="FLOAT")
         music_db = -90.0
 
-    library = SoundLibrary(ROOT / "sounds", cache)
+    library = SoundLibrary(lib / "sounds", cache)
     print(f"  sounds: {library.summary()}")
     effects = sfx.render(cfg.get("sfx", []), seconds, 220.0, library)
     sf.write(work / "sfx.wav", fit(effects * 0.5), SR, subtype="FLOAT")

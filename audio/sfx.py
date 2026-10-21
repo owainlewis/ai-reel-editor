@@ -93,13 +93,36 @@ def chime(root_hz: float) -> np.ndarray:
     return reverb(stereo(out * np.minimum(1, t / 0.002)), 0.5, 2.5)
 
 
-def render(events: list[dict], seconds: float, root_hz: float, library=None) -> np.ndarray:
-    """Mix every event into one stereo track. Kinds with files in the sound
-    library use them; everything else is synthesised."""
+# Sound is rare and earns its place. Sounds the plan asks for on a cut always play;
+# the automatic taps on reveals play only when nothing has sounded for this long,
+# and much quieter. Typing keys are exempt: they follow visible typing.
+MIN_GAP = 2.5
+TAP_GAIN = 0.3
+
+
+def thin(events: list[dict]) -> list[dict]:
+    kept: list[dict] = []
+    last = -1e9
+    for e in sorted(events, key=lambda e: e["t"]):
+        tap = e.get("gain", 1.0) < 1.0
+        if e["kind"] == "key":
+            kept.append(e)
+        elif not tap:
+            kept.append(e)
+            last = e["t"]
+        elif e["t"] - last >= MIN_GAP:
+            kept.append({**e, "gain": TAP_GAIN})
+            last = e["t"]
+    return kept
+
+
+def render(events: list[dict], seconds: float, root_hz: float, library=None, synth: bool = False) -> np.ndarray:
+    """Mix the events into one stereo track from the sound library. A kind with no
+    files is left silent unless `synth` is set: the synthesised sounds read as cheap."""
     out = np.zeros((int(seconds * SR), 2))
     cache: dict[tuple, np.ndarray] = {}
     counts: dict[str, int] = {}
-    for e in events:
+    for e in thin(events):
         kind = e["kind"]
         if library is not None and library.has(kind):
             index = counts.get(kind, 0) + (e.get("step", 0) if kind == "pop" else 0)
@@ -110,6 +133,8 @@ def render(events: list[dict], seconds: float, root_hz: float, library=None) -> 
                 # Real risers are cut to end on the hit rather than start on it.
                 at = e["t"] + e.get("dur", 1.0) - len(sound) / SR
             place(out, sound, at, e.get("gain", 1.0))
+            continue
+        if not synth:
             continue
         if kind == "pop":
             k = ("pop", e.get("step", 0))

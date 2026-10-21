@@ -72,5 +72,6 @@ Never:
 ## Sound
 
 - Music bed about 20 dB under the voice, ducked under speech. Off when the footage already has music.
-- Sound effects follow visible events only: a soft pop when a logo or item lands, a blip on a highlight, keys on typing. Most cuts get nothing.
+- Sound is rare and tactile: soft whooshes on scene changes, mechanical clicks when something lands, a camera focus beep on a highlight, a real key on typing. At most one sound every 2.5 s apart from typing. Most cuts get nothing. Never drops, glitches, swords, static or synthesised tones.
+- No music is better than generic music. With no track in `music/`, the reel has none.
 - Master at -14 LUFS integrated, true peak at or under -1 dBTP. The last word is never faded.
