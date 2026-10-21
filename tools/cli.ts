@@ -4,6 +4,7 @@
 //   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]   portrait for reels, landscape for YouTube
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
+//   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.35]   shorten silences, cut ranges; then transcribe again
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
 //   npm run reel -- fetch <slug> <url> --name <file> [--dir logos|captures|broll]
 //   npm run reel -- validate <slug>
@@ -15,7 +16,7 @@
 //   npm run reel -- index                 split broll/ files into shots, update broll/index.json
 //   npm run reel -- broll [words...]      list library clips, best matches first
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -94,11 +95,13 @@ const VF = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,
 function cmdNew(slug: string, video: string) {
   const dir = project(slug);
   for (const d of ["source", "assets/captures", "assets/logos", "assets/broll", "build", "renders", "checks"]) mkdirSync(join(dir, d), { recursive: true });
-  console.log("Normalising footage to 1080x1920 at 30 fps");
+  console.log("Normalising footage to 30 fps, keeping its shape");
   // Keep the speaker footage's own shape (portrait 1080x1920 or landscape 1920x1080) so every
   // layout can frame it; the renderer crops per shot around the face.
   const [sw, sh] = probeSize(video);
-  const size: [number, number] = sw > sh ? [1920, 1080] : [1080, 1920];
+  // 4K landscape stays 4K: a 9:16 reel uses only a vertical slice of it, about 1215x2160,
+  // which is full quality. Scaled to 1080p first, that slice would be upscaled 1.8x and soft.
+  const size: [number, number] = sw > sh ? (sw >= 3840 ? [3840, 2160] : [1920, 1080]) : [1080, 1920];
   const vf = `scale=${size[0]}:${size[1]}:force_original_aspect_ratio=increase,crop=${size[0]}:${size[1]},fps=30,setsar=1`;
   ffmpeg(["-i", video, "-vf", vf, "-c:v", "libx264", "-crf", "14", "-preset", "medium", "-pix_fmt", "yuv420p", "-an", join(dir, "source/talking.mp4")]);
   ffmpeg(["-i", video, "-vn", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s24le", join(dir, "source/voice.wav")]);
@@ -148,6 +151,54 @@ function cmdScript(slug: string, file: string) {
   }
   writeJson(join(dir, "project.json"), { slug, original: resolve(file), script: true, size: [1080, 1920], duration });
   console.log(`Created ${dir} (${duration.toFixed(1)}s, no footage)\nNext: write edit.json; "face" is not needed.`);
+}
+
+// A rough take has dead air and false starts. Shorten every silence longer than --gap to a
+// natural beat, and drop any --cut ranges (seconds in the original take). Cuts land inside
+// silence where they can, so joins are clean. The original files are kept beside the new ones,
+// so this can be rerun with different cuts.
+function cmdTighten(slug: string) {
+  const dir = project(slug);
+  const video = join(dir, "source/talking.mp4");
+  const voice = join(dir, "source/voice.wav");
+  const origVideo = join(dir, "source/talking.orig.mp4");
+  const origVoice = join(dir, "source/voice.orig.wav");
+  if (!existsSync(origVideo)) execFileSync("mv", [video, origVideo]);
+  if (!existsSync(origVoice)) execFileSync("mv", [voice, origVoice]);
+  const gap = parseFloat(flag("gap") ?? "0.35");
+  const pad = 0.12;
+  const total = probeDuration(origVoice);
+  const log = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", origVoice, "-af", `silencedetect=noise=-38dB:d=${gap}`, "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => +m[1]);
+  const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => +m[1]);
+  // Ranges to remove: the inside of each silence (keeping a beat each side), plus --cut ranges.
+  const remove: [number, number][] = starts.map((a, i) => [a === 0 || a < 0.5 ? 0 : a + pad, Math.min(total, (ends[i] ?? total) - pad)]);
+  args.forEach((a, i) => {
+    if (a !== "--cut") return;
+    const [x, y] = args[i + 1].split("-").map(Number);
+    remove.push([x, y]);
+  });
+  const merged = remove.filter(([a, b]) => b - a > 0.05).sort((p, q) => p[0] - q[0]).reduce<[number, number][]>((out, r) => {
+    const last = out[out.length - 1];
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+    else out.push([...r]);
+    return out;
+  }, []);
+  const keep: [number, number][] = [];
+  let at = 0;
+  for (const [a, b] of merged) {
+    if (a > at) keep.push([at, a]);
+    at = Math.max(at, b);
+  }
+  if (at < total) keep.push([at, total]);
+  const expr = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join("+");
+  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
+  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB`, "-c:a", "pcm_s24le", voice]);
+  const removed = merged.reduce((t, [a, b]) => t + b - a, 0);
+  writeJson(join(dir, "build/tighten.json"), { gap, keep, removed: +removed.toFixed(2) });
+  const meta = readJson<Record<string, unknown>>(join(dir, "project.json"));
+  writeJson(join(dir, "project.json"), { ...meta, duration: probeDuration(video) });
+  console.log(`Removed ${removed.toFixed(1)}s in ${merged.length} cuts: ${total.toFixed(1)}s -> ${probeDuration(video).toFixed(1)}s. Next: transcribe again.`);
 }
 
 function cmdTranscribe(slug: string) {
@@ -232,6 +283,30 @@ async function cmdFetch(slug: string, url: string) {
   console.log(`Saved ${out}`);
 }
 
+// The board plays every shot in a browser at once. A 4K master, or 24-bit WAV audio, will not
+// decode there, so it plays light copies: video at most 1920 on its long side, and AAC audio
+// from the mix when there is one, otherwise the voice. Rebuilt only when the source is newer.
+const stale = (out: string, src: string) => !existsSync(out) || statSync(out).mtimeMs < statSync(src).mtimeMs;
+function makePreviews(dir: string, slug: string, size: [number, number]): Resolved["preview"] {
+  const preview: NonNullable<Resolved["preview"]> = {};
+  const video = join(dir, "source/talking.mp4");
+  if (existsSync(video)) {
+    const out = join(dir, "build/preview.mp4");
+    if (stale(out, video)) {
+      const scale = size[0] >= size[1] ? "scale=min(1920\\,iw):-2" : "scale=-2:min(1920\\,ih)";
+      ffmpeg(["-i", video, "-vf", scale, "-an", "-c:v", "libx264", "-profile:v", "high", "-level", "4.1", "-crf", "23", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
+    }
+    preview.video = `${slug}/build/preview.mp4`;
+  }
+  const audioSrc = [join(dir, "build/mix.wav"), join(dir, "source/voice.wav")].find(existsSync);
+  if (audioSrc) {
+    const out = join(dir, "build/preview.m4a");
+    if (stale(out, audioSrc)) ffmpeg(["-i", audioSrc, "-c:a", "aac", "-b:a", "192k", out]);
+    preview.audio = `${slug}/build/preview.m4a`;
+  }
+  return preview;
+}
+
 function cmdValidate(slug: string, quiet = false): Resolved {
   const dir = project(slug);
   const meta = readJson<{ duration: number; size?: [number, number]; script?: boolean }>(join(dir, "project.json"));
@@ -310,6 +385,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     split: plan.split,
     canvas: plan.canvas,
     captions: plan.captions ?? !youtube,
+    preview: makePreviews(dir, slug, meta.size ?? [1080, 1920]),
     shots,
     chunks: chunkWords(words, plan.accents, shots.map((s) => s.start).slice(1), FPS),
     sfx: sfxEvents(shots),
@@ -435,6 +511,7 @@ async function main() {
     case "new": return cmdNew(slug, third);
     case "script": return cmdScript(slug, third);
     case "transcribe": return cmdTranscribe(slug);
+    case "tighten": return cmdTighten(slug);
     case "capture": return cmdCapture(slug, third);
     case "fetch": return cmdFetch(slug, third);
     case "validate": return void cmdValidate(slug);
@@ -447,7 +524,7 @@ async function main() {
     case "index": return void indexLibrary(ROOT);
     case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
-      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 16).join("\n"));
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 17).join("\n"));
   }
 }
 

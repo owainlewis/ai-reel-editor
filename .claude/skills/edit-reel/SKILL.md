@@ -18,6 +18,15 @@ npm run reel -- transcribe <slug>
 - Read `projects/<slug>/transcript.txt` end to end. Fix misheard names in `transcript.json` (tools, companies, people). Never change what was said.
 - Look at `checks/frame.jpg` and measure the face: centre x, centre y and head height (crown to chin) as fractions of the frame. These go in `face`.
 - If the footage already has music under it, set `"music": false`.
+- A rough take (dead air, long hesitations, a signpost sentence that delays the point): tighten it before planning. Every silence over 0.35 s shrinks to a short beat; `--cut a-b` drops a range in seconds of the original take, for a false start or a sentence that only slows the hook. The originals are kept, so it can be rerun. Then transcribe again.
+
+```sh
+npm run reel -- tighten <slug> --cut 7.2-10.9
+npm run reel -- transcribe <slug>
+```
+
+- Whisper sometimes invents a repeat of the last sentence at zero length and splits numbers ("2" ",500"). Delete the repeat and join the number in `transcript.json`.
+- 4K landscape footage stays 4K, so 9:16 reels cut from it are sharp. Keep the speaker centred.
 
 ## 2. Research before you design
 
@@ -130,7 +139,7 @@ When Owain says he left comments ("left comments, let's amend"):
 Owain cuts the raw footage by hand. You add graphics and text to his rough cut; never re-cut it.
 
 ```sh
-npm run reel -- new <slug> rough-cut.mp4      # landscape footage stays 1920x1080
+npm run reel -- new <slug> rough-cut.mp4      # landscape stays landscape; 4K stays 4K
 npm run reel -- transcribe <slug>
 ```
 

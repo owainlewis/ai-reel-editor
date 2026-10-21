@@ -155,7 +155,7 @@ const SceneLayer: React.FC<{ r: Resolved; i: number; time: number; grade: string
       <SceneCanvas tone={tone} time={time} />
       {s.visual && (
         <Sequence from={from} durationInFrames={dur} name={`${head + 1} scene ${s.visual.kind}`}>
-          <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center", color: pal(tone).ink }}>
             <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} filter={grade} />
           </div>
         </Sequence>

@@ -4,8 +4,13 @@ import { Wide } from "../src/Wide";
 import { compositionFor } from "../src/canvas";
 import type { Resolved } from "../src/schema";
 
-// A script project has no mixed audio until it is rendered; play its voice so the board is never silent.
-export const playable = (r: Resolved): Resolved => (r.audio || r.video ? r : { ...r, audio: `${r.slug}/source/voice.wav` });
+// The board plays light preview copies (see makePreviews in tools/cli.ts): 1080p video and AAC
+// audio from the mix, or the voice before a mix exists, so it is never silent or blank.
+export const playable = (r: Resolved): Resolved => ({
+  ...r,
+  video: r.video && r.preview?.video ? r.preview.video : r.video,
+  audio: r.preview?.audio ?? r.audio ?? `${r.slug}/source/voice.wav`,
+});
 
 // The composition, size and shape a plan plays at: 9:16 reels, 16:9 YouTube.
 export const stage = (r: Resolved) => {

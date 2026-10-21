@@ -205,6 +205,8 @@ export type Resolved = {
   split: "half" | "inset";
   canvas: "reel" | "youtube";
   captions: boolean;
+  // Light copies for the review board's players: 1080p H.264 video and AAC audio. Renders use the originals.
+  preview?: { video?: string; audio?: string };
   shots: ResolvedShot[];
   chunks: Chunk[];
   sfx: SfxEvent[];

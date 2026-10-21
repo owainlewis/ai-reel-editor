@@ -201,7 +201,7 @@ const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w,
               <div style={{ width: tile, height: tile, borderRadius: tile * 0.22, background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, display: "flex", alignItems: "center", justifyContent: "center", scale: String(settle) }}>
                 <Img src={src(slug, it.src)} style={{ width: tile * 0.58, height: tile * 0.58, objectFit: "contain" }} />
               </div>
-              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.max(40, tile * 0.15), letterSpacing: -1, color: t.ink }}>{it.name}</div>}
+              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.max(40, tile * 0.15), letterSpacing: -1, color: "inherit" }}>{it.name}</div>}
             </div>
           );
         })}
