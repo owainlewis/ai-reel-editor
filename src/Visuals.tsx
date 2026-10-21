@@ -417,6 +417,210 @@ const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, 
   );
 };
 
+// A chapter card: the number lands out of a blur over a soft glow, its name tracked out below.
+const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h, v }) => {
+  const glow = prog(time, shot.start, 0.9);
+  const num = prog(time, shot.start + 0.05, 0.55);
+  const label = prog(time, shot.start + 0.3, 0.5);
+  const d = Math.min(w * 1.05, h * 0.95);
+  return (
+    <div style={{ position: "relative", width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
+      <div
+        style={{
+          position: "absolute",
+          left: (w - d) / 2,
+          top: (h - d) / 2,
+          width: d,
+          height: d,
+          borderRadius: d,
+          background: `radial-gradient(circle, #FFFFFF 0%, rgba(255,255,255,0.92) 28%, rgba(45,79,163,0.16) 56%, rgba(45,79,163,0) 72%)`,
+          opacity: glow,
+          scale: String(0.7 + 0.3 * glow + 0.04 * interpolate(time, [shot.start, shot.end], [0, 1], clamp)),
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          fontFamily: t.sans,
+          fontWeight: 700,
+          fontSize: 340,
+          lineHeight: 0.9,
+          letterSpacing: -16,
+          color: t.ink,
+          fontVariantNumeric: "tabular-nums",
+          opacity: num,
+          filter: `blur(${(1 - num) * 18}px)`,
+          scale: String(1.12 - 0.12 * num),
+        }}
+      >
+        {v.number}
+      </div>
+      <div style={{ position: "relative", fontFamily: t.sans, fontWeight: 500, fontSize: 36, letterSpacing: 16, paddingLeft: 16, textTransform: "uppercase", color: t.muted, opacity: label, translate: `0 ${(1 - label) * 16}px` }}>
+        {v.label}
+      </div>
+    </div>
+  );
+};
+
+type Pt = { x: number; y: number };
+// A point on a cubic curve, so a dot and a chip can ride along an edge as it draws.
+const bezier = (a: Pt, b: Pt, c: Pt, d: Pt, u: number): Pt => {
+  const m = 1 - u;
+  return {
+    x: m * m * m * a.x + 3 * m * m * u * b.x + 3 * m * u * u * c.x + u * u * u * d.x,
+    y: m * m * m * a.y + 3 * m * m * u * b.y + 3 * m * u * u * c.y + u * u * u * d.y,
+  };
+};
+
+// How parts talk: cards land on their words, then the lines between them draw, a dot leading
+// each line and a chip (what is passed) riding along it. The card a line reaches takes the accent.
+const FlowVisual: React.FC<Props & { v: V<"flow"> }> = ({ shot, time, w, h, v }) => {
+  const n = v.nodes.length;
+  const times = v.times ?? [...v.nodes.map((_, i) => shot.start + i * 0.15), ...v.edges.map((_, i) => shot.start + 0.5 + i * 0.5)];
+  const row = v.root ? v.nodes.slice(1) : v.nodes;
+  const gap = 44;
+  const cw = Math.min(v.root ? 440 : 520, (w - gap * (row.length - 1)) / row.length);
+  const title = Math.max(38, Math.min(52, cw * 0.1));
+  const line = Math.max(28, Math.min(34, cw * 0.07));
+  const cardH = (nodes: typeof v.nodes) => 92 + title * 1.3 + Math.max(0, ...nodes.map((nd) => nd.lines.length)) * line * 1.9 + 36;
+  const dip = 190;
+  const rootW = Math.min(560, w * 0.6);
+  const rootH = v.root ? cardH(v.nodes.slice(0, 1)) : 0;
+  const rowH = cardH(row);
+  const total = v.root ? rootH + 210 + rowH : rowH + dip;
+  const top0 = Math.max(0, (h - total) / 2);
+  const rowTop = v.root ? top0 + rootH + 210 : top0;
+  const rowLeft = (w - (cw * row.length + gap * (row.length - 1))) / 2;
+  const boxes = v.nodes.map((_, i) => {
+    if (v.root && i === 0) return { x: (w - rootW) / 2, y: top0, w: rootW, h: rootH };
+    const k = v.root ? i - 1 : i;
+    return { x: rowLeft + k * (cw + gap), y: rowTop, w: cw, h: rowH };
+  });
+  const curve = (from: number, to: number): [Pt, Pt, Pt, Pt] => {
+    const a = boxes[from];
+    const b = boxes[to];
+    if (v.root) {
+      const down = a.y < b.y;
+      const p0 = { x: a.x + a.w / 2, y: down ? a.y + a.h : a.y };
+      const p3 = { x: b.x + b.w / 2, y: down ? b.y : b.y + b.h };
+      const s = down ? 1 : -1;
+      return [p0, { x: p0.x, y: p0.y + s * 110 }, { x: p3.x, y: p3.y - s * 110 }, p3];
+    }
+    const p0 = { x: a.x + a.w / 2, y: a.y + a.h };
+    const p3 = { x: b.x + b.w / 2, y: b.y + b.h };
+    return [p0, { x: p0.x, y: p0.y + dip }, { x: p3.x, y: p3.y + dip }, p3];
+  };
+  const edges = v.edges.map((e, j) => {
+    const at = times[n + j];
+    const draw = prog(time, at, 0.7);
+    return { e, at, draw, pts: curve(e.from, e.to) };
+  });
+
+  return (
+    <div style={{ position: "relative", width: w, height: h }}>
+      <svg width={w} height={h} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
+        {edges.map(({ draw, pts: [a, b, c, d] }, j) =>
+          draw <= 0 ? null : (
+            <path
+              key={j}
+              d={`M${a.x} ${a.y} C${b.x} ${b.y} ${c.x} ${c.y} ${d.x} ${d.y}`}
+              pathLength={1}
+              fill="none"
+              stroke={t.accent}
+              strokeWidth={5}
+              strokeLinecap="round"
+              strokeDasharray="1 1"
+              strokeDashoffset={1 - draw}
+            />
+          ),
+        )}
+      </svg>
+      {v.nodes.map((nd, i) => {
+        const b = boxes[i];
+        const p = prog(time, times[i], 0.5);
+        // A card takes the accent once a line reaches it.
+        const reached = Math.max(0, ...edges.filter((x) => x.e.to === i).map((x) => prog(time, x.at + 0.6, 0.3)));
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: b.x,
+              top: b.y,
+              width: b.w,
+              height: b.h,
+              borderRadius: 28,
+              background: t.card,
+              border: `${1.5 + reached * 1.5}px solid ${reached > 0.5 ? t.accent : t.line}`,
+              boxShadow: t.shadow,
+              padding: "22px 30px",
+              boxSizing: "border-box",
+              opacity: p,
+              filter: `blur(${(1 - p) * 8}px)`,
+              translate: `0 ${(1 - p) * 40}px`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 9, height: 30 }}>
+              {[0, 1, 2].map((k) => (
+                <div key={k} style={{ width: 11, height: 11, borderRadius: 6, background: "#E5E3DE" }} />
+              ))}
+              {nd.kicker && <div style={{ marginLeft: 12, fontFamily: t.sans, fontWeight: 500, fontSize: 22, letterSpacing: 3, textTransform: "uppercase", color: t.muted }}>{nd.kicker}</div>}
+            </div>
+            <div style={{ marginTop: 22, fontFamily: t.sans, fontWeight: 700, fontSize: title, letterSpacing: -title * 0.03, lineHeight: 1.2, color: t.ink }}>
+              <Accented text={nd.title} />
+            </div>
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: line * 0.7 }}>
+              {nd.lines.map((ln, k) => {
+                const q = prog(time, times[i] + 0.25 + k * 0.22, 0.4);
+                return (
+                  <div key={k} style={{ display: "flex", alignItems: "center", gap: 16, opacity: q, translate: `${(1 - q) * 24}px 0` }}>
+                    <div style={{ flex: "none", width: line * 0.9, height: line * 0.9, borderRadius: line, background: t.highlight, color: t.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: line * 0.55 }}>✓</div>
+                    <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: line, letterSpacing: -0.3, lineHeight: 1.2, color: t.ink }}>{ln}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {edges.map(({ e, at, draw, pts }, j) => {
+        if (draw <= 0) return null;
+        // The dot leads the line as it draws, then rests where it landed.
+        const head = bezier(...pts, draw);
+        const ride = e.chip ? prog(time, at + 0.6, 1.2) : 0;
+        const chip = bezier(...pts, 0.2 + 0.6 * ride);
+        return (
+          <React.Fragment key={`e${j}`}>
+            <div style={{ position: "absolute", left: head.x - 13, top: head.y - 13, width: 26, height: 26, borderRadius: 13, background: t.accent, border: "5px solid #fff", boxShadow: "0 2px 10px rgba(45,79,163,0.35)" }} />
+            {e.chip && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: chip.x,
+                  top: chip.y,
+                  translate: "-50% -50%",
+                  padding: "12px 24px",
+                  borderRadius: 16,
+                  background: t.card,
+                  border: `1px solid ${t.line}`,
+                  boxShadow: t.shadow,
+                  fontFamily: t.mono,
+                  fontSize: 30,
+                  color: t.ink,
+                  whiteSpace: "nowrap",
+                  opacity: prog(time, at + 0.5, 0.3),
+                }}
+              >
+                {e.chip}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
 export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
   const v = p.v;
   switch (v.kind) {
@@ -431,5 +635,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "terminal": return <TerminalVisual {...p} v={v} />;
     case "prompt": return <PromptVisual {...p} v={v} />;
     case "cta": return <CtaVisual {...p} v={v} />;
+    case "chapter": return <ChapterVisual {...p} v={v} />;
+    case "flow": return <FlowVisual {...p} v={v} />;
   }
 };

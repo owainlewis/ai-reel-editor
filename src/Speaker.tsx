@@ -24,6 +24,27 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
   }
 };
 
+// Stands in for the speaker in script projects (no footage): a head and shoulders in a dim room,
+// drawn in a 1080x1920 frame with the face where PLACEHOLDER_FACE in tools/cli.ts says it is.
+const Placeholder: React.FC<{ style: React.CSSProperties }> = ({ style }) => (
+  <svg viewBox="0 0 1080 1920" preserveAspectRatio="none" style={style}>
+    <defs>
+      <radialGradient id="room" cx="0.5" cy="0.3" r="0.8">
+        <stop offset="0" stopColor="#4A4740" />
+        <stop offset="1" stopColor="#23221F" />
+      </radialGradient>
+      <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#6B665D" />
+        <stop offset="1" stopColor="#3A3833" />
+      </linearGradient>
+    </defs>
+    <rect width="1080" height="1920" fill="url(#room)" />
+    <path d="M150 1920 C150 1180 330 1010 540 1010 C750 1010 930 1180 930 1920 Z" fill="url(#body)" />
+    <rect x="470" y="820" width="140" height="220" rx="60" fill="#5E5A52" />
+    <ellipse cx="540" cy="576" rx="128" ry="163" fill="#77726A" />
+  </svg>
+);
+
 // One continuous speaker video. It is never unmounted, so playback never seeks
 // between shots; each layout only changes its box and framing.
 export const Speaker: React.FC<{ r: Resolved; shot: ResolvedShot; time: number }> = ({ r, shot, time }) => {
@@ -69,18 +90,22 @@ export const Speaker: React.FC<{ r: Resolved; shot: ResolvedShot; time: number }
         opacity: f.visible ? 1 : 0,
       }}
     >
-      <Video
-        src={staticFile(r.video)}
-        muted={!!r.audio}
-        style={{
-          position: "absolute",
-          left: x,
-          top: y,
-          width: vw,
-          height: vh,
-          filter: `brightness(${r.grade.brightness}) contrast(${r.grade.contrast}) saturate(${r.grade.saturate})`,
-        }}
-      />
+      {r.video ? (
+        <Video
+          src={staticFile(r.video)}
+          muted={!!r.audio}
+          style={{
+            position: "absolute",
+            left: x,
+            top: y,
+            width: vw,
+            height: vh,
+            filter: `brightness(${r.grade.brightness}) contrast(${r.grade.contrast}) saturate(${r.grade.saturate})`,
+          }}
+        />
+      ) : (
+        <Placeholder style={{ position: "absolute", left: x, top: y, width: vw, height: vh }} />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Edit } from "../src/schema.ts";
-import { chunkWords, findPhrase, lintShots, resolveShots } from "../tools/resolve.ts";
+import { chunkWords, estimateWords, findPhrase, lintShots, resolveShots } from "../tools/resolve.ts";
 
 const words = "If you're building software with AI, having a good code review tool is essential."
   .split(" ")
@@ -90,5 +90,47 @@ describe("lintShots", () => {
     expect(text).toMatch(/hides the speaker/);
     expect(text).toMatch(/two face-only shots in a row/);
     expect(text).toMatch(/split is 33%/);
+  });
+});
+
+describe("scenes across shots", () => {
+  const flow = { kind: "flow", nodes: [{ title: "A", at: "building" }, { title: "B", at: "good" }], edges: [{ from: 0, to: 1, at: "review" }] };
+
+  it("lands flow nodes and edges on their words", () => {
+    const { shots, issues } = resolveShots(plan([{ at: "If", layout: "media", visual: flow }]), words, 5);
+    expect(issues).toEqual([]);
+    [2, 8, 10].forEach((w, k) => expect(shots[0].visual?.times?.[k]).toBeCloseTo(w * 0.3 - 0.05));
+  });
+
+  it("keeps the previous visual and its times", () => {
+    const { shots, issues } = resolveShots(
+      plan([
+        { at: "If", layout: "media", visual: flow },
+        { at: "having", layout: "media", keep: true, header: "Next" },
+      ]),
+      words,
+      5,
+    );
+    expect(issues).toEqual([]);
+    expect(shots[1].keep).toBe(true);
+    expect(shots[1].visual).toBe(shots[0].visual);
+    expect(shots[1].header).toBe("Next");
+  });
+
+  it("rejects keep across a layout change", () => {
+    const { issues } = resolveShots(plan([{ at: "If", layout: "media", visual: flow }, { at: "having", layout: "split", keep: true }]), words, 5);
+    expect(issues.some((i) => i.level === "error")).toBe(true);
+  });
+});
+
+describe("estimateWords", () => {
+  it("paces a script near 165 words a minute, with pauses at full stops", () => {
+    const script = Array.from({ length: 33 }, () => "Agents plan work.").join(" ");
+    const est = estimateWords(script);
+    expect(est).toHaveLength(99);
+    const minutes = est[est.length - 1].end / 60;
+    expect(99 / minutes).toBeGreaterThan(110);
+    expect(99 / minutes).toBeLessThan(175);
+    expect(est[3].start - est[2].end).toBeGreaterThan(est[2].start - est[1].end);
   });
 });

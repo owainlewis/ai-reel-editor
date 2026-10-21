@@ -52,6 +52,17 @@ export const Visual = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("cta"), keyword: z.string(), text: z.string(), src: z.string().optional() }),
   // A terminal that types each line when it is spoken.
   z.object({ kind: z.literal("terminal"), title: z.string().optional(), lines: z.array(Item).min(1) }),
+  // A chapter card: a large number lands over a soft glow, the chapter's name tracked out below it.
+  z.object({ kind: z.literal("chapter"), number: z.string(), label: z.string() }),
+  // A diagram of how parts talk: cards joined by lines that draw on `at`. `chip` rides along an edge
+  // (what is passed, e.g. "plan.md"). Two or three nodes sit in a row; with `root`, the first node
+  // sits on top and the rest branch below it. A diagram, never a stand-in for real UI.
+  z.object({
+    kind: z.literal("flow"),
+    root: z.boolean().default(false),
+    nodes: z.array(z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(z.string()).default([]), at: Anchor.optional() })).min(2).max(4),
+    edges: z.array(z.object({ from: z.number(), to: z.number(), chip: z.string().optional(), at: Anchor.optional() })).default([]),
+  }),
 ]);
 
 export const Layout = z.enum([
@@ -72,6 +83,9 @@ export const Shot = z.object({
   sfx: SfxKind.optional(),
   // Starts a new chapter header from this shot on (false hides it).
   header: z.union([z.string(), z.literal(false)]).optional(),
+  // Keep the previous shot's visual on screen and running, so a scene builds across shots
+  // while the header changes. Needs the same layout as the previous shot and no visual of its own.
+  keep: z.boolean().optional(),
   note: z.string().optional(),
 });
 
@@ -88,7 +102,8 @@ export const Edit = z.object({
   header: z.string().optional(),
   // Where the speaker's face is in the source footage, as fractions of its frame:
   // centre x, centre y, and head height (crown to chin). Used to frame every speaker layout.
-  face: z.object({ x: z.number(), y: z.number(), h: z.number() }),
+  // Required for footage; script projects (no footage) use the placeholder's own.
+  face: z.object({ x: z.number(), y: z.number(), h: z.number() }).optional(),
   // Words to set in Signifier italic in the captions, matched case-insensitively.
   accents: z.array(z.string()).default([]),
   music: z.union([
@@ -118,6 +133,7 @@ export type ResolvedShot = {
   visual?: ResolvedVisual;
   sfx?: z.infer<typeof SfxKind>;
   anchor: string;
+  keep?: boolean;
 };
 export type Chunk = { words: { text: string; start: number; end: number; accent: boolean }[]; start: number; end: number };
 export type SfxEvent = { kind: z.infer<typeof SfxKind>; t: number; gain?: number };
@@ -126,6 +142,7 @@ export type Resolved = {
   title: string;
   duration: number;
   fps: number;
+  // Empty for script projects: the speaker is drawn as a placeholder.
   video: string;
   // Pixel size of the speaker footage: 1080x1920 portrait or 1920x1080 landscape.
   videoSize: [number, number];

@@ -1,0 +1,25 @@
+This is how you turn Claude into a social media machine.
+
+Most people don't know this... you can just type "/analyze" in Claude, paste in any video link and get a full analysis.
+
+Transcript, format, topic, storytelling structure, hook analysis, visual layout... all the information you'd want.
+
+And you can do this for dozens of videos at a time.
+
+So as I scroll, I just copy the URLs for anything interesting and paste them all into Claude in one shot.
+
+But here's the cool part...
+
+Not only do I get the individual video breakdowns, but I can also batch analyze that entire set of videos at once.
+
+This gives me hidden trends, patterns and insights I just would never have seen otherwise.
+
+Now to enable this, all you have to do is setup the Sandcastles.ai plugin inside of Claude.
+
+Once you have it, it'll give you access to 14 different social media Claude skills, one of which is "/analyze"
+
+This plugin is what I personally use to run all of my content research and how I'm able to grow so much faster.
+
+It's kinda like giving a social media powerup to your instance of Claude.
+
+If you want me to send you through a video on how to set this all up, so you can access these social media skills, comment "Claude" and I'll send it through.

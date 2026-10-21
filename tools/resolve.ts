@@ -39,13 +39,21 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
     const start = shots.length === 0 ? 0 : snap(Math.max(0, words[i].start - CUT_LEAD), fps);
     // The header carries forward until a shot sets a new one, or false to hide it.
     header = s.header === false ? undefined : (s.header ?? header);
-    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header });
+    const prev = shots[shots.length - 1];
+    if (s.keep && (!(prev?.visual || prev?.keep) || prev.layout !== s.layout || s.visual))
+      issues.push({ level: "error", message: `"${s.at}" keeps the previous visual, so it needs the same layout as a previous shot with a visual and no visual of its own` });
+    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header, ...(s.keep ? { keep: true } : {}) });
   }
   for (let k = 0; k < shots.length - 1; k++) shots[k].end = shots[k + 1].start;
 
   // Reveals inside a visual land on their own spoken words, searched from the shot's anchor.
   for (let k = 0; k < shots.length; k++) {
     const shot = shots[k];
+    // A kept shot shows the same visual, already resolved from the shot that started it.
+    if (shot.keep && k > 0) {
+      shot.visual = shots[k - 1].visual;
+      continue;
+    }
     const v = shot.visual;
     if (!v) continue;
     const anchors: (string | undefined)[] =
@@ -59,10 +67,15 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
               ? [v.right.at]
               : v.kind === "prompt"
                 ? [v.at]
-                : [];
+                : v.kind === "flow"
+                  ? [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)]
+                  : [];
     if (!anchors.length) continue;
     let from = shot.index;
+    // A flow's edges are searched from the shot's start again, so they can interleave with its nodes.
+    const edgesFrom = v.kind === "flow" ? v.nodes.length : -1;
     const times = anchors.map((a, n) => {
+      if (n === edgesFrom) from = shot.index;
       // Unanchored items cascade in quickly so a group reads as one arrival.
       if (!a) return shot.start + n * 0.12;
       const j = findPhrase(words, a, from);
@@ -130,11 +143,27 @@ export const chunkWords = (words: Word[], accents: string[], cuts: number[], fps
   return out;
 };
 
+// Word timings for a script with no recording, at a natural reading pace (about 165 words a
+// minute), with pauses at commas and full stops. Good enough to pace and test the graphics.
+export const estimateWords = (script: string, wpm = 165): Word[] => {
+  const perWord = 60 / wpm;
+  const out: Word[] = [];
+  let t = 0.3;
+  for (const text of script.split(/\s+/).filter(Boolean)) {
+    // Longer words take longer to say; the average word stays near `perWord`.
+    const len = perWord * (0.55 + 0.09 * Math.min(12, text.replace(/[^\p{L}\p{N}]/gu, "").length));
+    out.push({ text, start: +t.toFixed(3), end: +(t + len * 0.9).toFixed(3) });
+    t += len + (/[.!?]$/.test(text) ? 0.45 : /[,;:]$/.test(text) ? 0.2 : 0);
+  }
+  return out;
+};
+
 // Sound comes from the plan's cut sounds plus quiet taps on visible reveals.
 export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
   const ev: SfxEvent[] = [];
   for (const s of shots) {
     if (s.sfx) ev.push({ kind: s.sfx, t: s.start });
+    if (s.keep) continue;
     const v = s.visual;
     if (!v?.times) continue;
     const kind = v.kind === "terminal" || v.kind === "prompt" ? "key" : v.kind === "image" ? "blip" : "pop";
@@ -160,7 +189,7 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
   shots.forEach((s, i) => {
     const len = s.end - s.start;
     const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
-    if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${maxHold - 0.4}s` });
+    if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${(maxHold - 0.4).toFixed(1)}s` });
     if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
     if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway") && !s.visual)
       issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });

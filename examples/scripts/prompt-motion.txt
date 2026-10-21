@@ -1,0 +1,37 @@
+Claude can now build full professional motion graphics from scratch.
+
+And someone just put together a whole library showing exactly how to create the best ones.
+
+The library is called Prompt Motion.
+
+It has over 500 animated videos made with Claude.
+
+And each one comes with the exact prompt used to create it.
+
+Think of it like a recipe book for motion graphics.
+
+Inside, you get prompts for launch videos, product demos, and mobile app walkthroughs.
+
+You'll also find prompts for charts, and much more.
+
+Normally you'd have to figure out every animation yourself.
+
+Here you can see the finished video first.
+
+Then you grab the prompt behind it.
+
+You just copy the one you like.
+
+Then tweak it for your brand or product.
+
+And Claude will recreate it in that exact style.
+
+With the same animations and sound effects.
+
+So you're never starting from a blank page.
+
+You're starting from something that already works.
+
+So the hardest part is already done for you.
+
+That's the whole idea behind this library.

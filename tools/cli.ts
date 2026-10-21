@@ -2,6 +2,7 @@
 // (see .claude/skills/edit-reel/SKILL.md); these commands do the rest.
 //
 //   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]
+//   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
 //   npm run reel -- fetch <slug> <url> --name <file>
@@ -19,7 +20,7 @@ import { fileURLToPath } from "node:url";
 import { Edit, type Resolved, type Word } from "../src/schema.ts";
 import { frameRect } from "../src/camera.ts";
 import { HEADER, MEDIA, splitGeom } from "../src/theme.ts";
-import { chunkWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
+import { chunkWords, estimateWords, lintShots, resolveShots, sfxEvents } from "./resolve.ts";
 import { indexLibrary, listLibrary, useClip } from "./broll.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -108,6 +109,42 @@ function cmdNew(slug: string, video: string) {
   console.log(`Created ${dir}\nNext: npm run reel -- transcribe ${slug}, then look at checks/frame.jpg to set "face" in edit.json`);
 }
 
+// Where the placeholder speaker's face sits in its 1080x1920 frame (see src/Speaker.tsx).
+const PLACEHOLDER_FACE = { x: 0.5, y: 0.3, h: 0.17 };
+
+const writeTranscript = (dir: string, words: Word[]) => {
+  writeJson(join(dir, "transcript.json"), words);
+  const lines = words.map((w, i) => `${String(i).padStart(3)}  ${w.start.toFixed(2).padStart(6)}-${w.end.toFixed(2).padEnd(6)} ${w.text}`);
+  writeFileSync(join(dir, "transcript.txt"), lines.join("\n") + "\n");
+};
+
+// A project from a script alone, for testing graphics and pacing before anything is recorded.
+// The voice is macOS `say`, transcribed for real word timings; --silent estimates timings instead.
+// The speaker is drawn as a placeholder in every speaker layout.
+function cmdScript(slug: string, file: string) {
+  const dir = project(slug);
+  for (const d of ["source", "assets/captures", "assets/logos", "assets/broll", "build", "renders", "checks"]) mkdirSync(join(dir, d), { recursive: true });
+  const script = readFileSync(file, "utf8").replace(/\s+/g, " ").trim();
+  writeFileSync(join(dir, "script.txt"), script + "\n");
+  const voice = join(dir, "source/voice.wav");
+  let duration: number;
+  if (has("silent")) {
+    const words = estimateWords(script);
+    duration = +(words[words.length - 1].end + 0.6).toFixed(3);
+    ffmpeg(["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", String(duration), "-c:a", "pcm_s24le", voice]);
+    writeTranscript(dir, words);
+  } else {
+    const aiff = join(dir, "build/say.aiff");
+    run("say", ["-v", flag("voice") ?? "Daniel", "-r", flag("rate") ?? "185", "-o", aiff, "-f", join(dir, "script.txt")]);
+    // A short tail so the last word is never clipped.
+    ffmpeg(["-i", aiff, "-af", "apad=pad_dur=0.6", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s24le", voice]);
+    duration = probeDuration(voice);
+    cmdTranscribe(slug);
+  }
+  writeJson(join(dir, "project.json"), { slug, original: resolve(file), script: true, size: [1080, 1920], duration });
+  console.log(`Created ${dir} (${duration.toFixed(1)}s, no footage)\nNext: write edit.json; "face" is not needed.`);
+}
+
 function cmdTranscribe(slug: string) {
   const dir = project(slug);
   const tmp = join(dir, "build/whisper");
@@ -119,9 +156,7 @@ function cmdTranscribe(slug: string) {
   const data = readJson<{ segments: { words?: { word: string; start: number; end: number }[] }[] }>(join(tmp, "voice.json"));
   const words: Word[] = data.segments.flatMap((s) => s.words ?? []).filter((w) => w.word.trim())
     .map((w) => ({ text: w.word.trim(), start: +w.start.toFixed(3), end: +w.end.toFixed(3) }));
-  writeJson(join(dir, "transcript.json"), words);
-  const lines = words.map((w, i) => `${String(i).padStart(3)}  ${w.start.toFixed(2).padStart(6)}-${w.end.toFixed(2).padEnd(6)} ${w.text}`);
-  writeFileSync(join(dir, "transcript.txt"), lines.join("\n") + "\n");
+  writeTranscript(dir, words);
   console.log(words.map((w) => w.text).join(" "));
   console.log(`\n${words.length} words -> transcript.json, transcript.txt. Check names are spelled right; fix transcript.json by hand if not.`);
 }
@@ -191,7 +226,7 @@ async function cmdFetch(slug: string, url: string) {
 
 function cmdValidate(slug: string, quiet = false): Resolved {
   const dir = project(slug);
-  const meta = readJson<{ duration: number; size?: [number, number] }>(join(dir, "project.json"));
+  const meta = readJson<{ duration: number; size?: [number, number]; script?: boolean }>(join(dir, "project.json"));
   const words = readJson<Word[]>(join(dir, "transcript.json"));
   const parsed = Edit.safeParse(readJson(join(dir, "edit.json")));
   if (!parsed.success) {
@@ -199,6 +234,8 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     throw new Error("edit.json does not match the schema (src/schema.ts)");
   }
   const plan = parsed.data;
+  const face = meta.script ? PLACEHOLDER_FACE : plan.face;
+  if (!face) throw new Error('edit.json needs "face": measure it on checks/frame.jpg');
   const { shots, issues } = resolveShots(plan, words, meta.duration, FPS);
   issues.push(...lintShots(shots, meta.duration, plan.format));
 
@@ -251,10 +288,10 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     title: plan.title,
     duration: meta.duration,
     fps: FPS,
-    video: `${slug}/source/talking.mp4`,
+    video: meta.script ? "" : `${slug}/source/talking.mp4`,
     videoSize: meta.size ?? [1080, 1920],
     audio: existsSync(join(dir, "build/mix.wav")) ? `${slug}/build/mix.wav` : null,
-    face: plan.face,
+    face,
     grade: plan.grade,
     split: plan.split,
     shots,
@@ -349,6 +386,7 @@ async function main() {
   const [, slug, third] = positional;
   switch (cmd) {
     case "new": return cmdNew(slug, third);
+    case "script": return cmdScript(slug, third);
     case "transcribe": return cmdTranscribe(slug);
     case "capture": return cmdCapture(slug, third);
     case "fetch": return cmdFetch(slug, third);
@@ -360,7 +398,7 @@ async function main() {
     case "index": return void indexLibrary(ROOT);
     case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
-      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 13).join("\n"));
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 14).join("\n"));
   }
 }
 

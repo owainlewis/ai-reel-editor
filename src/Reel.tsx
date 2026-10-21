@@ -30,10 +30,16 @@ const Canvas: React.FC = () => (
   </AbsoluteFill>
 );
 
-const Header: React.FC<{ text: string; first: boolean; time: number; start: number }> = ({ text, first, time, start }) => {
+// Header text as words, with an *accent* group kept as one word.
+const headerWords = (text: string) =>
+  text.split(/(\*[^*]+\*)/).flatMap((part) => (part.startsWith("*") ? [part] : part.split(/\s+/).filter(Boolean)));
+
+const Header: React.FC<{ text: string; first: boolean; time: number; start: number; animate: boolean }> = ({ text, first, time, start, animate }) => {
   const size = headerSize(first);
   // Visible from the very first frame; it only settles a few pixels as it lands.
   const settle = interpolate(time, [start, start + 0.3], [10, 0], { ...clamp, easing: ease });
+  // A new header after the first comes in word by word out of a blur.
+  const word = (i: number) => (animate ? interpolate(time, [start + i * 0.07, start + i * 0.07 + 0.4], [0, 1], { ...clamp, easing: ease }) : 1);
   return (
     <div
       style={{
@@ -57,7 +63,17 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
       }}
     >
       <span>
-        <Accented text={text} />
+        {headerWords(text).map((wd, i) => {
+          const p = word(i);
+          return (
+            <React.Fragment key={i}>
+              {i > 0 && " "}
+              <span style={{ display: "inline-block", opacity: p, filter: `blur(${(1 - p) * 14}px)`, translate: `0 ${(1 - p) * 18}px` }}>
+                <Accented text={wd} />
+              </span>
+            </React.Fragment>
+          );
+        })}
       </span>
     </div>
   );
@@ -70,6 +86,9 @@ export const Reel: React.FC<Resolved> = (r) => {
   const shot = r.shots[index] ?? r.shots[r.shots.length - 1];
   const grade = `brightness(${r.grade.brightness}) contrast(${r.grade.contrast}) saturate(${r.grade.saturate})`;
   const onCanvas = shot.layout === "split" || shot.layout === "media";
+  // The header animates from the shot where its text last changed.
+  let since = index;
+  while (since > 0 && r.shots[since - 1].header === shot.header) since--;
 
   return (
     <AbsoluteFill style={{ background: t.canvas }}>
@@ -81,15 +100,20 @@ export const Reel: React.FC<Resolved> = (r) => {
         <AbsoluteFill style={{ background: "linear-gradient(transparent 35%, rgba(0,0,0,0.18) 60%, rgba(0,0,0,0.3))" }} />
       )}
 
-      {r.shots.map((s, i) => {
-        if (!s.visual) return null;
+      {r.shots.map((head, i) => {
+        // A kept shot carries on the visual of the shot before it, so one scene runs across them.
+        const visual = head.visual;
+        if (!visual || head.keep) return null;
+        let last = i;
+        while (r.shots[last + 1]?.keep) last++;
+        const s = { ...head, end: r.shots[last].end };
         const from = Math.round(s.start * r.fps);
         const dur = Math.max(1, Math.round(s.end * r.fps) - from);
         if (s.layout === "cutaway")
           return (
             <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} cutaway`}>
               <AbsoluteFill>
-                <VisualView slug={r.slug} shot={s} time={time} w={W} h={H} v={s.visual} filter={grade} bleed />
+                <VisualView slug={r.slug} shot={s} time={time} w={W} h={H} v={visual} filter={grade} bleed />
                 <AbsoluteFill style={{ background: "linear-gradient(transparent 55%, rgba(0,0,0,0.35) 80%, rgba(0,0,0,0.5))" }} />
               </AbsoluteFill>
             </Sequence>
@@ -97,15 +121,15 @@ export const Reel: React.FC<Resolved> = (r) => {
         if (s.layout !== "split" && s.layout !== "media") return null;
         const box = panel(s, r, i === 0);
         return (
-          <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} ${s.layout} ${s.visual.kind}`}>
+          <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} ${s.layout} ${visual.kind}`}>
             <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} filter={grade} />
+              <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={visual} filter={grade} />
             </div>
           </Sequence>
         );
       })}
 
-      {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={shot.start} />}
+      {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={r.shots[since].start} animate={since > 0} />}
       <Captions r={r} shot={shot} time={time} />
       {r.audio && <Audio src={staticFile(r.audio)} />}
     </AbsoluteFill>

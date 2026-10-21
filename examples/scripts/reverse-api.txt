@@ -1,0 +1,33 @@
+This free AI tool turns any website into its own API, even if it doesn't have one.
+
+So you no longer need to pay for scraping tools or expensive APIs.
+
+Even for gated websites like LinkedIn, Instagram, and Reddit.
+
+It's called Reverse API Engineer.
+
+It's free and open source, and it plugs straight into your Claude Code.
+
+Here's how it works.
+
+You just give it a website.
+
+Then tell it what data you want.
+
+An AI agent browses the site and reads every request happening behind the scenes.
+
+Think of it like watching the kitchen instead of ordering from the menu.
+
+And from that, it builds a clean API client.
+
+You can use it to pull that data anytime you want.
+
+No scraping scripts to write by hand.
+
+Plus it uses the same API the site itself runs on.
+
+So it doesn't break even when the website changes its whole design.
+
+The design on the surface doesn't matter.
+
+That's what keeps it stable.
