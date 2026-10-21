@@ -153,6 +153,19 @@ function cmdScript(slug: string, file: string) {
   console.log(`Created ${dir} (${duration.toFixed(1)}s, no footage)\nNext: write edit.json; "face" is not needed.`);
 }
 
+// Where speech ends in a voice track: the start of the silence that runs to the end of the file,
+// counting back-to-back silences as one. The full duration when it ends mid-word.
+function speechEnd(file: string): number {
+  const total = probeDuration(file);
+  const log = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", file, "-af", "silencedetect=noise=-38dB:d=0.3", "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => +m[1]);
+  const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => +m[1]);
+  let k = starts.length - 1;
+  if (k < 0 || (ends.length === starts.length && ends[k] < total - 0.05)) return total;
+  while (k > 0 && starts[k] - ends[k - 1] < 0.05) k--;
+  return starts[k];
+}
+
 // A rough take has dead air and false starts. Shorten every silence longer than --gap to a
 // natural beat, and drop any --cut ranges (seconds in the original take). Cuts land inside
 // silence where they can, so joins are clean. The original files are kept beside the new ones,
@@ -180,6 +193,19 @@ function cmdTighten(slug: string) {
     const [x, y] = args[i + 1].split("-").map(Number);
     remove.push([x, y]);
   });
+  // The ending breathes: speech ends where the last silence begins, and nothing in the 0.8 s
+  // after it is removed, so a cut to the end of the take never clips the last word.
+  // Back-to-back silences at the end are one pause; the tail is measured after the speed-up.
+  const TAIL = 0.8 * speed;
+  let k = starts.length - 1;
+  const trailing = k >= 0 && (ends.length < starts.length || ends[ends.length - 1] >= total - 0.05);
+  while (trailing && k > 0 && starts[k] - (ends[k - 1] ?? 0) < 0.05) k--;
+  const speechEnd = trailing ? starts[k] : total;
+  for (const r of remove) {
+    if (r[1] >= total - 0.05) r[0] = Math.max(r[0], Math.min(total, speechEnd + TAIL));
+    // Silence after the last word is the tail: never shrink it.
+    else if (r[0] >= speechEnd) r[1] = r[0];
+  }
   const merged = remove.filter(([a, b]) => b - a > 0.05).sort((p, q) => p[0] - q[0]).reduce<[number, number][]>((out, r) => {
     const last = out[out.length - 1];
     if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
@@ -194,8 +220,13 @@ function cmdTighten(slug: string) {
   }
   if (at < total) keep.push([at, total]);
   const expr = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join("+");
-  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB/${speed},fps=30`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
-  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB${speed !== 1 ? `,atempo=${speed}` : ""}`, "-c:a", "pcm_s24le", voice]);
+  // When the recording stops soon after the last word, hold the last frame in silence to make the tail.
+  const kept = keep.length ? keep[keep.length - 1][1] : total;
+  const hold = Math.max(0, 0.8 - (kept - Math.min(speechEnd, kept)) / speed);
+  const padV = hold > 0.02 ? `,tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)}` : "";
+  const padA = hold > 0.02 ? `,apad=pad_dur=${hold.toFixed(2)}` : "";
+  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB/${speed},fps=30${padV}`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
+  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB${speed !== 1 ? `,atempo=${speed}` : ""}${padA}`, "-c:a", "pcm_s24le", voice]);
   const removed = merged.reduce((t, [a, b]) => t + b - a, 0);
   writeJson(join(dir, "build/tighten.json"), { gap, speed, keep, removed: +removed.toFixed(2) });
   const meta = readJson<Record<string, unknown>>(join(dir, "project.json"));
@@ -212,8 +243,21 @@ function cmdTranscribe(slug: string) {
   run("uvx", ["--from", "mlx-whisper", "mlx_whisper", join(dir, "source/voice.wav"), "--model", "mlx-community/whisper-large-v3-turbo",
     "--language", "en", "--word-timestamps", "True", "--output-format", "json", "--output-dir", tmp, "--initial-prompt", vocab], { quiet: true });
   const data = readJson<{ segments: { words?: { word: string; start: number; end: number }[] }[] }>(join(tmp, "voice.json"));
-  const words: Word[] = data.segments.flatMap((s) => s.words ?? []).filter((w) => w.word.trim())
+  const raw: Word[] = data.segments.flatMap((s) => s.words ?? []).filter((w) => w.word.trim())
     .map((w) => ({ text: w.word.trim(), start: +w.start.toFixed(3), end: +w.end.toFixed(3) }));
+  // Whisper invents words in trailing silence (often the last sentence again, at zero length):
+  // drop anything that starts after the audio's measured end of speech. And it splits numbers
+  // ("2" ",500"): join them back.
+  const end = speechEnd(join(dir, "source/voice.wav"));
+  // Near the end of speech, a word of almost no length starts an invented run: cut from there.
+  const phantom = raw.findIndex((w) => w.start >= end - 0.2 && w.end - w.start < 0.05);
+  const words = raw.slice(0, phantom < 0 ? raw.length : phantom).filter((w) => w.start < end + 0.05).reduce<Word[]>((out, w) => {
+    const prev = out[out.length - 1];
+    if (prev && /^,\d/.test(w.text) && /\d$/.test(prev.text)) prev.text += w.text, (prev.end = w.end);
+    else out.push({ ...w });
+    return out;
+  }, []);
+  if (raw.length !== words.length) console.log(`  cleaned ${raw.length - words.length} words (invented after speech ended, or split numbers)`);
   writeTranscript(dir, words);
   console.log(words.map((w) => w.text).join(" "));
   console.log(`\n${words.length} words -> transcript.json, transcript.txt. Check names are spelled right; fix transcript.json by hand if not.`);
@@ -351,9 +395,9 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       // Readability: captures are taken at 2x, so page text of 16 CSS px is 32 image px.
       // On the 1080 frame it should be at least about 32 px, or it is unreadable on a phone.
       if (size && v.to && !youtube) {
-        const vw = 960;
-        const top = s.header ? HEADER.top + 104 + 20 : 150;
-        const bottom = s.layout === "split" ? splitGeom(plan.split).panelBottom : MEDIA.panelBottom;
+        const vw = 900;
+        const top = s.header ? HEADER.top + 120 + 30 : 150;
+        const bottom = (s.layout === "split" ? splitGeom(plan.split).panelBottom : MEDIA.panelBottom) - 20;
         const vh = bottom - top - (v.frame === "browser" ? 64 : 0);
         const { k } = frameRect(v.to, size[0], size[1], vw, vh);
         if (k * 32 < 30) issues.push({ level: "warn", message: `"${s.anchor}": ${v.src} ends too wide; 16px page text shows at ${Math.round(k * 32)}px. Tighten "to".` });
@@ -377,6 +421,12 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     const track = plan.music.track ? join(ROOT, "music", plan.music.track) : "";
     const any = lib && readdirSync(lib, { recursive: true }).some((f) => /\.(mp3|wav|m4a|flac|aiff?)$/i.test(String(f)));
     if (track ? !existsSync(track) : !any) issues.push({ level: "warn", message: `no music found${track ? ` at music/${plan.music.track}` : " in music/"}; the reel will have no bed` });
+  }
+  // A reel that stops on its last syllable feels cut off. Measured on the audio: Whisper's last
+  // timestamp often runs into the silence.
+  if (existsSync(join(dir, "source/voice.wav"))) {
+    const tail = meta.duration - speechEnd(join(dir, "source/voice.wav"));
+    if (tail < 0.5) issues.push({ level: "warn", message: `speech ends ${tail.toFixed(2)}s before the end; it will feel cut off. Keep about 0.8s of tail (reel tighten does)` });
   }
   const allText = words.map((w) => w.text.toLowerCase()).join(" ");
   for (const a of plan.accents) if (!allText.includes(a.toLowerCase())) issues.push({ level: "warn", message: `accent word not spoken: "${a}"` });

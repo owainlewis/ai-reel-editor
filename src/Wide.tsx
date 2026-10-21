@@ -66,7 +66,7 @@ const Speaker: React.FC<{ r: Resolved; shot: ResolvedShot; prev?: ResolvedShot; 
         overflow: "hidden",
         opacity: box.o,
         boxShadow: box.r > 1 ? "0 2px 6px rgba(0,0,0,0.4), 0 24px 60px rgba(0,0,0,0.5)" : "none",
-        background: "#141413",
+        background: "#121417",
       }}
     >
       {r.video && (
@@ -86,12 +86,12 @@ const Lower: React.FC<{ title: string; sub?: string; shot: ResolvedShot; time: n
   const out = interpolate(time, [shot.end - 0.4, shot.end], [1, 0], clamp);
   const shadow = "0 1px 2px rgba(0,0,0,0.5), 0 2px 18px rgba(0,0,0,0.35)";
   return (
-    <div style={{ position: "absolute", left: 120, bottom: 120, opacity: out, color: "#F2F0EB" }}>
-      <div style={{ width: 64, height: 2, background: "#F2F0EB", scale: `${rule} 1`, transformOrigin: "left", marginBottom: 22 }} />
+    <div style={{ position: "absolute", left: 120, bottom: 120, opacity: out, color: "#ECEEF1" }}>
+      <div style={{ width: 64, height: 2, background: "#ECEEF1", scale: `${rule} 1`, transformOrigin: "left", marginBottom: 22 }} />
       <div style={{ fontFamily: t.serif, fontSize: 64, lineHeight: 1.05, letterSpacing: -1.2, textShadow: shadow, opacity: a, filter: `blur(${(1 - a) * 8}px)` }}>
         <Accented text={title} />
       </div>
-      {sub && <div style={{ marginTop: 12, fontFamily: t.sans, fontWeight: 500, fontSize: 28, color: "rgba(242,240,235,0.75)", textShadow: shadow, opacity: b }}>{sub}</div>}
+      {sub && <div style={{ marginTop: 12, fontFamily: t.sans, fontWeight: 500, fontSize: 28, color: "rgba(236,238,241,0.75)", textShadow: shadow, opacity: b }}>{sub}</div>}
     </div>
   );
 };
@@ -102,8 +102,8 @@ const OverTitle: React.FC<{ text: string; kicker?: string; shot: ResolvedShot; t
   const out = interpolate(time, [shot.end - 0.5, shot.end], [1, 0], clamp);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: out }}>
-      {kicker && <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 22, letterSpacing: 8, textTransform: "uppercase", color: "rgba(242,240,235,0.7)", marginBottom: 22, opacity: a }}>{kicker}</div>}
-      <div style={{ fontFamily: t.serif, fontSize: 76, letterSpacing: -2, lineHeight: 1.05, color: "#F2F0EB", textAlign: "center", maxWidth: 1300, opacity: a, filter: `blur(${(1 - a) * 10}px)` }}>
+      {kicker && <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 22, letterSpacing: 8, textTransform: "uppercase", color: "rgba(236,238,241,0.7)", marginBottom: 22, opacity: a }}>{kicker}</div>}
+      <div style={{ fontFamily: t.serif, fontSize: 76, letterSpacing: -2, lineHeight: 1.05, color: "#ECEEF1", textAlign: "center", maxWidth: 1300, opacity: a, filter: `blur(${(1 - a) * 10}px)` }}>
         <Accented text={text} />
       </div>
     </AbsoluteFill>
@@ -132,7 +132,7 @@ export const Wide: React.FC<Resolved> = (r) => {
 
   return (
     <AbsoluteFill style={{ background: "#0E0E0D" }}>
-      {onCanvas && <SceneCanvas tone={tone} time={time} />}
+      {onCanvas && <SceneCanvas tone={tone} time={time} width={WW} height={WH} />}
       {r.shots.map((head, i) => {
         const visual = head.visual;
         if (!visual || head.keep) return null;

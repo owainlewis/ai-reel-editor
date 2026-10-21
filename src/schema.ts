@@ -53,6 +53,20 @@ export const Visual = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("cta"), keyword: z.string(), text: z.string(), src: z.string().optional() }),
   // A terminal that types each line when it is spoken.
   z.object({ kind: z.literal("terminal"), title: z.string().optional(), lines: z.array(Item).min(1) }),
+  // A bar or line chart whose points arrive on their words. `source` is printed under it: the page the
+  // numbers come from, or "Illustration" when they only show a shape. Never invent the values.
+  z.object({
+    kind: z.literal("chart"),
+    type: z.enum(["bar", "line"]).default("bar"),
+    title: z.string().optional(),
+    unit: z.string().optional(),
+    points: z.array(z.object({ label: z.string(), value: z.number(), note: z.string().optional(), at: Anchor.optional() })).min(2).max(8),
+    highlight: z.number().optional(),
+    source: z.string(),
+  }),
+  // A process as numbered stages on a track; each lights as it is named. Stages without a label stay
+  // as dim numbers, so "six stages" can show all six while naming only the ones that are said.
+  z.object({ kind: z.literal("pipeline"), title: z.string().optional(), stages: z.array(z.object({ label: z.string().optional(), at: Anchor.optional() })).min(2).max(8) }),
   // A lower third over the speaker's picture: a name or point in serif, a short line in sans below it.
   z.object({ kind: z.literal("lower"), title: z.string(), sub: z.string().optional() }),
   // A chapter card: a large number lands over a soft glow, the chapter's name tracked out below it.

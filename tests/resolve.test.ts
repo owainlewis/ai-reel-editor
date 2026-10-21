@@ -208,3 +208,19 @@ describe("youtube canvas", () => {
     expect(lintShots(shots, 120, "react", "youtube").some((i) => i.message.includes("sparse"))).toBe(true);
   });
 });
+
+describe("chart and pipeline", () => {
+  it("lands chart points and pipeline stages on their words", () => {
+    const { shots, issues } = resolveShots(
+      plan([
+        { at: "If", layout: "split", visual: { kind: "chart", source: "Illustration", points: [{ label: "a", value: 1, at: "building" }, { label: "b", value: 2, at: "good" }] } },
+        { at: "code", layout: "split", visual: { kind: "pipeline", stages: [{ label: "x", at: "review" }, {}] } },
+      ]),
+      words,
+      5,
+    );
+    expect(issues).toEqual([]);
+    expect(shots[0].visual?.times?.[1]).toBeCloseTo(8 * 0.3 - 0.05);
+    expect(shots[1].visual?.times?.[0]).toBeCloseTo(10 * 0.3 - 0.05);
+  });
+});

@@ -3,38 +3,42 @@ import { AbsoluteFill, Img, interpolate, staticFile } from "remotion";
 import { clamp, ease, t } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
-// Soft tech v2: warm ink and paper with grain, one flat warm accent, real content in every graphic.
-// No glow and no gradient backgrounds: depth comes from real shadows and layering only.
-// The accent is a deep vermilion, the classic print spot colour. It reads on paper and on near-black,
-// it is warm without being the clay orange of Claude's own brand, and it is used on type, lines,
-// dots and chips only, never as light.
+// Cool paper and graphite with grain, one clean blue, real content in every graphic. Owain picked
+// blue over the warm cream and vermilion, which read as Anthropic's own brand (2026-10-21). The cool
+// grey also sits naturally next to his blue-grey wall in a 50/50 split.
+// No glow and no gradient backgrounds: depth comes from real shadows and layering only. The blue goes
+// on type, lines, dots, chips and highlights, never as light.
 export type Tone = "light" | "dark";
-export type Pal = { bg: string; card: string; chip: string; ink: string; muted: string; faint: string; line: string; accent: string; shadow: string };
+export type Pal = { bg: string; card: string; chip: string; ink: string; muted: string; faint: string; line: string; accent: string; accentText: string; shadow: string };
+// `accent` is the blue splash (dots, bars, lines, chips, highlights). `accentText` colours accent
+// words in type: blue on paper, a light grey on graphite, where white and grey read calmer (Owain, 2026-10-21).
 
-export const ACCENT = "#D4452B";
+export const ACCENT = "#2563EB";
 export const pal = (tone: Tone = "light"): Pal =>
   tone === "dark"
     ? {
-        bg: "#141413",
-        card: "#1F1E1C",
-        chip: "#2A2926",
-        ink: "#F2F0EB",
-        muted: "#8F8C84",
-        faint: "#45433E",
-        line: "rgba(242,240,235,0.10)",
+        bg: "#121417",
+        card: "#1B1E22",
+        chip: "#262A2F",
+        ink: "#ECEEF1",
+        muted: "#8B9097",
+        faint: "#3A3F45",
+        line: "rgba(236,238,241,0.10)",
         accent: ACCENT,
+        accentText: "#A6ABB3",
         shadow: "0 1px 2px rgba(0,0,0,0.45), 0 18px 44px rgba(0,0,0,0.55)",
       }
     : {
-        bg: "#F2F0EB",
-        card: "#FBFAF7",
-        chip: "#E7E4DC",
-        ink: "#141413",
-        muted: "#75736C",
-        faint: "#CFCCC4",
-        line: "rgba(20,20,19,0.10)",
+        bg: "#ECEEF1",
+        card: "#FFFFFF",
+        chip: "#E2E5EA",
+        ink: "#0E1013",
+        muted: "#6E737B",
+        faint: "#C6CBD2",
+        line: "rgba(14,16,19,0.10)",
         accent: ACCENT,
-        shadow: "0 1px 2px rgba(20,20,19,0.06), 0 14px 36px rgba(20,20,19,0.12)",
+        accentText: ACCENT,
+        shadow: "0 1px 2px rgba(14,16,19,0.06), 0 14px 36px rgba(14,16,19,0.12)",
       };
 
 // Scene geometry: the headline on top, the visual below, captions low.
@@ -50,10 +54,50 @@ const src = (slug: string, p: string) => (/^https?:/.test(p) ? p : staticFile(`$
 const prog = (time: number, at: number, dur = 0.45) => interpolate(time, [at, at + dur], [0, 1], { ...clamp, easing: ease });
 
 // The scene background: flat warm colour with fine film grain. Nothing else.
-export const SceneCanvas: React.FC<{ tone: Tone; time: number }> = ({ tone, time }) => {
+// Quiet architecture behind every graphic: a hairline grid, the panel's margin guides as long
+// rules, a few crosshairs where lines meet, and registration ticks in the corners. Static and very
+// low contrast, so it gives the frame structure without competing with the graphic.
+export const Blueprint: React.FC<{ tone: Tone; width?: number; height?: number; margin?: number }> = ({ tone, width = 1080, height = 1920, margin = 90 }) => {
+  const ink = tone === "dark" ? "236,238,241" : "14,16,19";
+  const grid = 120;
+  const cols = Math.ceil(width / grid);
+  const rows = Math.ceil(height / grid);
+  const hair = `rgba(${ink},${tone === "dark" ? 0.05 : 0.045})`;
+  const rule = `rgba(${ink},${tone === "dark" ? 0.1 : 0.09})`;
+  const mark = `rgba(${ink},${tone === "dark" ? 0.22 : 0.2})`;
+  const ox = (width % grid) / 2;
+  const tick = 26;
+  return (
+    <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
+      {Array.from({ length: cols + 1 }, (_, i) => <line key={`v${i}`} x1={ox + i * grid} y1={0} x2={ox + i * grid} y2={height} stroke={hair} strokeWidth={1} />)}
+      {Array.from({ length: rows + 1 }, (_, i) => <line key={`h${i}`} x1={0} y1={i * grid} x2={width} y2={i * grid} stroke={hair} strokeWidth={1} />)}
+      <line x1={margin} y1={0} x2={margin} y2={height} stroke={rule} strokeWidth={1.5} />
+      <line x1={width - margin} y1={0} x2={width - margin} y2={height} stroke={rule} strokeWidth={1.5} />
+      {/* Crosshairs on every other intersection of every third row. */}
+      {Array.from({ length: Math.ceil(rows / 3) }, (_, r) =>
+        Array.from({ length: Math.ceil((cols + 1) / 2) }, (_, k) => {
+          const x = ox + k * 2 * grid;
+          const y = (r * 3 + 1) * grid;
+          return (
+            <g key={`c${r}-${k}`} stroke={mark} strokeWidth={1.5}>
+              <line x1={x - 7} y1={y} x2={x + 7} y2={y} />
+              <line x1={x} y1={y - 7} x2={x} y2={y + 7} />
+            </g>
+          );
+        }),
+      )}
+      {[[margin, 40, 1, 1], [width - margin, 40, -1, 1], [margin, height - 40, 1, -1], [width - margin, height - 40, -1, -1]].map(([x, y, dx, dy], i) => (
+        <path key={`t${i}`} d={`M${x} ${y + dy * tick} L${x} ${y} L${x + dx * tick} ${y}`} fill="none" stroke={mark} strokeWidth={2} />
+      ))}
+    </svg>
+  );
+};
+
+export const SceneCanvas: React.FC<{ tone: Tone; time: number; width?: number; height?: number }> = ({ tone, time, width, height }) => {
   const c = pal(tone);
   return (
     <AbsoluteFill style={{ background: c.bg }}>
+      <Blueprint tone={tone} margin={width && width > height! ? 120 : 60} width={width} height={height} />
       <AbsoluteFill style={{ opacity: tone === "dark" ? 0.09 : 0.05, mixBlendMode: tone === "dark" ? "screen" : "multiply" }}>
         <svg width="100%" height="100%">
           <filter id={`grain-${tone}`}>
@@ -72,7 +116,7 @@ export const SoftAccented: React.FC<{ text: string; c: Pal }> = ({ text, c }) =>
   <>
     {text.split(/(\*[^*]+\*)/).map((part, i) =>
       part.startsWith("*") ? (
-        <span key={i} style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5, color: c.accent }}>
+        <span key={i} style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5, color: c.accentText }}>
           {part.slice(1, -1)}
         </span>
       ) : (
@@ -126,7 +170,7 @@ const Odometer: React.FC<{ value: string; p: number; size: number; c: Pal }> = (
           </span>
         );
       })}
-      <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, color: c.accent, marginLeft: size * 0.04, lineHeight: `${slot}px` }}>{m[3]}</span>
+      <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, color: c.accentText, marginLeft: size * 0.04, lineHeight: `${slot}px` }}>{m[3]}</span>
     </span>
   );
 };
@@ -238,7 +282,13 @@ const funnelGeom = (v: V<"funnel">, w: number, h: number) => {
   const lines = v.target.lines.length;
   const rowH = solo ? 104 : 86;
   const cardW = solo ? w : Math.min(w, 820);
-  const cardH = (solo ? 230 : 180) + lines * rowH;
+  // The card's height comes from the same numbers that lay out its content, so the padding under
+  // the last row always equals the padding above the kicker.
+  const pad = solo ? 48 : 36;
+  const kickerH = v.target.kicker ? (solo ? 34 : 28) * 1.25 : 0;
+  const titleH = (solo ? 84 : 64) * 1.05;
+  const listGap = lines ? (solo ? 34 : 24) : 0;
+  const cardH = pad * 2 + kickerH + 10 + titleH + listGap + lines * rowH;
   const cardTop = solo ? Math.max(0, (h - cardH) / 2) : Math.max(rows * rowGap + 240, h - cardH - 10);
   const card: Box = { x: (w - cardW) / 2, y: cardTop, w: cardW, h: cardH, r: 34 };
   const colGap = cols > 1 ? (w - chipW * cols) / (cols - 1) : 0;
@@ -249,8 +299,9 @@ const funnelGeom = (v: V<"funnel">, w: number, h: number) => {
     const offset = ((cols - inRow) * (chipW + colGap)) / 2;
     return { x: cols === 1 ? (w - chipW) / 2 : offset + k * (chipW + colGap), y: r * rowGap };
   });
-  return { n, chipW, chipH, card, chips, solo, rowH };
+  return { n, chipW, chipH, card, chips, solo, rowH, pad, kickerH, titleH, listGap };
 };
+export const funnelLayout = (v: ResolvedVisual, w: number, h: number) => (v.kind === "funnel" ? funnelGeom(v as V<"funnel">, w, h) : undefined);
 export const funnelCardBox = (v: ResolvedVisual, w: number, h: number): Box | undefined =>
   v.kind === "funnel" ? funnelGeom(v as V<"funnel">, w, h).card : undefined;
 
@@ -307,16 +358,16 @@ export const FunnelVisual: React.FC<Props & { v: V<"funnel"> }> = ({ shot, time,
           background: c.card,
           border: `${reached > 0.5 && g.n ? 3 : 1.5}px solid ${reached > 0.5 && g.n ? c.accent : c.line}`,
           boxShadow: c.shadow,
-          padding: big ? "48px 60px" : "36px 46px",
+          padding: `${g.pad}px ${big ? 60 : 46}px`,
           boxSizing: "border-box",
           opacity: g.n ? prog(time, Math.min(flowT, itemT[0] + 0.2), 0.5) : 1,
         }}
       >
-        {v.target.kicker && <div style={{ fontFamily: t.mono, fontSize: big ? 34 : 28, color: c.accent }}>{v.target.kicker}</div>}
-        <div style={{ marginTop: 10, fontFamily: t.sans, fontWeight: 700, fontSize: big ? 84 : 64, lineHeight: 1.05, letterSpacing: big ? -3 : -2, color: c.ink }}>
+        {v.target.kicker && <div style={{ height: g.kickerH, fontFamily: t.mono, fontSize: big ? 34 : 28, lineHeight: 1.25, color: c.accentText }}>{v.target.kicker}</div>}
+        <div style={{ marginTop: 10, height: g.titleH, fontFamily: t.sans, fontWeight: 700, fontSize: big ? 84 : 64, lineHeight: 1.05, letterSpacing: big ? -3 : -2, color: c.ink }}>
           <SoftAccented text={v.target.title} c={c} />
         </div>
-        <div style={{ marginTop: big ? 34 : 24, display: "flex", flexDirection: "column" }}>
+        <div style={{ marginTop: g.listGap, display: "flex", flexDirection: "column" }}>
           {v.target.lines.map((ln, i) => {
             const q = prog(time, lineT[i], 0.4);
             const now = i === lineT.filter((x) => time >= x).length - 1;
@@ -356,8 +407,15 @@ export const TypeVisual: React.FC<Props & { v: V<"type"> }> = ({ shot, time, w, 
   const chipT = v.chips.map((_, i) => times[2 + i] ?? settleAt + 0.4 + i * 0.25);
   const shown = v.text.slice(0, Math.max(0, Math.floor((time - at) * cps)));
   const s = interpolate(time, [settleAt, settleAt + 0.7], [0, 1], { ...clamp, easing: ease });
-  const big = Math.min(230, Math.max(110, (w * 2.6) / Math.max(4, v.text.length) / 0.56));
-  const lines = Math.ceil((v.text.length * 0.56 * big) / w);
+  // Big, but the longest word always fits the width (a half-split panel is narrower than a scene).
+  const longest = Math.max(...v.text.split(/\s+/).map((x) => x.length));
+  let big = Math.min(230, Math.max(110, (w * 2.6) / Math.max(4, v.text.length) / 0.56), (w * 0.94) / (longest * 0.6));
+  let lines = Math.ceil((v.text.length * 0.56 * big) / w);
+  // And the block fits the panel's height.
+  if (lines * big * 1.02 > h * 0.8) {
+    big = Math.max(64, (h * 0.8) / (lines * 1.02));
+    lines = Math.ceil((v.text.length * 0.56 * big) / w);
+  }
   const { inputH, inputTop } = typeGeom(v, w, h);
   const out = interpolate(s, [0, 0.6], [0, 1], clamp);
   const into = interpolate(s, [0.35, 1], [0, 1], clamp);
@@ -365,7 +423,7 @@ export const TypeVisual: React.FC<Props & { v: V<"type"> }> = ({ shot, time, w, 
   const caret = Math.floor(time * 2.4) % 2 === 0 || (time >= at && time < typedEnd);
   const sent = v.chips.length ? prog(time, chipT[chipT.length - 1] + 0.4, 0.3) : prog(time, settleAt + 0.8, 0.3);
   const typed = (text: string) =>
-    text.split(/(\/\S+)/).map((part, i) => (part.startsWith("/") ? <span key={i} style={{ color: c.accent }}>{part}</span> : <React.Fragment key={i}>{part}</React.Fragment>));
+    text.split(/(\/\S+)/).map((part, i) => (part.startsWith("/") ? <span key={i} style={{ color: c.accentText }}>{part}</span> : <React.Fragment key={i}>{part}</React.Fragment>));
   return (
     <div style={{ position: "relative", width: w, height: h }}>
       {v.label && (

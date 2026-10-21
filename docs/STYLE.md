@@ -26,7 +26,7 @@ About one graphic every 20 to 60 seconds. Graphics hold 4 to 12 seconds and buil
 
 ## Look: light editorial
 
-- Warm off-white canvas (`#F2F0EB`) with a faint dot grid. Ink black type. One muted cobalt for highlights.
+- Cool paper canvas (`#ECEEF1`) with a faint dot grid. Ink black type. One clean blue (`#2563EB`) for accents and highlights.
 - Helvetica Neue bold for structure. Signifier italic for one accent word, in the same colour as the text around it.
 - White cards with a soft shadow and a thin edge. Real captures sit in a card or a browser frame.
 - No neon, no gradients on type, no emoji, no cartoon icons.
@@ -47,9 +47,9 @@ Why react for tool drops: the viewer judges a new tool by its evidence and by th
 
 A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` with `tone: "light"` or `"dark"`, and alternate them.
 
-- **Ink and paper.** Light scenes are warm paper `#F2F0EB`, dark scenes warm near-black `#141413`, both with fine film grain. No glow, no gradient backgrounds, no light effects. Depth comes from real shadows and layered cards.
-- **One flat accent:** deep vermilion `#D4452B`, the print spot colour. It reads on paper and on black, it is warm without copying Claude's clay orange, and it goes on type, lines, dots and chips only.
-- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Helvetica Neue Bold with one Signifier italic accent word in vermilion. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
+- **Cool paper and graphite.** Light scenes are cool paper `#ECEEF1`, dark scenes graphite `#121417`, both with fine film grain. No glow, no gradient backgrounds, no light effects. Depth comes from real shadows and layered cards.
+- **One flat accent:** a clean blue `#2563EB` (Owain's pick over vermilion, which read as Anthropic's brand). It goes on type, lines, dots, chips and highlights only, never as light.
+- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Helvetica Neue Bold with one Signifier italic accent word in blue. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
 - **Real content in every graphic.** Grids show real thumbnails captured from the source's own site (`reel fetch --dir captures`, logged in the ledger). Cards list the real fields the script names. Chips are plain words unless a capture shows the real URL. Captures in a scene sit in a card cut to the region being discussed. Never fake a product's UI and never fill space with placeholder shapes.
 - **Fewer elements.** At most one diagram per scene. Build it across beats with `keep: true`, swapping the headline per beat.
 - **One camera move per shot.** One eased move (a capture's `from` to `to`) or a locked camera. The video and the elements move; the camera does not also zoom and pan on other curves.
@@ -61,6 +61,10 @@ A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` w
 - Every reel sets `header`: the hook as a short title. It is on screen, large, from the very first frame, then docks as a small header above the panel on every split and media shot. A muted viewer always knows the topic.
 - Start a new chapter with `header` on a shot ("How it *works*", "How to *use* it"). Three or four chapters in a 30 to 60 s reel.
 - Headers state the topic in plain words and one Signifier accent. They never claim more than the source shows.
+
+## Split first (talking heads)
+
+For a reel with Owain on camera, the 50/50 split is the default home for graphics: the soft tech visuals (typed lines, cards, flows, logos, real captures) sit on paper in the top half and Owain stays on the bottom half, captions on his half. No head cutout. Full-frame scenes are for one or two big beats at most; punch-ins for the hook's stake and the last line.
 
 ## Split size
 
@@ -84,6 +88,8 @@ Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run
 2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
 3. Official logos, on white tiles, each landing on its spoken name.
 4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+
+Data and structure, not only text: when a line has numbers, use `chart` (bar for a few categories, line for change over time; the end value labelled big, a `source` line always); when it has a sequence, use `pipeline` (stages light as they are named) or `steps`; when one thing feeds several, use `flow` with `root`. Give each graphic room: one per panel, generous margins, nothing touching the seam.
 
 Patterns that work (from studying top creator reels):
 - **Agenda callback.** For a numbered reel ("four systems"), show the whole list early with `preview: true`, an open loop. Bring the same list back before each item with `active` on it.

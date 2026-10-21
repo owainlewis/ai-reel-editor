@@ -69,7 +69,11 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
               ? [v.right.at]
               : v.kind === "prompt"
                 ? [v.at]
-                : v.kind === "flow"
+                : v.kind === "chart"
+                  ? v.points.map((pt) => pt.at)
+                  : v.kind === "pipeline"
+                    ? v.stages.map((st) => st.at)
+                    : v.kind === "flow"
                   ? [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)]
                   : v.kind === "grid"
                     ? [v.at, ...v.groups.map((g) => g.at)]

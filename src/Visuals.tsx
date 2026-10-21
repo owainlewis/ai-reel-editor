@@ -4,6 +4,7 @@ import { Img, interpolate, staticFile } from "remotion";
 import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
+import { ChartVisual, PipelineVisual } from "./elements";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
 type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number; filter?: string; bleed?: boolean };
@@ -242,7 +243,7 @@ const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v 
                   fontSize: accent ? size * 1.08 : size,
                   letterSpacing: accent ? -1 : -size * 0.035,
                   lineHeight: 1,
-                  color: accent ? c.accent : c.ink,
+                  color: accent ? c.accentText : c.ink,
                 }}
               >
                 {word.replace(/\*/g, "")}
@@ -699,5 +700,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "type": return <TypeVisual {...p} v={v} />;
     // Drawn over the speaker's picture by the 16:9 composition (src/Wide.tsx), not in a panel.
     case "lower": return null;
+    case "chart": return <ChartVisual {...p} v={v} />;
+    case "pipeline": return <PipelineVisual {...p} v={v} />;
   }
 };

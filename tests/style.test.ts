@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ACCENT, odometerColumns, pal } from "../src/soft.tsx";
+import { ACCENT, funnelLayout, odometerColumns, pal } from "../src/soft.tsx";
 
 // Owain, 2026-10-21: "I wasn't keen on the blue gradient on soft tech as it looked quite cheap."
 describe("soft tech look", () => {
@@ -29,5 +29,17 @@ describe("odometer", () => {
     const [tens, units] = odometerColumns(14, 2, 9.5 / 14);
     expect(tens).toBeCloseTo(0.5);
     expect(units).toBeCloseTo(9.5);
+  });
+});
+
+describe("card padding", () => {
+  it("leaves the same padding under the last row as above the kicker", () => {
+    for (const items of [[], [{ text: "a" }, { text: "b" }]])
+      for (const n of [0, 2, 5]) {
+        const v = { kind: "funnel", items, target: { kicker: "k", title: "T", lines: Array.from({ length: n }, (_, i) => ({ text: `l${i}` })) } } as never;
+        const g = funnelLayout(v, 900, 900)!;
+        const content = g.kickerH + 10 + g.titleH + g.listGap + n * g.rowH;
+        expect(g.card.h - content).toBeCloseTo(g.pad * 2);
+      }
   });
 });
