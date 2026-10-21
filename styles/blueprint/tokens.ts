@@ -5,20 +5,8 @@
 
 export const ACCENT = "#2563EB";
 
-// One tone's colours. `accent` is the blue splash (dots, bars, lines, chips, highlights).
-// `accentText` colours accent words in type: blue on paper, light grey on graphite (Owain, 2026-10-21).
-export type ToneTokens = {
-  bg: string;
-  card: string;
-  chip: string;
-  ink: string;
-  muted: string;
-  faint: string;
-  line: string;
-  accent: string;
-  accentText: string;
-  shadow: string;
-};
+import type { StyleTokens, ToneTokens } from "../catalog";
+export type { ToneTokens };
 
 export const tokens = {
   id: "blueprint",
@@ -89,6 +77,8 @@ export const tokens = {
   },
   // The blueprint layer behind every graphic: static, very low contrast.
   grid: {
+    // The grid's ink as r,g,b, drawn at the opacities below.
+    ink: { light: "14,16,19", dark: "236,238,241" },
     cell: 120,
     hair: { light: 0.045, dark: 0.05 },
     rule: { light: 0.09, dark: 0.1 },
@@ -109,6 +99,6 @@ export const tokens = {
     // Things not yet said sit blurred and dim, then sharpen as they land.
     blur: 8,
   },
-} as const;
+} as const satisfies StyleTokens;
 
 export type Tokens = typeof tokens;

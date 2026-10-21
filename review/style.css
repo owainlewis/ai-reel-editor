@@ -108,6 +108,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); 
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .ghost.on { background: var(--ink); border-color: var(--ink); color: #fff; }
 .lab-note { font-size: 12px; margin-left: auto; }
+.seg-toggle { display: inline-flex; gap: 4px; margin-left: 12px; }
 .lab { max-width: 1400px; margin: 0 auto; padding: 24px 28px 120px; display: flex; flex-direction: column; gap: 18px; }
 .lab-notes textarea { min-height: 56px; }
 .lab-card { display: block; scroll-margin-top: 130px; }

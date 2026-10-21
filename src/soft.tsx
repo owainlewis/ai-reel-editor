@@ -36,8 +36,8 @@ const prog = (time: number, at: number, dur = 0.45) => interpolate(time, [at, at
 // rules, a few crosshairs where lines meet, and registration ticks in the corners. Static and very
 // low contrast, so it gives the frame structure without competing with the graphic.
 export const Blueprint: React.FC<{ tone: Tone; width?: number; height?: number; margin?: number }> = ({ tone, width = 1080, height = 1920, margin = style.grid.marginReel }) => {
-  const ink = tone === "dark" ? "236,238,241" : "14,16,19";
   const g = style.grid;
+  const ink = g.ink[tone];
   const grid = g.cell;
   const cols = Math.ceil(width / grid);
   const rows = Math.ceil(height / grid);
@@ -198,7 +198,7 @@ export const GridVisual: React.FC<Props & { v: V<"grid"> }> = ({ slug, shot, tim
             const o = p * (1 - out);
             if (o <= 0) return null;
             return (
-              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: "#FBFAF7", fontFamily: noItems ? t.mono : t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
+              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: style.color.onAccent, fontFamily: noItems ? t.mono : t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
                 {gr.label}
               </div>
             );
@@ -423,7 +423,7 @@ export const TypeVisual: React.FC<Props & { v: V<"type"> }> = ({ shot, time, w, 
           })}
         </div>
         <div style={{ position: "absolute", right: 32, bottom: 32, width: 80, height: 80, borderRadius: 40, background: sent > 0.5 ? c.accent : c.faint, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FBFAF7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={style.color.onAccent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 19V5M5 12l7-7 7 7" />
           </svg>
         </div>

@@ -5,7 +5,7 @@ import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
 import { ChartVisual, PipelineVisual } from "./elements";
-import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, QuoteCard, TimelineCard } from "./cards";
+import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, MeterCard, QuoteCard, RingCard, TimelineCard, WaffleCard } from "./cards";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
 type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number; filter?: string; bleed?: boolean };
@@ -387,9 +387,13 @@ const StatVisual: React.FC<Props & { v: V<"stat"> }> = ({ shot, time, w, h, v })
     const decimals = (m[2].split(".")[1] || "").length;
     shown = m[1] + (target * p).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + m[3];
   }
+  // As before, 300 px (220 past six characters), but never wider than the panel once the count
+  // has its thousands commas (a six-digit value used to run off a split's edges).
+  const final = m ? m[1] + parseFloat(m[2].replace(/,/g, "")).toLocaleString("en-US", { maximumFractionDigits: 6 }) + m[3] : v.value;
+  const size = Math.min(v.value.length > 6 ? 220 : 300, Math.floor((w * 0.95) / (final.length * 0.52)));
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
-      <div style={{ fontFamily: t.serif, fontSize: v.value.length > 6 ? 220 : 300, lineHeight: 0.9, letterSpacing: -8, color: c.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
+      <div style={{ fontFamily: t.serif, fontSize: size, lineHeight: 0.9, letterSpacing: -8, color: c.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
       <div style={{ width: 160, height: 3, background: c.ink, scale: `${prog(time, shot.start + 0.3, 0.6)} 1`, transformOrigin: "left" }} />
       <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 52, letterSpacing: -1, color: c.muted, opacity: prog(time, shot.start + 0.2) }}>
         <Accented text={v.label} />
@@ -728,5 +732,8 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "quote": return <QuoteCard {...p} v={v} />;
     case "logowall": return <LogowallCard {...p} v={v} />;
     case "bento": return <BentoCard {...p} v={v} />;
+    case "ring": return <RingCard {...p} v={v} />;
+    case "meter": return <MeterCard {...p} v={v} />;
+    case "waffle": return <WaffleCard {...p} v={v} />;
   }
 };

@@ -79,8 +79,11 @@ Most cards work in both t1 and t2; the catalog's `layouts` says where each can g
 
 ## Cards
 
-See `style.json` for every card's id, slots and maxes. New in this catalog: `agenda`, `beforeafter`,
-`kpi`, `matrix`, `timeline`, `levels` (a layer stack), `checklist`, `quote`, `logowall`, `bento`.
+See `style.json` for every card's id, slots and limits (`maxChars`, `minItems`, `maxItems`) and its
+`duration` (t1 2.5 to 7 s, t2 1.5 to 5 s, overlay 2.5 to 6 s; build longer cards across shots with
+`keep`). New in this catalog: `agenda`, `beforeafter`, `kpi`, `matrix`, `timeline`, `levels` (a
+layer stack), `checklist`, `quote`, `logowall`, `bento`, and the stat shapes `ring`, `meter` and
+`waffle`.
 
 Picking a card for a line:
 
@@ -89,6 +92,7 @@ Picking a card for a line:
 | a page, repo or post | `t2.capture` |
 | a few product names | `t2.logos`; many at once: `t1.logowall` |
 | one number | `t1.stat`; two to four: `t2.kpi`; a series: `t2.chart.bar` or `t2.chart.line` |
+| a share or a percentage | `t2.stat.ring`; "N in 100": `t2.stat.waffle`; a value on a scale: `t2.stat.meter` |
 | old against new | `t2.compare` (struck through) or `t2.beforeafter` (two states with an arrow) |
 | a sequence | `t2.steps`, `t2.pipeline` (named stages), `t2.timeline` (dated) |
 | parts that build on each other | `t2.levels` |
@@ -99,6 +103,27 @@ Picking a card for a line:
 | a feature set | `t1.bento` |
 | someone's words | `t1.quote` |
 | a section change | `t1.chapter` |
+
+## Lineage: what came from Kallaway, flat
+
+The structure is herk-edit-kit's style library: one folder per style, a spec, tokens, cards with
+`<style>.<tier>.<purpose>.<treatment>` ids, typed slots, durations, a generated registry and a
+contact sheet. Blueprint goes further on two of its gaps: slot limits are typed and tested (Kallaway
+keeps them in comments), and components may not hold a literal colour (Kallaway hardcodes its
+accent in most cards).
+
+Ported from Kallaway's cards, without glow, glass or gradients:
+
+- **Focus pull.** Parts resolve from a blur as they arrive. Kallaway uses 10 to 22 px on black; on paper 8 px reads right.
+- **One tween drives shape and number.** The ring's arc, its tip dot and the count move together; so do the meter's fill and the waffle's dots.
+- **Drawn lines.** Axes draw out from the centre, connectors and ticks draw along their path, the timeline's track fills from milestone to milestone.
+- **Feature first.** In a bento the wide cell lands before the small ones.
+- **Bottom-up stacks.** Layers drop onto the stack from the foundation up.
+- **Odometer counts** (the `grid` count) and whole-step count-ups that slow into their value.
+- **Word-anchored timing.** Kallaway staggers 0.10 to 0.18 s by index; Blueprint lands each part on its own spoken word and cascades only parts the plan leaves unanchored.
+
+Left out on purpose: the aurora bloom, glass cards, edge lighting, text glow, gradient fills, breathing
+glow pulses, drifting groups and `back.out` springs (nothing bounces here).
 
 ## What not to do
 

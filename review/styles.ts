@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { hash, stable, type Past, type Status } from "./model.ts";
-import { blueprint, cards, type Card } from "../styles/blueprint/style.ts";
+import type { Card, StyleDef } from "../styles/catalog.ts";
 
 export type CardReview = { hash: string; status: Status; comment: string; at: string; history: Past[] };
 export type StyleReview = { version: 1; style: string; notes: string; cards: Record<string, CardReview> };
@@ -12,8 +12,9 @@ export type StyleReview = { version: 1; style: string; notes: string; cards: Rec
 // Everything that changes how a card looks or what it accepts.
 export const cardHash = (c: Card) => hash(stable({ sample: c.sample, slots: c.slots, layouts: c.layouts, summary: c.summary }));
 
-export const mergeStyleReview = (before: StyleReview | undefined, list: Card[], now = new Date().toISOString()): StyleReview => {
-  const out: StyleReview = { version: 1, style: blueprint.id, notes: before?.notes ?? "", cards: {} };
+export const mergeStyleReview = (before: StyleReview | undefined, def: Pick<StyleDef, "id" | "cards">, now = new Date().toISOString()): StyleReview => {
+  const list = def.cards;
+  const out: StyleReview = { version: 1, style: def.id, notes: before?.notes ?? "", cards: {} };
   for (const c of list) {
     const h = cardHash(c);
     const old = before?.cards[c.id];
@@ -34,16 +35,17 @@ export const saveStyleReview = (dir: string, review: StyleReview) => {
   renameSync(tmp, styleReviewFile(dir));
 };
 
-export const loadStyleReview = (dir: string) => {
+export const loadStyleReview = (dir: string, def: StyleDef) => {
+  const cards = def.cards;
   const file = styleReviewFile(dir);
   const before = existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as StyleReview) : undefined;
-  const review = mergeStyleReview(before, cards);
+  const review = mergeStyleReview(before, def);
   if (JSON.stringify(review) !== JSON.stringify(before)) saveStyleReview(dir, review);
   return { review, cards: cards.map((c) => ({ ...c, hash: cardHash(c) })) };
 };
 
 // The open notes, compact, for Claude to act on.
-export const formatStyleFeedback = (review: StyleReview, list: Card[] = cards) => {
+export const formatStyleFeedback = (review: StyleReview, list: Card[]) => {
   const c = { approved: 0, change: 0, waiting: 0 };
   for (const card of list) c[review.cards[card.id]?.status ?? "waiting"]++;
   const lines = [`${review.style}: ${c.approved} approved, ${c.change} to change, ${c.waiting} waiting (of ${list.length} cards)`];

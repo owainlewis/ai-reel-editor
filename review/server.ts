@@ -9,6 +9,8 @@ import { createServer as createVite } from "vite";
 import { listProjects, loadReel, saveReview } from "./store.ts";
 import type { Status } from "./model.ts";
 import { loadStyleReview, saveStyleReview } from "./styles.ts";
+import { styleById } from "../styles/index.ts";
+import { style as active } from "../src/style.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -93,10 +95,12 @@ export async function startReview(root: string, port = 4317) {
     if (parts[0] === "projects") return send(res, 200, listProjects(root));
     // The style lab: the catalog's review, one entry per card, in styles/<style>/review.json.
     if (parts[0] === "styles" && parts[1]) {
-      if (!/^[\w-]+$/.test(parts[1]) || !existsSync(join(root, "styles", parts[1]))) return send(res, 404, { error: `no style ${parts[1]}` });
-      const dir = join(root, "styles", parts[1]);
-      const current = loadStyleReview(dir);
-      if (req.method === "GET") return send(res, 200, current);
+      const def = styleById(parts[1]);
+      if (!def) return send(res, 404, { error: `no style ${parts[1]}; register it in styles/index.ts` });
+      const dir = join(root, "styles", def.id);
+      const current = loadStyleReview(dir, def);
+      // Players render with the active style's tokens (src/style.ts); the lab says when that is another style.
+      if (req.method === "GET") return send(res, 200, { ...current, name: def.name, active: active.id === def.id, activeName: active.name });
       if (req.method !== "PUT") return send(res, 405, { error: "method" });
       const input = await body(req);
       const review = current.review;

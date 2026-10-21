@@ -1,12 +1,14 @@
-// The style lab plays each card in the real compositions (src/Reel.tsx and src/Wide.tsx), as a
+// Shared by every style: the lab plays each card in the real compositions (src/Reel.tsx and src/Wide.tsx), as a
 // one-shot plan built from the card's sample: the 50/50 split with the speaker placeholder below,
 // or a full-frame scene, in light or dark. Reveals land every 0.55 s, as if spoken.
-import type { Resolved, ResolvedShot } from "../../src/schema";
-import { visualAnchors } from "../../tools/resolve";
-import type { Card } from "./style";
+import type { Resolved, ResolvedShot } from "../src/schema";
+import { visualAnchors } from "../tools/resolve";
+import { atMax, type Card } from "./catalog";
 
 export type LabSize = "split" | "full" | "wide";
 export type LabTone = "light" | "dark";
+// "sample" is the card's sample content; "max" fills every text slot to its maxChars.
+export type LabText = "sample" | "max";
 
 export const LAB_FPS = 30;
 
@@ -16,9 +18,10 @@ export const labViews = (card: Card): { size: LabSize; tone: LabTone }[] =>
     ? [{ size: "wide", tone: "dark" }]
     : (["split", "full"] as const).flatMap((size) => (["light", "dark"] as const).map((tone) => ({ size, tone })));
 
-export const labResolved = (card: Card, size: LabSize, tone: LabTone): Resolved | null => {
-  if (!card.sample) return null;
-  const v = card.sample.visual;
+export const labResolved = (card: Card, size: LabSize, tone: LabTone, text: LabText = "sample"): Resolved | null => {
+  const sample = text === "max" ? atMax(card) : card.sample;
+  if (!sample) return null;
+  const v = sample.visual;
   const n = Math.max(1, visualAnchors(v).length);
   const times = Array.from({ length: n }, (_, i) => 0.5 + i * 0.55);
   const duration = Math.max(4.5, times[times.length - 1] + 2.8);
@@ -31,7 +34,7 @@ export const labResolved = (card: Card, size: LabSize, tone: LabTone): Resolved 
           layout: size === "split" ? "split" : "scene",
           visual: { ...v, times },
           anchor: card.id,
-          header: size === "split" ? card.sample.header : card.sample.scene,
+          header: size === "split" ? sample.header : sample.scene,
           tone,
         };
   return {

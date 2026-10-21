@@ -6,38 +6,22 @@
 // Tiers: t1 is a full-frame scene takeover, t2 sits in the split panel beside the speaker (or
 // `side` on 16:9), overlay sits over the speaker's picture. Most cards work in both t1 and t2;
 // `layouts` lists where. Pick the card for the line, fill its slots with real content, and keep
-// every slot under its max: the card's layout is sized and tested for that length.
+// every slot under its maxChars: the card's layout is sized and tested for that length.
 import type { VisualSpec } from "../../src/schema";
+import { atMax, slotIssuesIn, slotValues, type Card, type Slot, type StyleDef } from "../catalog";
+export { atMax, slotValues, type Card, type Slot };
 import { tokens } from "./tokens";
 import { sampleLogo, samplePage, SAMPLE_PAGE_SIZE, sampleThumb } from "./samples";
 
-export type Tier = "t1" | "t2" | "overlay";
-export type SlotType = "text" | "richtext" | "number" | "image" | "anchor" | "enum" | "list";
-// `name` is a path into the visual: `items[].text` is every item's text. `max` is the longest
-// value in characters (asterisks for the accent do not count). `count` bounds a list's length.
-export type Slot = { name: string; type: SlotType; max?: number; count?: [number, number]; optional?: boolean; note?: string };
-export type Card = {
-  id: string;
-  kind: VisualSpec["kind"];
-  tier: Tier;
-  purpose: string;
-  treatment?: string;
-  summary: string;
-  layouts: ("split" | "scene" | "media" | "side" | "over" | "cutaway")[];
-  slots: Slot[];
-  // New in the Blueprint catalog (not one of the editor's first visuals).
-  added?: boolean;
-  // Sample content for the style lab: the visual, a docked header for split, a scene headline.
-  sample?: { visual: VisualSpec & { size?: [number, number] }; header: string; scene: string };
-  // Why there is no sample, when the card needs a real asset to show anything honest.
-  noSample?: string;
-};
-
-const T = (max = 32): Slot => ({ name: "title", type: "text", max, optional: true });
+const T = (maxChars = 32): Slot => ({ name: "title", type: "text", maxChars, optional: true });
 const at = (name: string): Slot => ({ name, type: "anchor", optional: true, note: "a spoken phrase; the part lands on its first word" });
 const BOTH: Card["layouts"] = ["split", "scene", "side", "media"];
 
-export const cards: Card[] = [
+// How long a card wants on screen, from its first part landing (herk-edit-kit declares the same).
+// A reel's shots are short, so a card that needs longer is built across shots with `keep`.
+const DURATION: Record<Card["tier"], { min: number; max: number }> = { t1: { min: 2.5, max: 7 }, t2: { min: 1.5, max: 5 }, overlay: { min: 2.5, max: 6 } };
+
+const catalog: Card[] = [
   // ---- t1: full-frame takeovers ----
   {
     id: "blueprint.t1.chapter",
@@ -46,7 +30,7 @@ export const cards: Card[] = [
     purpose: "section",
     summary: "A chapter marker: a large number lands out of a blur, its name tracked out below.",
     layouts: ["scene", "media", "split"],
-    slots: [{ name: "number", type: "text", max: 3 }, { name: "label", type: "text", max: 22 }],
+    slots: [{ name: "number", type: "text", maxChars: 3 }, { name: "label", type: "text", maxChars: 22 }],
     sample: { visual: { kind: "chapter", number: "02", label: "How it works" }, header: "Part *two*", scene: "Part *two*" },
   },
   {
@@ -56,7 +40,7 @@ export const cards: Card[] = [
     purpose: "thesis",
     summary: "The thesis in one line, word by word, with a rule drawing under it. One *accent* word.",
     layouts: ["scene", "split", "media", "over"],
-    slots: [{ name: "text", type: "richtext", max: 40 }, { name: "kicker", type: "text", max: 24, optional: true }],
+    slots: [{ name: "text", type: "richtext", maxChars: 40 }, { name: "kicker", type: "text", maxChars: 24, optional: true }],
     sample: { visual: { kind: "title", text: "Show the *real* thing", kicker: "Sample title" }, header: "The *rule*", scene: "The *rule*" },
   },
   {
@@ -66,7 +50,7 @@ export const cards: Card[] = [
     purpose: "stat",
     summary: "One big number that counts up, a rule, and what it counts. Only a real, sourced number.",
     layouts: BOTH,
-    slots: [{ name: "value", type: "number", max: 8 }, { name: "label", type: "richtext", max: 32 }],
+    slots: [{ name: "value", type: "number", maxChars: 6, note: "digits; thousands get a comma" }, { name: "label", type: "richtext", maxChars: 32 }],
     sample: { visual: { kind: "stat", value: "120", label: "Illustration: a *sample* count" }, header: "By the *numbers*", scene: "By the *numbers*" },
   },
   {
@@ -77,7 +61,7 @@ export const cards: Card[] = [
     added: true,
     summary: "A real quote in large serif, words resolving as it is read, with who said it and where.",
     layouts: BOTH,
-    slots: [{ name: "text", type: "text", max: 140, note: "word for word from the source" }, { name: "source", type: "text", max: 48 }, at("at")],
+    slots: [{ name: "text", type: "text", maxChars: 140, note: "word for word from the source" }, { name: "source", type: "text", maxChars: 48 }, at("at")],
     sample: {
       visual: { kind: "quote", text: "Show the real thing. If it is only a diagram, say so on the screen.", source: "Sample quote, illustration only" },
       header: "In their *words*",
@@ -93,10 +77,10 @@ export const cards: Card[] = [
     summary: "A feature overview: one wide cell and smaller ones, each landing on its word.",
     layouts: BOTH,
     slots: [
-      { name: "cells", type: "list", count: [3, 5], note: "four or fewer in a split" },
-      { name: "cells[].title", type: "richtext", max: 20 },
-      { name: "cells[].text", type: "text", max: 28, optional: true },
-      { name: "cells[].value", type: "text", max: 7, optional: true },
+      { name: "cells", type: "list", minItems: 3, maxItems: 5, note: "four or fewer in a split" },
+      { name: "cells[].title", type: "richtext", maxChars: 20 },
+      { name: "cells[].text", type: "text", maxChars: 28, optional: true },
+      { name: "cells[].value", type: "text", maxChars: 7, optional: true },
       at("cells[].at"),
     ],
     sample: {
@@ -124,10 +108,10 @@ export const cards: Card[] = [
     layouts: BOTH,
     slots: [
       T(),
-      { name: "x", type: "text", max: 14, count: [2, 2], note: "[low, high] along the bottom axis" },
-      { name: "y", type: "text", max: 14, count: [2, 2], note: "[low, high] up the side" },
-      { name: "items", type: "list", count: [1, 4] },
-      { name: "items[].text", type: "richtext", max: 22 },
+      { name: "x", type: "text", maxChars: 14, minItems: 2, maxItems: 2, note: "[low, high] along the bottom axis" },
+      { name: "y", type: "text", maxChars: 14, minItems: 2, maxItems: 2, note: "[low, high] up the side" },
+      { name: "items", type: "list", minItems: 1, maxItems: 4 },
+      { name: "items[].text", type: "richtext", maxChars: 22 },
       { name: "items[].quad", type: "enum", note: "tl, tr, bl or br" },
       at("items[].at"),
     ],
@@ -157,9 +141,9 @@ export const cards: Card[] = [
     summary: "Many official logos at once, in a wave, on white tiles. Never redrawn.",
     layouts: BOTH,
     slots: [
-      { name: "items", type: "list", count: [4, 12] },
+      { name: "items", type: "list", minItems: 4, maxItems: 12 },
       { name: "items[].src", type: "image", note: "an official logo from the maker's site or press kit" },
-      { name: "caption", type: "text", max: 40, optional: true },
+      { name: "caption", type: "text", maxChars: 40, optional: true },
       at("at"),
     ],
     sample: {
@@ -177,10 +161,10 @@ export const cards: Card[] = [
     summary: "A library that fills in: real thumbnails in a wave, an odometer count, groups that light.",
     layouts: ["scene", "split"],
     slots: [
-      { name: "items", type: "list", count: [0, 12], note: "real thumbnails captured from the source" },
-      { name: "count", type: "number", max: 6, optional: true },
-      { name: "label", type: "text", max: 24, optional: true },
-      { name: "groups[].label", type: "text", max: 16, optional: true },
+      { name: "items", type: "list", minItems: 0, maxItems: 12, note: "real thumbnails captured from the source" },
+      { name: "count", type: "number", maxChars: 6, optional: true },
+      { name: "label", type: "text", maxChars: 24, optional: true },
+      { name: "groups[].label", type: "text", maxChars: 16, optional: true },
       at("at"),
     ],
     sample: {
@@ -198,11 +182,11 @@ export const cards: Card[] = [
     summary: "Many sources into one result: chips land, lines draw into the result card, its rows land.",
     layouts: ["scene", "split"],
     slots: [
-      { name: "items", type: "list", count: [0, 9] },
-      { name: "items[].text", type: "text", max: 16 },
-      { name: "target.kicker", type: "text", max: 24, optional: true },
-      { name: "target.title", type: "richtext", max: 22 },
-      { name: "target.lines[].text", type: "richtext", max: 22, optional: true },
+      { name: "items", type: "list", minItems: 0, maxItems: 9 },
+      { name: "items[].text", type: "text", maxChars: 16 },
+      { name: "target.kicker", type: "text", maxChars: 24, optional: true },
+      { name: "target.title", type: "richtext", maxChars: 22 },
+      { name: "target.lines[].text", type: "richtext", maxChars: 22, optional: true },
     ],
     sample: {
       visual: { kind: "funnel", items: [{ text: "Notes" }, { text: "Docs" }, { text: "Chats" }, { text: "Code" }], target: { kicker: "sample.md", title: "One *brief*", lines: [{ text: "Goal" }, { text: "Constraints" }] } },
@@ -218,7 +202,7 @@ export const cards: Card[] = [
     treatment: "kinetic-typing",
     summary: "Kinetic typing: the line types itself huge, then settles into a plain input.",
     layouts: ["scene", "split"],
-    slots: [{ name: "text", type: "text", max: 60 }, { name: "label", type: "text", max: 24, optional: true }, { name: "chips[].text", type: "text", max: 16, optional: true }, at("at"), at("settle")],
+    slots: [{ name: "text", type: "text", maxChars: 60 }, { name: "label", type: "text", maxChars: 24, optional: true }, { name: "chips[].text", type: "text", maxChars: 16, optional: true }, at("at"), at("settle")],
     sample: { visual: { kind: "type", text: "Make me a sample", at: "make", settle: "sample", label: "Sample input", chips: [] }, header: "Just *ask*", scene: "Just *ask*" },
   },
   {
@@ -228,7 +212,7 @@ export const cards: Card[] = [
     purpose: "cta",
     summary: "The end card: what to comment and what they get. Only when a real resource exists.",
     layouts: ["split", "media", "scene"],
-    slots: [{ name: "keyword", type: "text", max: 12 }, { name: "text", type: "text", max: 40 }, { name: "src", type: "image", optional: true }],
+    slots: [{ name: "keyword", type: "text", maxChars: 12 }, { name: "text", type: "text", maxChars: 40 }, { name: "src", type: "image", optional: true }],
     sample: { visual: { kind: "cta", keyword: "SAMPLE", text: "Illustration of an end card" }, header: "Get the *guide*", scene: "Get the *guide*" },
   },
 
@@ -243,8 +227,8 @@ export const cards: Card[] = [
     layouts: ["split", "media", "scene", "side"],
     slots: [
       { name: "src", type: "image", note: "a capture made with reel capture, never a mock-up" },
-      { name: "url", type: "text", max: 60, optional: true },
-      { name: "highlight[].label", type: "text", max: 24, optional: true },
+      { name: "url", type: "text", maxChars: 60, optional: true },
+      { name: "highlight[].label", type: "text", maxChars: 24, optional: true },
       at("highlight[].at"),
     ],
     sample: {
@@ -272,7 +256,7 @@ export const cards: Card[] = [
     treatment: "logos",
     summary: "One to four official logos on white tiles, each landing on its spoken name.",
     layouts: BOTH,
-    slots: [{ name: "items", type: "list", count: [1, 4] }, { name: "items[].src", type: "image" }, { name: "items[].name", type: "text", max: 16, optional: true }, { name: "caption", type: "text", max: 32, optional: true }, at("items[].at")],
+    slots: [{ name: "items", type: "list", minItems: 1, maxItems: 4 }, { name: "items[].src", type: "image" }, { name: "items[].name", type: "text", maxChars: 16, optional: true }, { name: "caption", type: "text", maxChars: 32, optional: true }, at("items[].at")],
     sample: { visual: { kind: "logos", items: [{ src: sampleLogo("A", 0), name: "Sample A" }, { src: sampleLogo("B", 1), name: "Sample B" }] }, header: "The *tools*", scene: "The *tools*" },
   },
   {
@@ -282,7 +266,7 @@ export const cards: Card[] = [
     purpose: "list",
     summary: "Rows that arrive as each is said; the newest is active. `preview` shows all dim first.",
     layouts: BOTH,
-    slots: [T(30), { name: "items", type: "list", count: [2, 5] }, { name: "items[].text", type: "richtext", max: 26 }, at("items[].at")],
+    slots: [T(30), { name: "items", type: "list", minItems: 2, maxItems: 5 }, { name: "items[].text", type: "richtext", maxChars: 26 }, at("items[].at")],
     sample: { visual: { kind: "list", title: "Sample *list*", items: [{ text: "First point" }, { text: "Second point" }, { text: "Third point" }], preview: false }, header: "Three *ideas*", scene: "Three *ideas*" },
   },
   {
@@ -292,7 +276,7 @@ export const cards: Card[] = [
     purpose: "process",
     summary: "Numbered steps joined by a line that draws as each is spoken.",
     layouts: BOTH,
-    slots: [T(24), { name: "items", type: "list", count: [2, 4] }, { name: "items[].text", type: "richtext", max: 20 }, at("items[].at")],
+    slots: [T(24), { name: "items", type: "list", minItems: 2, maxItems: 4 }, { name: "items[].text", type: "richtext", maxChars: 20 }, at("items[].at")],
     sample: { visual: { kind: "steps", items: [{ text: "Install" }, { text: "Connect" }, { text: "Run it" }] }, header: "How to *start*", scene: "How to *start*" },
   },
   {
@@ -303,7 +287,7 @@ export const cards: Card[] = [
     treatment: "strike",
     summary: "Old way against new way; when the new one lands, the old is struck through.",
     layouts: BOTH,
-    slots: [{ name: "left.label", type: "text", max: 14 }, { name: "left.text", type: "text", max: 32 }, { name: "right.label", type: "text", max: 14 }, { name: "right.text", type: "text", max: 32 }, at("right.at")],
+    slots: [{ name: "left.label", type: "text", maxChars: 14 }, { name: "left.text", type: "text", maxChars: 32 }, { name: "right.label", type: "text", maxChars: 14 }, { name: "right.text", type: "text", maxChars: 32 }, at("right.at")],
     sample: { visual: { kind: "compare", left: { label: "Before", text: "Sample old way" }, right: { label: "After", text: "Sample new way" } }, header: "Old vs *new*", scene: "Old vs *new*" },
   },
   {
@@ -316,12 +300,12 @@ export const cards: Card[] = [
     summary: "Two states of one thing, with an arrow; the after lands on its word and takes the accent.",
     layouts: BOTH,
     slots: [
-      { name: "before.label", type: "text", max: 14 },
-      { name: "before.value", type: "richtext", max: 12 },
-      { name: "before.text", type: "text", max: 32, optional: true },
-      { name: "after.label", type: "text", max: 14 },
-      { name: "after.value", type: "richtext", max: 12 },
-      { name: "after.text", type: "text", max: 32, optional: true },
+      { name: "before.label", type: "text", maxChars: 14 },
+      { name: "before.value", type: "richtext", maxChars: 12 },
+      { name: "before.text", type: "text", maxChars: 32, optional: true },
+      { name: "after.label", type: "text", maxChars: 14 },
+      { name: "after.value", type: "richtext", maxChars: 12 },
+      { name: "after.text", type: "text", maxChars: 32, optional: true },
       at("after.at"),
     ],
     sample: {
@@ -341,10 +325,10 @@ export const cards: Card[] = [
     layouts: BOTH,
     slots: [
       T(),
-      { name: "items", type: "list", count: [2, 4] },
-      { name: "items[].value", type: "number", max: 7 },
-      { name: "items[].label", type: "text", max: 22 },
-      { name: "source", type: "text", max: 60, note: "where the numbers come from, or Illustration" },
+      { name: "items", type: "list", minItems: 2, maxItems: 4 },
+      { name: "items[].value", type: "number", maxChars: 7 },
+      { name: "items[].label", type: "text", maxChars: 22 },
+      { name: "source", type: "text", maxChars: 60, note: "where the numbers come from, or Illustration" },
       at("items[].at"),
     ],
     sample: {
@@ -354,6 +338,50 @@ export const cards: Card[] = [
     },
   },
   {
+    id: "blueprint.t2.stat.ring",
+    kind: "ring",
+    tier: "t2",
+    purpose: "stat",
+    treatment: "ring",
+    added: true,
+    summary: "A share as an arc that sweeps to its value, a dot on its tip and the number counting with it.",
+    layouts: BOTH,
+    slots: [{ name: "value", type: "number", note: "0 to 100, a real share" }, { name: "label", type: "richtext", maxChars: 28 }, { name: "source", type: "text", maxChars: 48 }, at("at")],
+    sample: { visual: { kind: "ring", value: 72, label: "Sample *share*", source: "Illustration" }, header: "How *much*", scene: "How *much*" },
+  },
+  {
+    id: "blueprint.t2.stat.meter",
+    kind: "meter",
+    tier: "t2",
+    purpose: "stat",
+    treatment: "meter",
+    added: true,
+    summary: "A value on a ticked scale: the fill runs to it while the number counts and rides the fill.",
+    layouts: BOTH,
+    slots: [
+      { name: "value", type: "number" },
+      { name: "max", type: "number" },
+      { name: "unit", type: "text", maxChars: 3, optional: true },
+      { name: "ends", type: "text", maxChars: 12, minItems: 2, maxItems: 2, optional: true, note: "[low, high] under the track" },
+      { name: "label", type: "richtext", maxChars: 30 },
+      { name: "source", type: "text", maxChars: 48 },
+      at("at"),
+    ],
+    sample: { visual: { kind: "meter", value: 64, max: 100, unit: "%", label: "Sample *progress*", source: "Illustration" }, header: "How *far*", scene: "How *far*" },
+  },
+  {
+    id: "blueprint.t2.stat.waffle",
+    kind: "waffle",
+    tier: "t2",
+    purpose: "stat",
+    treatment: "waffle",
+    added: true,
+    summary: "N in 100 as a 10x10 grid of dots that fill in reading order as the number counts.",
+    layouts: BOTH,
+    slots: [{ name: "value", type: "number", note: "a whole number, 0 to 100" }, { name: "label", type: "richtext", maxChars: 26 }, { name: "source", type: "text", maxChars: 48 }, at("at")],
+    sample: { visual: { kind: "waffle", value: 38, label: "Sample: 38 in *100*", source: "Illustration" }, header: "One in *three*", scene: "One in *three*" },
+  },
+  {
     id: "blueprint.t2.chart.bar",
     kind: "chart",
     tier: "t2",
@@ -361,7 +389,7 @@ export const cards: Card[] = [
     treatment: "bar",
     summary: "A bar chart; each bar grows on its word, the highlight takes the accent. Always a source.",
     layouts: BOTH,
-    slots: [T(), { name: "points", type: "list", count: [2, 6] }, { name: "points[].label", type: "text", max: 8 }, { name: "unit", type: "text", max: 3, optional: true }, { name: "source", type: "text", max: 60 }, at("points[].at")],
+    slots: [T(), { name: "points", type: "list", minItems: 2, maxItems: 6 }, { name: "points[].label", type: "text", maxChars: 8 }, { name: "unit", type: "text", maxChars: 3, optional: true }, { name: "source", type: "text", maxChars: 60 }, at("points[].at")],
     sample: {
       visual: { kind: "chart", type: "bar", title: "Sample series", points: [{ label: "A", value: 18 }, { label: "B", value: 31 }, { label: "C", value: 44 }, { label: "D", value: 72 }], source: "Illustration" },
       header: "It *grows*",
@@ -376,7 +404,7 @@ export const cards: Card[] = [
     treatment: "line",
     summary: "A line chart for change over time; the end value labelled big. Always a source.",
     layouts: BOTH,
-    slots: [T(), { name: "points", type: "list", count: [2, 8] }, { name: "points[].label", type: "text", max: 6 }, { name: "points[].note", type: "text", max: 20, optional: true }, { name: "source", type: "text", max: 60 }, at("points[].at")],
+    slots: [T(), { name: "points", type: "list", minItems: 2, maxItems: 8 }, { name: "points[].label", type: "text", maxChars: 6 }, { name: "points[].note", type: "text", maxChars: 20, optional: true }, { name: "source", type: "text", maxChars: 60 }, at("points[].at")],
     sample: {
       visual: { kind: "chart", type: "line", title: "Sample trend", points: [{ label: "Q1", value: 10 }, { label: "Q2", value: 16 }, { label: "Q3", value: 25 }, { label: "Q4", value: 41, note: "Sample note" }], source: "Illustration" },
       header: "Over *time*",
@@ -390,7 +418,7 @@ export const cards: Card[] = [
     purpose: "process",
     summary: "Numbered stages on a track that light as named; unnamed stages wait as dim numbers.",
     layouts: BOTH,
-    slots: [T(), { name: "stages", type: "list", count: [2, 8] }, { name: "stages[].label", type: "text", max: 14, optional: true }, at("stages[].at")],
+    slots: [T(), { name: "stages", type: "list", minItems: 2, maxItems: 8 }, { name: "stages[].label", type: "text", maxChars: 14, optional: true }, at("stages[].at")],
     sample: { visual: { kind: "pipeline", stages: [{ label: "Plan" }, { label: "Build" }, { label: "Review" }, { label: "Ship" }] }, header: "The *process*", scene: "The *process*" },
   },
   {
@@ -402,7 +430,7 @@ export const cards: Card[] = [
     added: true,
     summary: "Dated milestones on a track that fills as each is named. Across for four, down for more.",
     layouts: BOTH,
-    slots: [T(), { name: "items", type: "list", count: [2, 6] }, { name: "items[].date", type: "text", max: 8 }, { name: "items[].text", type: "richtext", max: 20 }, at("items[].at")],
+    slots: [T(), { name: "items", type: "list", minItems: 2, maxItems: 6 }, { name: "items[].date", type: "text", maxChars: 8 }, { name: "items[].text", type: "richtext", maxChars: 20 }, at("items[].at")],
     sample: {
       visual: { kind: "timeline", items: [{ date: "Step 1", text: "Sample start" }, { date: "Step 2", text: "Sample beta" }, { date: "Step 3", text: "Sample launch" }, { date: "Step 4", text: "*Today*" }] },
       header: "How we *got* here",
@@ -418,7 +446,7 @@ export const cards: Card[] = [
     added: true,
     summary: "A stack of layers built from the bottom up; each drops onto the stack on its word.",
     layouts: BOTH,
-    slots: [T(), { name: "items", type: "list", count: [2, 5], note: "the first item is the foundation" }, { name: "items[].text", type: "richtext", max: 22 }, { name: "items[].note", type: "text", max: 8, optional: true }, at("items[].at")],
+    slots: [T(), { name: "items", type: "list", minItems: 2, maxItems: 5, note: "the first item is the foundation" }, { name: "items[].text", type: "richtext", maxChars: 22 }, { name: "items[].note", type: "text", maxChars: 8, optional: true }, at("items[].at")],
     sample: {
       visual: { kind: "levels", items: [{ text: "Sample base", note: "layer" }, { text: "Sample middle", note: "layer" }, { text: "Sample top", note: "layer" }, { text: "The *app*", note: "you" }] },
       header: "The *stack*",
@@ -434,7 +462,7 @@ export const cards: Card[] = [
     added: true,
     summary: "A table of contents shown dim up front, an open loop; each part lights on its word.",
     layouts: BOTH,
-    slots: [T(), { name: "items", type: "list", count: [2, 5] }, { name: "items[].text", type: "richtext", max: 24 }, { name: "items[].note", type: "text", max: 6, optional: true }, { name: "active", type: "number", optional: true }, at("items[].at")],
+    slots: [T(), { name: "items", type: "list", minItems: 2, maxItems: 5 }, { name: "items[].text", type: "richtext", maxChars: 24 }, { name: "items[].note", type: "text", maxChars: 6, optional: true }, { name: "active", type: "number", optional: true }, at("items[].at")],
     sample: {
       visual: { kind: "agenda", items: [{ text: "Sample setup", note: "0:10" }, { text: "Sample *workflow*", note: "0:25" }, { text: "Sample results", note: "0:40" }] },
       header: "In this *video*",
@@ -450,7 +478,7 @@ export const cards: Card[] = [
     added: true,
     summary: "Boxes that tick as each item is said.",
     layouts: BOTH,
-    slots: [T(), { name: "items", type: "list", count: [2, 6] }, { name: "items[].text", type: "richtext", max: 26 }, at("items[].at")],
+    slots: [T(), { name: "items", type: "list", minItems: 2, maxItems: 6 }, { name: "items[].text", type: "richtext", maxChars: 26 }, at("items[].at")],
     sample: {
       visual: { kind: "checklist", items: [{ text: "Sample item one" }, { text: "Sample item two" }, { text: "Sample item three" }, { text: "Sample item four" }] },
       header: "Before you *ship*",
@@ -466,11 +494,11 @@ export const cards: Card[] = [
     summary: "How parts talk: cards joined by lines that draw, a chip riding along what is passed.",
     layouts: BOTH,
     slots: [
-      { name: "nodes", type: "list", count: [2, 4] },
-      { name: "nodes[].title", type: "richtext", max: 18 },
-      { name: "nodes[].kicker", type: "text", max: 14, optional: true },
-      { name: "nodes[].lines", type: "text", max: 24, optional: true },
-      { name: "edges[].chip", type: "text", max: 14, optional: true },
+      { name: "nodes", type: "list", minItems: 2, maxItems: 4 },
+      { name: "nodes[].title", type: "richtext", maxChars: 18 },
+      { name: "nodes[].kicker", type: "text", maxChars: 14, optional: true },
+      { name: "nodes[].lines", type: "text", maxChars: 24, optional: true },
+      { name: "edges[].chip", type: "text", maxChars: 14, optional: true },
       at("nodes[].at"),
     ],
     sample: {
@@ -487,7 +515,7 @@ export const cards: Card[] = [
     treatment: "terminal",
     summary: "A terminal that types each line on its spoken word. Real commands only.",
     layouts: ["split", "media", "side"],
-    slots: [T(24), { name: "lines", type: "list", count: [1, 5] }, { name: "lines[].text", type: "text", max: 32, note: "start with > for output" }, at("lines[].at")],
+    slots: [T(24), { name: "lines", type: "list", minItems: 1, maxItems: 5 }, { name: "lines[].text", type: "text", maxChars: 32, note: "start with > for output" }, at("lines[].at")],
     sample: { visual: { kind: "terminal", title: "sample", lines: [{ text: "npm run sample" }, { text: "> Illustration output" }] }, header: "Run *it*", scene: "Run *it*" },
   },
   {
@@ -498,7 +526,7 @@ export const cards: Card[] = [
     treatment: "chat-input",
     summary: "A plain chat input where a prompt types itself out on its word.",
     layouts: ["split", "media", "side"],
-    slots: [{ name: "app", type: "text", max: 16 }, { name: "text", type: "text", max: 120 }, at("at")],
+    slots: [{ name: "app", type: "text", maxChars: 16 }, { name: "text", type: "text", maxChars: 120 }, at("at")],
     sample: { visual: { kind: "prompt", app: "Sample app", text: "Write a sample prompt that types itself out." }, header: "The *prompt*", scene: "The *prompt*" },
   },
 
@@ -510,16 +538,19 @@ export const cards: Card[] = [
     purpose: "lower-third",
     summary: "A lower third: a serif name or point, a sans line under it, a short rule. No box.",
     layouts: ["over"],
-    slots: [{ name: "title", type: "richtext", max: 36 }, { name: "sub", type: "text", max: 56, optional: true }],
+    slots: [{ name: "title", type: "richtext", maxChars: 36 }, { name: "sub", type: "text", maxChars: 56, optional: true }],
     sample: { visual: { kind: "lower", title: "Sample *name*", sub: "Sample role or point, illustration" }, header: "", scene: "" },
   },
 ];
 
-export const blueprint = {
+export const cards: Card[] = catalog.map((c) => ({ ...c, duration: c.duration ?? DURATION[c.tier] }));
+
+export const blueprint: StyleDef = {
   id: tokens.id,
   name: tokens.name,
   number: "01",
   status: "draft",
+  inspiration: "Owain's notes on the house look (October 2026), with the structure of herk-edit-kit's style library and the flat techniques of its Kallaway style: focus-pull entrances, word-anchored staggers, drawn connectors, odometer counts. No glow, glass or gradients.",
   summary:
     "Cool paper and graphite with a quiet blueprint grid, white cards, cool ink and one clean blue. Split-first: graphics in the top half, the speaker on the bottom half. Calm, minimal, real content.",
   palette: { light: tokens.color.light, dark: tokens.color.dark, accent: tokens.color.light.accent },
@@ -529,39 +560,8 @@ export const blueprint = {
   cards,
 };
 
-// Every value at a slot path: "items[].text" gives every item's text.
-export const slotValues = (v: unknown, path: string): unknown[] => {
-  let vals: unknown[] = [v];
-  for (const part of path.split(".")) {
-    const list = part.endsWith("[]");
-    const key = list ? part.slice(0, -2) : part;
-    vals = vals.flatMap((x) => {
-      const y = x && typeof x === "object" ? (x as Record<string, unknown>)[key] : undefined;
-      if (y === undefined) return [];
-      return list && Array.isArray(y) ? y : [y];
-    });
-  }
-  return vals;
-};
-const len = (x: unknown) => String(x).replace(/\*/g, "").length;
-
 // The cards for a visual kind (a chart has two treatments).
 export const cardsFor = (kind: string) => cards.filter((c) => c.kind === kind);
 
-// Slots over their max, for `validate`: the card's layout is only sized and tested up to it.
-export const slotIssues = (v: VisualSpec): string[] => {
-  const card = cardsFor(v.kind).find((c) => !c.treatment || v.kind !== "chart" || c.treatment === (v as { type?: string }).type) ?? cardsFor(v.kind)[0];
-  if (!card) return [];
-  const out: string[] = [];
-  for (const s of card.slots) {
-    const vals = slotValues(v, s.name);
-    if (s.max !== undefined)
-      for (const x of vals.flatMap((y) => (Array.isArray(y) ? y : [y])))
-        if (typeof x === "string" && len(x) > s.max) out.push(`${card.id} ${s.name} "${x}" is ${len(x)} characters; the card is sized for ${s.max}`);
-    if (s.count && s.type === "list" && vals.length === 1 && Array.isArray(vals[0])) {
-      const n = (vals[0] as unknown[]).length;
-      if (n < s.count[0] || n > s.count[1]) out.push(`${card.id} ${s.name} has ${n}; the card takes ${s.count[0]} to ${s.count[1]}`);
-    }
-  }
-  return out;
-};
+// Slots past their limits, for `validate`: the card's layout is only sized and tested up to them.
+export const slotIssues = (v: VisualSpec): string[] => slotIssuesIn(cards, v);

@@ -3,6 +3,7 @@ import { Thumbnail } from "@remotion/player";
 
 import type { Resolved } from "../src/schema";
 import type { Status } from "./model";
+import { styles } from "../styles/index";
 import { Accented, ago, frames, playable, secs, stage, usePlanEvents } from "./shared";
 
 type Row = {
@@ -31,7 +32,11 @@ export const Library: React.FC = () => {
           Review <span className="accent">board</span>
         </h1>
         <span className="muted">
-          <a href="#/styles/blueprint">Blueprint style lab →</a>
+          {styles.map((st) => (
+            <a key={st.id} href={`#/styles/${st.id}`} style={{ marginRight: 12 }}>
+              {st.name} style lab →
+            </a>
+          ))}
           {rows ? ` · ${rows.length} reels` : ""}
         </span>
       </div>

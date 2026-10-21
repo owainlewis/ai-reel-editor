@@ -30,10 +30,10 @@ The look is a named style with a card catalog, modelled on herk-edit-kit's style
 
 - `tokens.ts`: palette, type, spacing, grid and motion in one place. Components read them through `src/style.ts`; swapping a style is swapping that module.
 - `DESIGN.md`: the spec, how to pick a card for a line, and what not to do.
-- `style.ts` and `style.json`: every visual kind as a card (`blueprint.t1.stat`, `blueprint.t2.kpi`, `blueprint.overlay.lower`), with its tier, purpose, layouts and slots with max lengths. `t1` is a full-frame scene, `t2` sits beside the speaker, `overlay` sits over the picture.
+- `style.ts` and `style.json`: every visual kind as a card (`blueprint.t1.stat`, `blueprint.t2.kpi`, `blueprint.overlay.lower`), with its tier, purpose, layouts, duration and typed slot limits (`maxChars`, `maxItems`). `t1` is a full-frame scene, `t2` sits beside the speaker, `overlay` sits over the picture.
 - The style lab on the review board plays every card live, light and dark, split and scene, with Approve / Change and a note per card (`styles/blueprint/review.json`, printed by `npm run reel -- styles feedback`).
 
-Pick graphics from the catalog and keep slots under their max. New in Blueprint: `agenda`, `beforeafter`, `kpi`, `matrix`, `timeline`, `levels`, `checklist`, `quote`, `logowall`, `bento`.
+Pick graphics from the catalog and keep slots under their max. New in Blueprint: `agenda`, `beforeafter`, `kpi`, `matrix`, `timeline`, `levels`, `checklist`, `quote`, `logowall`, `bento`, `ring`, `meter`, `waffle`. More styles go in their own folders; see `styles/README.md`.
 
 ## Look: light editorial
 

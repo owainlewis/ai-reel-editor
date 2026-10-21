@@ -44,6 +44,9 @@ export const visualAnchors = (v: VisualSpec): (string | undefined)[] => {
     case "prompt":
     case "quote":
     case "logowall":
+    case "ring":
+    case "meter":
+    case "waffle":
       return [v.at];
     case "chart": return v.points.map((pt) => pt.at);
     case "kpi": return v.items.map((it) => it.at);

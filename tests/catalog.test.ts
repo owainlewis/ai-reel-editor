@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { Visual } from "../src/schema.ts";
 import { cardGeom, type Geom } from "../src/cards.tsx";
 import { style } from "../src/style.ts";
-import { blueprint, cards, slotIssues, slotValues, type Card } from "../styles/blueprint/style.ts";
-import { labResolved, labViews } from "../styles/blueprint/lab.ts";
+import { blueprint, cards, slotIssues, slotValues } from "../styles/blueprint/style.ts";
+import { atMax } from "../styles/catalog.ts";
+import { registry, styles } from "../styles/index.ts";
+import { labResolved, labViews } from "../styles/lab.ts";
 
 const kinds = Visual.options.map((o) => o.shape.kind.value);
 
@@ -21,10 +23,13 @@ describe("the Blueprint catalog", () => {
       expect(c.id.split(".")[1]).toBe(c.tier);
     }
   });
-  it("declares slots on every card, with a max on every text slot", () => {
+  it("declares typed limits on every slot: maxChars on text, maxItems on lists", () => {
     for (const c of cards) {
       expect(c.slots.length, c.id).toBeGreaterThan(0);
-      for (const s of c.slots) if (s.type === "text" || s.type === "richtext") expect(s.max, `${c.id} ${s.name}`).toBeGreaterThan(0);
+      for (const s of c.slots) {
+        if (s.type === "text" || s.type === "richtext") expect(s.maxChars, `${c.id} ${s.name}`).toBeGreaterThan(0);
+        if (s.type === "list") expect(s.maxItems, `${c.id} ${s.name}`).toBeGreaterThan(0);
+      }
     }
   });
   it("has a sample for every card, or says why not", () => {
@@ -57,6 +62,12 @@ describe("the Blueprint catalog", () => {
         expect(r.duration).toBeGreaterThanOrEqual(4.5);
       }
   });
+  it("matches the committed registry.json, and every registered style has a folder with its files", () => {
+    const json = JSON.parse(readFileSync(new URL("../styles/registry.json", import.meta.url), "utf8"));
+    expect(json).toEqual(JSON.parse(JSON.stringify(registry())));
+    for (const st of styles)
+      for (const f of ["tokens.ts", "style.ts", "style.json", "DESIGN.md"]) expect(() => readFileSync(new URL(`../styles/${st.id}/${f}`, import.meta.url)), `${st.id}/${f}`).not.toThrow();
+  });
   it("matches the committed style.json", () => {
     const json = JSON.parse(readFileSync(new URL("../styles/blueprint/style.json", import.meta.url), "utf8"));
     expect(json).toEqual(JSON.parse(JSON.stringify(blueprint)));
@@ -72,30 +83,7 @@ const SIZES: [string, number, number][] = [
   ["side", 1350, 860],
 ];
 
-// The sample with every text slot filled to its max: words of five letters.
-const stress = (c: Card) => {
-  const v = structuredClone(c.sample!.visual) as Record<string, unknown>;
-  const fill = (n: number) => "Mmmmm ".repeat(Math.ceil(n / 6)).slice(0, n).trim().padEnd(n, "m");
-  for (const s of c.slots) {
-    if (s.max === undefined || (s.type !== "text" && s.type !== "richtext" && s.type !== "number")) continue;
-    const parts = s.name.split(".");
-    const walk = (x: unknown, i: number) => {
-      if (!x || typeof x !== "object") return;
-      const key = parts[i].replace("[]", "");
-      const o = x as Record<string, unknown>;
-      if (i === parts.length - 1) {
-        if (Array.isArray(o[key])) o[key] = (o[key] as unknown[]).map(() => fill(s.max!));
-        else if (o[key] !== undefined) o[key] = s.type === "number" ? "9".repeat(s.max!) : fill(s.max!);
-        return;
-      }
-      const next = o[key];
-      if (Array.isArray(next)) next.forEach((y) => walk(y, i + 1));
-      else walk(next, i + 1);
-    };
-    walk(v, 0);
-  }
-  return v as never;
-};
+const stress = (c: (typeof cards)[number]) => atMax(c)!.visual as never;
 
 const check = (label: string, g: Geom, w: number, h: number) => {
   const inside = (b: { x: number; y: number; w: number; h: number }, what: string) => {
@@ -153,13 +141,27 @@ describe("tokens keep the house look", () => {
 describe("style lab review", () => {
   it("sends a changed card back to waiting and keeps the old note", async () => {
     const { mergeStyleReview } = await import("../review/styles.ts");
-    const first = mergeStyleReview(undefined, cards, "t0");
+    const first = mergeStyleReview(undefined, { id: "blueprint", cards }, "t0");
     const id = cards[0].id;
     first.cards[id] = { ...first.cards[id], status: "change", comment: "bigger number" };
     const edited = [{ ...cards[0], summary: "changed" }, ...cards.slice(1)];
-    const next = mergeStyleReview(first, edited, "t1");
+    const next = mergeStyleReview(first, { id: "blueprint", cards: edited }, "t1");
     expect(next.cards[id].status).toBe("waiting");
     expect(next.cards[id].history.at(-1)?.comment).toBe("bigger number");
     expect(next.cards[cards[1].id]).toEqual(first.cards[cards[1].id]);
+  });
+});
+
+// herk-edit-kit hardcodes its accent in most Kallaway cards, so a token change misses them. Ours
+// may not: the style-driven components take every colour from the active style's tokens.
+describe("tokens only", () => {
+  it("has no literal colours in the card, element or scene components", () => {
+    for (const f of ["../src/cards.tsx", "../src/elements.tsx", "../src/soft.tsx"]) {
+      const code = readFileSync(new URL(f, import.meta.url), "utf8")
+        .split("\n")
+        .filter((l) => !l.trim().startsWith("//"))
+        .join("\n");
+      expect(code.match(/#[0-9A-Fa-f]{3,8}\b|rgba?\(\s*\d/g), f).toBeNull();
+    }
   });
 });

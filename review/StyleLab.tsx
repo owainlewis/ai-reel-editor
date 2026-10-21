@@ -5,11 +5,11 @@ import { Reel } from "../src/Reel";
 import { Wide } from "../src/Wide";
 import type { Status } from "./model";
 import type { StyleReview } from "./styles";
-import type { Card } from "../styles/blueprint/style";
-import { labResolved, labViews, type LabSize, type LabTone } from "../styles/blueprint/lab";
+import type { Card } from "../styles/catalog";
+import { labResolved, labViews, type LabSize, type LabText, type LabTone } from "../styles/lab";
 import { Accented, frames } from "./shared";
 
-type Data = { review: StyleReview; cards: (Card & { hash: string })[] };
+type Data = { review: StyleReview; cards: (Card & { hash: string })[]; name: string; active: boolean; activeName: string };
 type Filter = "all" | "t1" | "t2" | "overlay" | "new";
 
 const statusLabel: Record<Status, string> = { approved: "Approved", change: "Change", waiting: "Waiting" };
@@ -23,6 +23,8 @@ export const StyleLab: React.FC<{ id: string }> = ({ id }) => {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
+  // Sample text, or every slot at its maxChars, to see overflow and padding at the limit.
+  const [text, setText] = useState<LabText>("sample");
 
   const load = useCallback(
     () =>
@@ -77,7 +79,7 @@ export const StyleLab: React.FC<{ id: string }> = ({ id }) => {
               ← Reels
             </a>
             <h1>
-              Blueprint <span className="accent">style lab</span>
+              {data.name} <span className="accent">style lab</span>
             </h1>
             <div className="counts">
               <span>
@@ -98,14 +100,26 @@ export const StyleLab: React.FC<{ id: string }> = ({ id }) => {
                 {{ all: `All ${data.cards.length}`, t1: "t1 · full frame", t2: "t2 · beside the speaker", overlay: "Overlay", new: `New ${data.cards.filter((c) => c.added).length}` }[f]}
               </button>
             ))}
+            <span className="seg-toggle">
+              {(["sample", "max"] as LabText[]).map((x) => (
+                <button key={x} className={`ghost ${text === x ? "on" : ""}`} onClick={() => setText(x)}>
+                  {x === "sample" ? "Sample text" : "Max length"}
+                </button>
+              ))}
+            </span>
             <span className="muted lab-note">Sample content, illustration only. Real reels use real captures, logos and numbers.</span>
           </div>
         </div>
       </div>
       <div className="lab">
+        {!data.active && (
+          <div className="history">
+            Players render with the active style's tokens ({data.activeName}). Point src/style.ts at styles/{id}/tokens.ts to see this style's own look.
+          </div>
+        )}
         <StyleNotes key={data.review.notes} text={data.review.notes} onSave={(text) => put("notes", { text })} />
         {shown.map((c) => (
-          <CardRow key={`${c.id}:${c.hash}`} card={c} review={data.review.cards[c.id]} onSet={(patch) => setCard(c, patch)} />
+          <CardRow key={`${c.id}:${c.hash}`} card={c} text={text} review={data.review.cards[c.id]} onSet={(patch) => setCard(c, patch)} />
         ))}
       </div>
     </>
@@ -144,7 +158,7 @@ const StyleNotes: React.FC<{ text: string; onSave: (t: string) => void }> = ({ t
   );
 };
 
-const CardRow: React.FC<{ card: Card; review?: StyleReview["cards"][string]; onSet: (p: { status?: Status; comment?: string }) => Promise<void> }> = ({ card, review, onSet }) => {
+const CardRow: React.FC<{ card: Card; text: LabText; review?: StyleReview["cards"][string]; onSet: (p: { status?: Status; comment?: string }) => Promise<void> }> = ({ card, text, review, onSet }) => {
   const status = review?.status ?? "waiting";
   const comment = useAutosave(review?.comment ?? "", (comment) => void onSet(comment.trim() && status === "waiting" ? { comment, status: "change" } : { comment }));
   const ref = useRef<HTMLElement>(null);
@@ -183,7 +197,7 @@ const CardRow: React.FC<{ card: Card; review?: StyleReview["cards"][string]; onS
         {card.sample ? (
           labViews(card).map(({ size, tone }) => (
             <figure key={`${size}-${tone}`} className={size === "wide" ? "wide" : ""}>
-              {near ? <LabPlayer card={card} size={size} tone={tone} playing={visible} /> : <div className="lab-placeholder" />}
+              {near ? <LabPlayer key={text} card={card} size={size} tone={tone} text={text} playing={visible} /> : <div className="lab-placeholder" />}
               <figcaption>{viewLabel(size, tone)}</figcaption>
             </figure>
           ))
@@ -198,7 +212,7 @@ const CardRow: React.FC<{ card: Card; review?: StyleReview["cards"][string]; onS
               <tr key={s.name}>
                 <td className="mono">{s.name}</td>
                 <td className="muted">{s.type}</td>
-                <td className="muted">{s.max ? `≤ ${s.max}` : s.count ? `${s.count[0]} to ${s.count[1]}` : ""}</td>
+                <td className="muted">{s.maxChars ? `≤ ${s.maxChars} chars` : s.maxItems ? `${s.minItems ?? 0} to ${s.maxItems} items` : ""}</td>
                 <td className="muted">{[s.optional ? "optional" : "", s.note ?? ""].filter(Boolean).join(" · ")}</td>
               </tr>
             ))}
@@ -225,8 +239,8 @@ const CardRow: React.FC<{ card: Card; review?: StyleReview["cards"][string]; onS
   );
 };
 
-const LabPlayer: React.FC<{ card: Card; size: LabSize; tone: LabTone; playing: boolean }> = ({ card, size, tone, playing }) => {
-  const r = useMemo(() => labResolved(card, size, tone)!, [card, size, tone]);
+const LabPlayer: React.FC<{ card: Card; size: LabSize; tone: LabTone; text: LabText; playing: boolean }> = ({ card, size, tone, text, playing }) => {
+  const r = useMemo(() => labResolved(card, size, tone, text)!, [card, size, tone, text]);
   const player = useRef<PlayerRef>(null);
   useEffect(() => (playing ? player.current?.play() : player.current?.pause()), [playing]);
   const wide = size === "wide";

@@ -162,6 +162,13 @@ export const Visual = z.discriminatedUnion("kind", [
     kind: z.literal("bento"),
     cells: z.array(z.object({ title: z.string(), text: z.string().optional(), value: z.string().optional(), at: Anchor.optional() })).min(3).max(5),
   }),
+  // A share as an arc: the ring sweeps to `value` percent on `at`, a dot riding its tip and the
+  // number counting with it. Real, sourced numbers only; `source` says "Illustration" otherwise.
+  z.object({ kind: z.literal("ring"), value: z.number().min(0).max(100), label: z.string(), source: z.string(), at: Anchor.optional() }),
+  // A value on a scale: a ticked track from 0 to `max`, the fill running to `value` on `at`.
+  z.object({ kind: z.literal("meter"), value: z.number().min(0), max: z.number().positive(), unit: z.string().optional(), label: z.string(), ends: z.tuple([z.string(), z.string()]).optional(), source: z.string(), at: Anchor.optional() }),
+  // "N in 100" as a 10x10 grid of dots that fill in reading order to `value` on `at`.
+  z.object({ kind: z.literal("waffle"), value: z.number().int().min(0).max(100), label: z.string(), source: z.string(), at: Anchor.optional() }),
   // Kinetic typing: `text` types itself huge across the frame on `at`, then on `settle` shrinks into
   // a small input, where `chips` (pasted links, files) pop in on their words. A neutral input, no brand UI.
   z.object({

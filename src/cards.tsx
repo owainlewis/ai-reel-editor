@@ -6,7 +6,7 @@ import { clamp, ease } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
 // Blueprint card kinds: agenda, before/after, KPI row, 2x2 matrix, timeline, layers, checklist,
-// quote, logo wall, bento. Each is laid out by a pure geometry function (exported, and tested in
+// quote, logo wall, bento, and the stat shapes ring, meter and waffle. Each is laid out by a pure geometry function (exported, and tested in
 // tests/cards.test.ts): every card's height comes from the numbers that lay out its content, so the
 // padding is even on every side, and every text is sized so its longest line fits its room.
 // Sizes, colours and motion all come from the style's tokens.
@@ -740,6 +740,170 @@ export const BentoCard: React.FC<Props & { v: V<"bento"> }> = ({ shot, time, w, 
   );
 };
 
+// ---------- Stats as shapes: ring, meter, waffle ----------
+// From Kallaway's stat cards, flat: one tween drives the shape and the number together, so the arc,
+// the fill or the dots and the count always agree. No glow and no breathing; the shape just lands.
+
+const SOURCE = { size: 24, h: 24 * 1.4, gap: 28 };
+// Count-ups run longer than an entrance, slowing into their value.
+const COUNT = 1.6;
+const countEase = (x: number) => 1 - Math.pow(1 - x, 3);
+const countProg = (time: number, at: number) => interpolate(time, [at, at + COUNT], [0, 1], { ...clamp, easing: countEase });
+const sourceFit = (source: string, w: number) => fits([source], SOURCE.size, w, "mono");
+const Source: React.FC<{ text: string; c: ReturnType<typeof pal>; p: number }> = ({ text, c, p }) => (
+  <div style={{ position: "absolute", left: 0, bottom: 0, fontFamily: F.mono, fontSize: SOURCE.size, letterSpacing: 0.5, color: c.muted, opacity: p, whiteSpace: "nowrap" }}>{text}</div>
+);
+
+export const ringGeom = (v: V<"ring">, w: number, h: number) => {
+  const label = fit([v.label], w, 46, "sans", 2);
+  const labelH = linesOf(v.label, label, w) * label * 1.15;
+  const room = h - SOURCE.h - SOURCE.gap - labelH - 40;
+  const d = Math.floor(Math.min(w * 0.7, room, 560));
+  const stroke = Math.round(d * 0.055);
+  const num = fit(["100"], d * 0.5, d * 0.3, "mono");
+  const top = (h - SOURCE.h - SOURCE.gap - (d + 40 + labelH)) / 2;
+  const geom: Geom = {
+    cards: [],
+    parts: [{ x: (w - d) / 2, y: top, w: d, h: d }, { x: 0, y: top + d + 40, w, h: labelH }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
+    texts: [...fits(["100"], num, d * 0.5, "mono"), ...fits([v.label], label, w, "sans", 2), ...sourceFit(v.source, w)],
+  };
+  return { d, stroke, num, label, top, geom };
+};
+
+export const RingCard: React.FC<Props & { v: V<"ring"> }> = ({ shot, time, w, h, v }) => {
+  const c = pal(shot.tone);
+  const g = ringGeom(v, w, h);
+  const at = v.times?.[0] ?? shot.start + 0.3;
+  const enter = prog(time, shot.start);
+  const p = countProg(time, at);
+  const r = (g.d - g.stroke) / 2;
+  const len = 2 * Math.PI * r;
+  const share = (v.value / 100) * p;
+  // The tip dot rides the end of the arc, which starts at twelve o'clock.
+  const a = -Math.PI / 2 + share * 2 * Math.PI;
+  const shown = Number.isInteger(v.value) ? Math.round(v.value * p) : (v.value * p).toFixed(1);
+  return (
+    <div style={{ position: "relative", width: w, height: h }}>
+      <div style={{ position: "absolute", left: (w - g.d) / 2, top: g.top, width: g.d, height: g.d, ...land(enter, 20) }}>
+        <svg width={g.d} height={g.d} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
+          <circle cx={g.d / 2} cy={g.d / 2} r={r} fill="none" stroke={c.chip} strokeWidth={g.stroke} />
+          <circle cx={g.d / 2} cy={g.d / 2} r={r} fill="none" stroke={c.accent} strokeWidth={g.stroke} strokeLinecap="round" strokeDasharray={`${len * share} ${len}`} transform={`rotate(-90 ${g.d / 2} ${g.d / 2})`} opacity={share > 0.002 ? 1 : 0} />
+          {share > 0.002 && <circle cx={g.d / 2 + r * Math.cos(a)} cy={g.d / 2 + r * Math.sin(a)} r={g.stroke * 0.7} fill={c.card} stroke={c.accent} strokeWidth={g.stroke * 0.35} />}
+        </svg>
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.mono, fontWeight: 600, fontSize: g.num, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums", filter: `blur(${(1 - prog(time, at, 0.5)) * M.blur}px)` }}>
+          {shown}
+          <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.num * 0.55, color: c.accentText, marginLeft: g.num * 0.04 }}>%</span>
+        </div>
+      </div>
+      <div style={{ position: "absolute", left: 0, right: 0, top: g.top + g.d + 40, textAlign: "center", fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.15, letterSpacing: -g.label * 0.02, color: c.ink, ...land(prog(time, at + 0.3), 16) }}>
+        <SoftAccented text={v.label} c={c} />
+      </div>
+      <Source text={v.source} c={c} p={enter} />
+    </div>
+  );
+};
+
+export const meterGeom = (v: V<"meter">, w: number, h: number) => {
+  const unit = v.unit ?? "";
+  const valueText = `${v.max}${unit}`.length > `${v.value}${unit}`.length ? `${v.max}${unit}` : `${v.value}${unit}`;
+  const value = fit([valueText], w, Math.min(150, h * 0.22), "mono");
+  const label = fit([v.label], w, 44, "sans", 2);
+  const labelH = linesOf(v.label, label, w) * label * 1.15;
+  const ends = v.ends ?? [`0${unit}`, `${v.max}${unit}`];
+  const track = 30;
+  const block = value + 34 + track + 18 + 16 + 14 + SOURCE.size * 1.3 + 40 + labelH;
+  const top = (h - SOURCE.h - SOURCE.gap - block) / 2;
+  const trackY = top + value + 34;
+  const geom: Geom = {
+    cards: [],
+    parts: [{ x: 0, y: top, w, h: block }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
+    texts: [...fits([valueText], value, w, "mono"), ...fits([v.label], label, w, "sans", 2), ...fits(ends, SOURCE.size, w / 2 - 20, "mono"), ...sourceFit(v.source, w)],
+  };
+  return { value, label, labelH, ends, track, top, trackY, geom };
+};
+
+export const MeterCard: React.FC<Props & { v: V<"meter"> }> = ({ shot, time, w, h, v }) => {
+  const c = pal(shot.tone);
+  const g = meterGeom(v, w, h);
+  const at = v.times?.[0] ?? shot.start + 0.3;
+  const enter = prog(time, shot.start);
+  const p = countProg(time, at);
+  const share = Math.min(1, v.value / v.max) * p;
+  const shown = Number.isInteger(v.value) ? Math.round(v.value * p).toLocaleString("en-US") : (v.value * p).toFixed(1);
+  const tickY = g.trackY + g.track + 18;
+  return (
+    <div style={{ position: "relative", width: w, height: h }}>
+      <div style={{ position: "absolute", left: share * w, top: g.top, translate: `${share > 0.5 ? "-100%" : "0"} 0`, fontFamily: F.mono, fontWeight: 600, fontSize: g.value, lineHeight: 1, letterSpacing: -g.value * 0.04, color: c.ink, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", opacity: enter }}>
+        {shown}
+        {v.unit && <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.value * 0.55, color: c.accentText }}>{v.unit}</span>}
+      </div>
+      <div style={{ position: "absolute", left: 0, width: w, top: g.trackY, height: g.track, borderRadius: g.track / 2, background: c.chip, ...land(enter, 0) }} />
+      <div style={{ position: "absolute", left: 0, width: Math.max(share > 0 ? g.track : 0, share * w), top: g.trackY, height: g.track, borderRadius: g.track / 2, background: c.accent }} />
+      {Array.from({ length: 11 }, (_, i) => (
+        <div key={i} style={{ position: "absolute", left: (w - 2) * (i / 10), top: tickY, width: 2, height: i % 5 === 0 ? 16 : 10, background: c.faint, opacity: prog(time, shot.start + 0.1 + i * 0.03, 0.3) }} />
+      ))}
+      <div style={{ position: "absolute", left: 0, top: tickY + 30, fontFamily: F.mono, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[0]}</div>
+      <div style={{ position: "absolute", right: 0, top: tickY + 30, fontFamily: F.mono, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[1]}</div>
+      <div style={{ position: "absolute", left: 0, right: 0, top: tickY + 30 + SOURCE.size * 1.3 + 40, fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.15, letterSpacing: -g.label * 0.02, color: c.ink, ...land(prog(time, at + 0.3), 16) }}>
+        <SoftAccented text={v.label} c={c} />
+      </div>
+      <Source text={v.source} c={c} p={enter} />
+    </div>
+  );
+};
+
+export const waffleGeom = (v: V<"waffle">, w: number, h: number) => {
+  const wide = w / h >= 1.3;
+  const num = fit(["100%"], wide ? w * 0.36 : w, Math.min(150, h * 0.2), "mono");
+  const label = fit([v.label], wide ? w * 0.4 : w, 44, "sans", 2);
+  const labelH = linesOf(v.label, label, wide ? w * 0.4 : w) * label * 1.15;
+  const avail = h - SOURCE.h - SOURCE.gap;
+  // Wide panels put the number and label beside the grid; tall ones stack them above it.
+  const grid = Math.floor(wide ? Math.min(avail, w * 0.52) : Math.min(w, avail - num - 30 - labelH - 34, 640));
+  const cell = grid / 10;
+  const top = wide ? (avail - grid) / 2 : (avail - (num + 30 + labelH + 34 + grid)) / 2;
+  const gx = wide ? w - grid : (w - grid) / 2;
+  const gy = wide ? top : top + num + 30 + labelH + 34;
+  const geom: Geom = {
+    cards: [],
+    parts: [{ x: gx, y: gy, w: grid, h: grid }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
+    texts: [...fits(["100%"], num, wide ? w * 0.36 : w, "mono"), ...fits([v.label], label, wide ? w * 0.4 : w, "sans", 2), ...sourceFit(v.source, w)],
+  };
+  return { wide, num, label, grid, cell, top, gx, gy, geom };
+};
+
+export const WaffleCard: React.FC<Props & { v: V<"waffle"> }> = ({ shot, time, w, h, v }) => {
+  const c = pal(shot.tone);
+  const g = waffleGeom(v, w, h);
+  const at = v.times?.[0] ?? shot.start + 0.3;
+  const enter = prog(time, shot.start);
+  const p = countProg(time, at);
+  const filled = v.value * p;
+  const dot = g.cell * 0.7;
+  return (
+    <div style={{ position: "relative", width: w, height: h }}>
+      <div style={{ position: "absolute", left: 0, top: g.top, width: g.wide ? w * 0.4 : w, textAlign: g.wide ? "left" : "center", ...land(enter, 16) }}>
+        <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: g.num, lineHeight: 1, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums" }}>
+          {Math.round(filled)}
+          <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.num * 0.55, color: c.accentText }}>%</span>
+        </div>
+        <div style={{ marginTop: 30, fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.15, letterSpacing: -g.label * 0.02, color: c.ink }}>
+          <SoftAccented text={v.label} c={c} />
+        </div>
+      </div>
+      {Array.from({ length: 100 }, (_, i) => {
+        // Fills in reading order; each dot turns blue as the count passes it.
+        const on = Math.min(1, Math.max(0, filled - i));
+        const p0 = prog(time, shot.start + (Math.floor(i / 10) + (i % 10)) * 0.012, 0.4);
+        return (
+          <div key={i} style={{ position: "absolute", left: g.gx + (i % 10) * g.cell + (g.cell - dot) / 2, top: g.gy + Math.floor(i / 10) * g.cell + (g.cell - dot) / 2, width: dot, height: dot, borderRadius: dot, background: on > 0.5 ? c.accent : c.chip, opacity: p0, scale: String(on > 0 && on < 1 ? 1.15 : 1) }} />
+        );
+      })}
+      <Source text={v.source} c={c} p={enter} />
+    </div>
+  );
+};
+
 // The layout of any Blueprint card kind, for tests and the style lab.
 export const cardGeom = (v: ResolvedVisual, w: number, h: number): Geom | undefined => {
   switch (v.kind) {
@@ -753,6 +917,9 @@ export const cardGeom = (v: ResolvedVisual, w: number, h: number): Geom | undefi
     case "quote": return quoteGeom(v, w, h).geom;
     case "logowall": return logowallGeom(v, w, h).geom;
     case "bento": return bentoGeom(v, w, h).geom;
+    case "ring": return ringGeom(v, w, h).geom;
+    case "meter": return meterGeom(v, w, h).geom;
+    case "waffle": return waffleGeom(v, w, h).geom;
     default: return undefined;
   }
 };

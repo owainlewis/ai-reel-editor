@@ -3,6 +3,7 @@
   "name": "Blueprint",
   "number": "01",
   "status": "draft",
+  "inspiration": "Owain's notes on the house look (October 2026), with the structure of herk-edit-kit's style library and the flat techniques of its Kallaway style: focus-pull entrances, word-anchored staggers, drawn connectors, odometer counts. No glow, glass or gradients.",
   "summary": "Cool paper and graphite with a quiet blueprint grid, white cards, cool ink and one clean blue. Split-first: graphics in the top half, the speaker on the bottom half. Calm, minimal, real content.",
   "palette": {
     "light": {
@@ -65,12 +66,12 @@
         {
           "name": "number",
           "type": "text",
-          "max": 3
+          "maxChars": 3
         },
         {
           "name": "label",
           "type": "text",
-          "max": 22
+          "maxChars": 22
         }
       ],
       "sample": {
@@ -81,6 +82,10 @@
         },
         "header": "Part *two*",
         "scene": "Part *two*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -99,12 +104,12 @@
         {
           "name": "text",
           "type": "richtext",
-          "max": 40
+          "maxChars": 40
         },
         {
           "name": "kicker",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         }
       ],
@@ -116,6 +121,10 @@
         },
         "header": "The *rule*",
         "scene": "The *rule*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -134,12 +143,13 @@
         {
           "name": "value",
           "type": "number",
-          "max": 8
+          "maxChars": 6,
+          "note": "digits; thousands get a comma"
         },
         {
           "name": "label",
           "type": "richtext",
-          "max": 32
+          "maxChars": 32
         }
       ],
       "sample": {
@@ -150,6 +160,10 @@
         },
         "header": "By the *numbers*",
         "scene": "By the *numbers*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -169,13 +183,13 @@
         {
           "name": "text",
           "type": "text",
-          "max": 140,
+          "maxChars": 140,
           "note": "word for word from the source"
         },
         {
           "name": "source",
           "type": "text",
-          "max": 48
+          "maxChars": 48
         },
         {
           "name": "at",
@@ -192,6 +206,10 @@
         },
         "header": "In their *words*",
         "scene": "In their *words*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -211,27 +229,25 @@
         {
           "name": "cells",
           "type": "list",
-          "count": [
-            3,
-            5
-          ],
+          "minItems": 3,
+          "maxItems": 5,
           "note": "four or fewer in a split"
         },
         {
           "name": "cells[].title",
           "type": "richtext",
-          "max": 20
+          "maxChars": 20
         },
         {
           "name": "cells[].text",
           "type": "text",
-          "max": 28,
+          "maxChars": 28,
           "optional": true
         },
         {
           "name": "cells[].value",
           "type": "text",
-          "max": 7,
+          "maxChars": 7,
           "optional": true
         },
         {
@@ -266,6 +282,10 @@
         },
         "header": "What you *get*",
         "scene": "What you *get*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -286,41 +306,35 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "x",
           "type": "text",
-          "max": 14,
-          "count": [
-            2,
-            2
-          ],
+          "maxChars": 14,
+          "minItems": 2,
+          "maxItems": 2,
           "note": "[low, high] along the bottom axis"
         },
         {
           "name": "y",
           "type": "text",
-          "max": 14,
-          "count": [
-            2,
-            2
-          ],
+          "maxChars": 14,
+          "minItems": 2,
+          "maxItems": 2,
           "note": "[low, high] up the side"
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            1,
-            4
-          ]
+          "minItems": 1,
+          "maxItems": 4
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 22
+          "maxChars": 22
         },
         {
           "name": "items[].quad",
@@ -366,6 +380,10 @@
         },
         "header": "Where it *fits*",
         "scene": "Where it *fits*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -386,10 +404,8 @@
         {
           "name": "items",
           "type": "list",
-          "count": [
-            4,
-            12
-          ]
+          "minItems": 4,
+          "maxItems": 12
         },
         {
           "name": "items[].src",
@@ -399,7 +415,7 @@
         {
           "name": "caption",
           "type": "text",
-          "max": 40,
+          "maxChars": 40,
           "optional": true
         },
         {
@@ -436,6 +452,10 @@
         },
         "header": "Works with *everything*",
         "scene": "Works with *all*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -453,28 +473,26 @@
         {
           "name": "items",
           "type": "list",
-          "count": [
-            0,
-            12
-          ],
+          "minItems": 0,
+          "maxItems": 12,
           "note": "real thumbnails captured from the source"
         },
         {
           "name": "count",
           "type": "number",
-          "max": 6,
+          "maxChars": 6,
           "optional": true
         },
         {
           "name": "label",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "groups[].label",
           "type": "text",
-          "max": 16,
+          "maxChars": 16,
           "optional": true
         },
         {
@@ -503,6 +521,10 @@
         },
         "header": "The *library*",
         "scene": "The *library*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -520,31 +542,29 @@
         {
           "name": "items",
           "type": "list",
-          "count": [
-            0,
-            9
-          ]
+          "minItems": 0,
+          "maxItems": 9
         },
         {
           "name": "items[].text",
           "type": "text",
-          "max": 16
+          "maxChars": 16
         },
         {
           "name": "target.kicker",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "target.title",
           "type": "richtext",
-          "max": 22
+          "maxChars": 22
         },
         {
           "name": "target.lines[].text",
           "type": "richtext",
-          "max": 22,
+          "maxChars": 22,
           "optional": true
         }
       ],
@@ -580,6 +600,10 @@
         },
         "header": "Into *one*",
         "scene": "Into *one*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -597,18 +621,18 @@
         {
           "name": "text",
           "type": "text",
-          "max": 60
+          "maxChars": 60
         },
         {
           "name": "label",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "chips[].text",
           "type": "text",
-          "max": 16,
+          "maxChars": 16,
           "optional": true
         },
         {
@@ -635,6 +659,10 @@
         },
         "header": "Just *ask*",
         "scene": "Just *ask*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -652,12 +680,12 @@
         {
           "name": "keyword",
           "type": "text",
-          "max": 12
+          "maxChars": 12
         },
         {
           "name": "text",
           "type": "text",
-          "max": 40
+          "maxChars": 40
         },
         {
           "name": "src",
@@ -673,6 +701,10 @@
         },
         "header": "Get the *guide*",
         "scene": "Get the *guide*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
@@ -697,13 +729,13 @@
         {
           "name": "url",
           "type": "text",
-          "max": 60,
+          "maxChars": 60,
           "optional": true
         },
         {
           "name": "highlight[].label",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
@@ -748,6 +780,10 @@
         },
         "header": "The *source*",
         "scene": "The *source*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -771,7 +807,11 @@
           "note": "a project clip or broll:<id>"
         }
       ],
-      "noSample": "Needs a real clip; the lab shows no stand-in footage."
+      "noSample": "Needs a real clip; the lab shows no stand-in footage.",
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
     },
     {
       "id": "blueprint.t2.logos",
@@ -790,10 +830,8 @@
         {
           "name": "items",
           "type": "list",
-          "count": [
-            1,
-            4
-          ]
+          "minItems": 1,
+          "maxItems": 4
         },
         {
           "name": "items[].src",
@@ -802,13 +840,13 @@
         {
           "name": "items[].name",
           "type": "text",
-          "max": 16,
+          "maxChars": 16,
           "optional": true
         },
         {
           "name": "caption",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
@@ -834,6 +872,10 @@
         },
         "header": "The *tools*",
         "scene": "The *tools*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -852,21 +894,19 @@
         {
           "name": "title",
           "type": "text",
-          "max": 30,
+          "maxChars": 30,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            5
-          ]
+          "minItems": 2,
+          "maxItems": 5
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 26
+          "maxChars": 26
         },
         {
           "name": "items[].at",
@@ -894,6 +934,10 @@
         },
         "header": "Three *ideas*",
         "scene": "Three *ideas*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -912,21 +956,19 @@
         {
           "name": "title",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            4
-          ]
+          "minItems": 2,
+          "maxItems": 4
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 20
+          "maxChars": 20
         },
         {
           "name": "items[].at",
@@ -952,6 +994,10 @@
         },
         "header": "How to *start*",
         "scene": "How to *start*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -971,22 +1017,22 @@
         {
           "name": "left.label",
           "type": "text",
-          "max": 14
+          "maxChars": 14
         },
         {
           "name": "left.text",
           "type": "text",
-          "max": 32
+          "maxChars": 32
         },
         {
           "name": "right.label",
           "type": "text",
-          "max": 14
+          "maxChars": 14
         },
         {
           "name": "right.text",
           "type": "text",
-          "max": 32
+          "maxChars": 32
         },
         {
           "name": "right.at",
@@ -1009,6 +1055,10 @@
         },
         "header": "Old vs *new*",
         "scene": "Old vs *new*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1029,33 +1079,33 @@
         {
           "name": "before.label",
           "type": "text",
-          "max": 14
+          "maxChars": 14
         },
         {
           "name": "before.value",
           "type": "richtext",
-          "max": 12
+          "maxChars": 12
         },
         {
           "name": "before.text",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "after.label",
           "type": "text",
-          "max": 14
+          "maxChars": 14
         },
         {
           "name": "after.value",
           "type": "richtext",
-          "max": 12
+          "maxChars": 12
         },
         {
           "name": "after.text",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
@@ -1081,6 +1131,10 @@
         },
         "header": "What *changes*",
         "scene": "What *changes*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1101,31 +1155,29 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            4
-          ]
+          "minItems": 2,
+          "maxItems": 4
         },
         {
           "name": "items[].value",
           "type": "number",
-          "max": 7
+          "maxChars": 7
         },
         {
           "name": "items[].label",
           "type": "text",
-          "max": 22
+          "maxChars": 22
         },
         {
           "name": "source",
           "type": "text",
-          "max": 60,
+          "maxChars": 60,
           "note": "where the numbers come from, or Illustration"
         },
         {
@@ -1156,6 +1208,186 @@
         },
         "header": "The *results*",
         "scene": "The *results*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t2.stat.ring",
+      "kind": "ring",
+      "tier": "t2",
+      "purpose": "stat",
+      "treatment": "ring",
+      "added": true,
+      "summary": "A share as an arc that sweeps to its value, a dot on its tip and the number counting with it.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "value",
+          "type": "number",
+          "note": "0 to 100, a real share"
+        },
+        {
+          "name": "label",
+          "type": "richtext",
+          "maxChars": 28
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "maxChars": 48
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "ring",
+          "value": 72,
+          "label": "Sample *share*",
+          "source": "Illustration"
+        },
+        "header": "How *much*",
+        "scene": "How *much*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t2.stat.meter",
+      "kind": "meter",
+      "tier": "t2",
+      "purpose": "stat",
+      "treatment": "meter",
+      "added": true,
+      "summary": "A value on a ticked scale: the fill runs to it while the number counts and rides the fill.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "value",
+          "type": "number"
+        },
+        {
+          "name": "max",
+          "type": "number"
+        },
+        {
+          "name": "unit",
+          "type": "text",
+          "maxChars": 3,
+          "optional": true
+        },
+        {
+          "name": "ends",
+          "type": "text",
+          "maxChars": 12,
+          "minItems": 2,
+          "maxItems": 2,
+          "optional": true,
+          "note": "[low, high] under the track"
+        },
+        {
+          "name": "label",
+          "type": "richtext",
+          "maxChars": 30
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "maxChars": 48
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "meter",
+          "value": 64,
+          "max": 100,
+          "unit": "%",
+          "label": "Sample *progress*",
+          "source": "Illustration"
+        },
+        "header": "How *far*",
+        "scene": "How *far*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t2.stat.waffle",
+      "kind": "waffle",
+      "tier": "t2",
+      "purpose": "stat",
+      "treatment": "waffle",
+      "added": true,
+      "summary": "N in 100 as a 10x10 grid of dots that fill in reading order as the number counts.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "value",
+          "type": "number",
+          "note": "a whole number, 0 to 100"
+        },
+        {
+          "name": "label",
+          "type": "richtext",
+          "maxChars": 26
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "maxChars": 48
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "waffle",
+          "value": 38,
+          "label": "Sample: 38 in *100*",
+          "source": "Illustration"
+        },
+        "header": "One in *three*",
+        "scene": "One in *three*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1175,32 +1407,30 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "points",
           "type": "list",
-          "count": [
-            2,
-            6
-          ]
+          "minItems": 2,
+          "maxItems": 6
         },
         {
           "name": "points[].label",
           "type": "text",
-          "max": 8
+          "maxChars": 8
         },
         {
           "name": "unit",
           "type": "text",
-          "max": 3,
+          "maxChars": 3,
           "optional": true
         },
         {
           "name": "source",
           "type": "text",
-          "max": 60
+          "maxChars": 60
         },
         {
           "name": "points[].at",
@@ -1236,6 +1466,10 @@
         },
         "header": "It *grows*",
         "scene": "It *grows*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1255,32 +1489,30 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "points",
           "type": "list",
-          "count": [
-            2,
-            8
-          ]
+          "minItems": 2,
+          "maxItems": 8
         },
         {
           "name": "points[].label",
           "type": "text",
-          "max": 6
+          "maxChars": 6
         },
         {
           "name": "points[].note",
           "type": "text",
-          "max": 20,
+          "maxChars": 20,
           "optional": true
         },
         {
           "name": "source",
           "type": "text",
-          "max": 60
+          "maxChars": 60
         },
         {
           "name": "points[].at",
@@ -1317,6 +1549,10 @@
         },
         "header": "Over *time*",
         "scene": "Over *time*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1335,21 +1571,19 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "stages",
           "type": "list",
-          "count": [
-            2,
-            8
-          ]
+          "minItems": 2,
+          "maxItems": 8
         },
         {
           "name": "stages[].label",
           "type": "text",
-          "max": 14,
+          "maxChars": 14,
           "optional": true
         },
         {
@@ -1379,6 +1613,10 @@
         },
         "header": "The *process*",
         "scene": "The *process*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1399,26 +1637,24 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            6
-          ]
+          "minItems": 2,
+          "maxItems": 6
         },
         {
           "name": "items[].date",
           "type": "text",
-          "max": 8
+          "maxChars": 8
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 20
+          "maxChars": 20
         },
         {
           "name": "items[].at",
@@ -1451,6 +1687,10 @@
         },
         "header": "How we *got* here",
         "scene": "How we *got* here"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1471,27 +1711,25 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            5
-          ],
+          "minItems": 2,
+          "maxItems": 5,
           "note": "the first item is the foundation"
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 22
+          "maxChars": 22
         },
         {
           "name": "items[].note",
           "type": "text",
-          "max": 8,
+          "maxChars": 8,
           "optional": true
         },
         {
@@ -1525,6 +1763,10 @@
         },
         "header": "The *stack*",
         "scene": "The *stack*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1545,26 +1787,24 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            5
-          ]
+          "minItems": 2,
+          "maxItems": 5
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 24
+          "maxChars": 24
         },
         {
           "name": "items[].note",
           "type": "text",
-          "max": 6,
+          "maxChars": 6,
           "optional": true
         },
         {
@@ -1599,6 +1839,10 @@
         },
         "header": "In this *video*",
         "scene": "Coming *up*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1619,21 +1863,19 @@
         {
           "name": "title",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "optional": true
         },
         {
           "name": "items",
           "type": "list",
-          "count": [
-            2,
-            6
-          ]
+          "minItems": 2,
+          "maxItems": 6
         },
         {
           "name": "items[].text",
           "type": "richtext",
-          "max": 26
+          "maxChars": 26
         },
         {
           "name": "items[].at",
@@ -1662,6 +1904,10 @@
         },
         "header": "Before you *ship*",
         "scene": "Before you *ship*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1681,32 +1927,30 @@
         {
           "name": "nodes",
           "type": "list",
-          "count": [
-            2,
-            4
-          ]
+          "minItems": 2,
+          "maxItems": 4
         },
         {
           "name": "nodes[].title",
           "type": "richtext",
-          "max": 18
+          "maxChars": 18
         },
         {
           "name": "nodes[].kicker",
           "type": "text",
-          "max": 14,
+          "maxChars": 14,
           "optional": true
         },
         {
           "name": "nodes[].lines",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "edges[].chip",
           "type": "text",
-          "max": 14,
+          "maxChars": 14,
           "optional": true
         },
         {
@@ -1742,6 +1986,10 @@
         },
         "header": "How it *works*",
         "scene": "How it *works*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1760,21 +2008,19 @@
         {
           "name": "title",
           "type": "text",
-          "max": 24,
+          "maxChars": 24,
           "optional": true
         },
         {
           "name": "lines",
           "type": "list",
-          "count": [
-            1,
-            5
-          ]
+          "minItems": 1,
+          "maxItems": 5
         },
         {
           "name": "lines[].text",
           "type": "text",
-          "max": 32,
+          "maxChars": 32,
           "note": "start with > for output"
         },
         {
@@ -1799,6 +2045,10 @@
         },
         "header": "Run *it*",
         "scene": "Run *it*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1817,12 +2067,12 @@
         {
           "name": "app",
           "type": "text",
-          "max": 16
+          "maxChars": 16
         },
         {
           "name": "text",
           "type": "text",
-          "max": 120
+          "maxChars": 120
         },
         {
           "name": "at",
@@ -1839,6 +2089,10 @@
         },
         "header": "The *prompt*",
         "scene": "The *prompt*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
       }
     },
     {
@@ -1854,12 +2108,12 @@
         {
           "name": "title",
           "type": "richtext",
-          "max": 36
+          "maxChars": 36
         },
         {
           "name": "sub",
           "type": "text",
-          "max": 56,
+          "maxChars": 56,
           "optional": true
         }
       ],
@@ -1871,6 +2125,10 @@
         },
         "header": "",
         "scene": ""
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 6
       }
     }
   ]
