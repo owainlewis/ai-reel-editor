@@ -17,3 +17,7 @@ music/**/*
 !music/README.md
 
 __pycache__
+
+# Reference frames from other creators stay local. Only the notes are tracked.
+references/**/*
+!references/README.md
