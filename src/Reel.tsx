@@ -85,8 +85,9 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
 // ("One *plans*" to "Another *builds*") the old line dissolves into a blur as the new one lands.
 const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark"; time: number; start: number }> = ({ text, prev, tone, time, start }) => {
   const c = pal(tone);
-  const size = text.replace(/\*/g, "").length > 22 ? 84 : 100;
-  const line = (words: string[], p: (i: number) => number, key: string) => (
+  // Each line is sized from its own text, so the outgoing line never rewraps as it dissolves.
+  const sizeOf = (s: string) => (s.replace(/\*/g, "").length > 22 ? 84 : 100);
+  const line = (words: string[], p: (i: number) => number, key: string, size: number) => (
     <div
       key={key}
       style={{
@@ -126,8 +127,8 @@ const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark
   const out = prev ? 1 - interpolate(time, [start, start + 0.22], [0, 1], clamp) : 0;
   return (
     <>
-      {prev && out > 0 && line(headerWords(prev), () => out, "prev")}
-      {line(headerWords(text), (i) => interpolate(time, [start + 0.06 + i * 0.08, start + 0.06 + i * 0.08 + 0.5], [0, 1], { ...clamp, easing: ease }), "now")}
+      {prev && out > 0 && line(headerWords(prev), () => out, "prev", sizeOf(prev))}
+      {line(headerWords(text), (i) => interpolate(time, [start + 0.06 + i * 0.08, start + 0.06 + i * 0.08 + 0.5], [0, 1], { ...clamp, easing: ease }), "now", sizeOf(text))}
     </>
   );
 };

@@ -1,0 +1,57 @@
+{
+  "title": "Prompt Motion (soft tech test)",
+  "format": "film",
+  "header": "Claude makes *motion* graphics",
+  "accents": ["scratch", "recipe", "blank", "done"],
+  "music": { "mood": "focus", "level": -20 },
+  "shots": [
+    { "at": "Claude can now build", "layout": "scene", "tone": "dark",
+      "visual": { "kind": "grid", "tiles": 9, "cols": 3 } },
+    { "at": "from scratch", "layout": "scene", "keep": true, "header": "Built from *scratch*" },
+    { "at": "and someone just", "layout": "full" },
+    { "at": "a whole library", "layout": "scene", "tone": "light", "header": "A whole *library*",
+      "visual": { "kind": "grid", "tiles": 20, "cols": 4 } },
+    { "at": "showing exactly how", "layout": "scene", "keep": true, "header": "Showing how to make the *best*" },
+    { "at": "The library is called", "layout": "scene", "tone": "dark", "header": false, "sfx": "whoosh",
+      "visual": { "kind": "title", "kicker": "The library", "text": "Prompt *Motion*" } },
+    { "at": "It has over 500", "layout": "scene", "tone": "light", "header": "Over *500* videos",
+      "visual": { "kind": "grid", "count": "500+", "label": "Animated videos", "tiles": 16, "cols": 4, "at": "500" } },
+    { "at": "made with Claude", "layout": "scene", "keep": true, "header": "All made with *Claude*" },
+    { "at": "and each one comes", "layout": "scene", "tone": "dark", "header": "Each comes with its *prompt*",
+      "visual": { "kind": "flow",
+        "nodes": [
+          { "kicker": "Video", "title": "The *video*", "lines": ["Animated"], "at": "each one" },
+          { "kicker": "Prompt", "title": "The exact *prompt*", "lines": ["Used to make it"], "at": "exact prompt" }
+        ],
+        "edges": [{ "from": 1, "to": 0, "chip": "Claude", "at": "used to create" }] } },
+    { "at": "Think of it like", "layout": "punch" },
+    { "at": "Inside, you get", "layout": "scene", "tone": "light", "header": "What's *inside*",
+      "visual": { "kind": "grid", "tiles": 16, "cols": 4, "groups": [
+        { "label": "Launch videos", "tiles": [0, 5, 10], "at": "launch" },
+        { "label": "Product demos", "tiles": [2, 7, 13], "at": "product demos" },
+        { "label": "App walkthroughs", "tiles": [4, 9, 14], "at": "mobile app" },
+        { "label": "Charts", "tiles": [3, 6, 11], "at": "charts" }
+      ] } },
+    { "at": "You'll also find", "layout": "scene", "keep": true, "header": "And much *more*" },
+    { "at": "Normally you'd have", "layout": "full" },
+    { "at": "Here you can see", "layout": "scene", "tone": "dark", "header": "See the video *first*",
+      "visual": { "kind": "flow",
+        "nodes": [
+          { "kicker": "Step 1", "title": "Watch the *video*", "lines": ["See it finished"], "at": "finished video" },
+          { "kicker": "Step 2", "title": "Grab the *prompt*", "lines": ["Copy the one you like"], "at": "grab" }
+        ],
+        "edges": [{ "from": 0, "to": 1, "chip": "prompt", "at": "behind it" }] } },
+    { "at": "then you grab", "layout": "scene", "keep": true, "header": "Then grab the *prompt*" },
+    { "at": "you just copy", "layout": "scene", "keep": true, "header": "Copy the one you *like*" },
+    { "at": "then tweak it", "layout": "scene", "tone": "light", "header": false,
+      "visual": { "kind": "type", "label": "Claude", "text": "Now make it for my brand", "at": "tweak", "settle": "and Claude will" } },
+    { "at": "and Claude will", "layout": "scene", "keep": true, "header": "Same exact *style*" },
+    { "at": "with the same animations", "layout": "scene", "keep": true, "header": "Same animations and *sound*" },
+    { "at": "So you're never", "layout": "scene", "tone": "dark", "header": false, "sfx": "whoosh",
+      "visual": { "kind": "title", "text": "Never a *blank* page" } },
+    { "at": "You're starting from", "layout": "full" },
+    { "at": "So the hardest part", "layout": "scene", "tone": "light", "header": false,
+      "visual": { "kind": "title", "kicker": "Prompt Motion", "text": "The hard part is *done*" } },
+    { "at": "That's the whole idea", "layout": "punch" }
+  ]
+}
