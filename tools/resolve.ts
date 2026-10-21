@@ -44,7 +44,7 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
       issues.push({ level: "error", message: `"${s.at}" keeps the previous visual, so it needs the same layout as a previous shot with a visual and no visual of its own` });
     // A kept shot carries the tone of the scene it continues.
     const tone = s.keep && prev ? prev.tone : s.tone;
-    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header, ...(s.keep ? { keep: true } : {}), ...(tone ? { tone } : {}) });
+    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header, ...(s.keep ? { keep: true } : {}), ...(tone ? { tone } : {}), ...(s.enter ? { enter: s.enter } : {}) });
   }
   for (let k = 0; k < shots.length - 1; k++) shots[k].end = shots[k + 1].start;
 
@@ -205,6 +205,14 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
   shots.forEach((s, i) => {
     const len = s.end - s.start;
     const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
+    // One camera move per shot, and never a rushed one: a capture's from-to move needs time.
+    const v = s.visual;
+    if (!s.keep && v?.kind === "image" && v.from && v.to && v.from.some((x, k) => Math.abs(x - v.to![k]) > 0.005)) {
+      let end = i;
+      while (shots[end + 1]?.keep) end++;
+      const moveLen = shots[end].end - s.start - (s.enter ? 0.7 : 0);
+      if (moveLen < 1.2) issues.push({ level: "warn", message: `${label}: the camera move lasts ${moveLen.toFixed(2)}s; under 1.2s it reads as a jolt. Lock the camera or give it time` });
+    }
     if (format === "film") {
       const still = longestStill(s);
       if (still > 3.6) issues.push({ level: "warn", message: `${label}: nothing new on screen for ${still.toFixed(1)}s; add a reveal or a headline swap` });
@@ -216,6 +224,17 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
       if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
       if (s.layout !== "full" && s.layout !== "punch" && !s.visual)
         issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
+      if (s.enter && (s.layout !== "scene" || shots[i - 1]?.layout !== "scene"))
+        issues.push({ level: "error", message: `${label}: a shared-element entrance needs a scene before it and a scene to grow into` });
+      if (s.enter && s.enter.from !== "rect") {
+        let h = i - 1;
+        while (h > 0 && shots[h].keep) h--;
+        const kind = shots[h]?.visual?.kind;
+        const want = { tile: "grid", card: "funnel", input: "type" }[s.enter.from];
+        if (kind !== want) issues.push({ level: "error", message: `${label}: enters from a ${s.enter.from}, but the scene before it is not a ${want}` });
+      }
+      if (s.layout === "scene" && s.header && !s.keep && s.header.replace(/\*/g, "").length > 26)
+        issues.push({ level: "warn", message: `${label}: headline "${s.header}" is long for a scene; keep it under 26 characters` });
       return;
     }
     if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${(maxHold - 0.4).toFixed(1)}s` });

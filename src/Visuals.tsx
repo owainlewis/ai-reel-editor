@@ -1,7 +1,7 @@
 import React from "react";
 import { Video } from "@remotion/media";
 import { Img, interpolate, staticFile } from "remotion";
-import { frameRect } from "./camera";
+import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
@@ -30,7 +30,24 @@ export const Accented: React.FC<{ text: string }> = ({ text }) => (
 
 // A real capture, framed as a card or a browser window, with a camera that moves
 // from one region to another and a marker that sweeps across what is being said.
-const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w, h, v }) => {
+const ImageVisual: React.FC<Props & { v: V<"image"> }> = (props) => {
+  const { w, h, v, shot } = props;
+  // On a scene the card is only as tall as the region being shown, so the words under discussion
+  // are large and nothing unrelated from the page sits around them.
+  if (shot.layout === "scene" && v.from) {
+    const [iw, ih] = v.size ?? [1600, 1000];
+    const tall = (r: number[]) => (w * r[3] * ih) / (r[2] * iw);
+    const cardH = Math.min(h, Math.max(260, tall(v.from), tall(v.to ?? v.from)));
+    return (
+      <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ImageCard {...props} h={cardH} />
+      </div>
+    );
+  }
+  return <ImageCard {...props} />;
+};
+
+const ImageCard: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w, h, v }) => {
   const [iw, ih] = v.size ?? [1600, 1000];
   const chrome = v.frame === "browser" ? 64 : 0;
   const pad = v.frame === "none" ? 0 : 0;
@@ -40,11 +57,14 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
   const topRect: [number, number, number, number] = [0, 0, 1, Math.min(1, (vh / vw) * (iw / ih))];
   const from = v.from ?? topRect;
   const to = v.to ?? [from[0] + from[2] * 0.03, from[1] + from[3] * 0.03, from[2] * 0.94, from[3] * 0.94];
-  const p = interpolate(time, [shot.start, shot.end], [0, 1], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 2.2) });
+  // One camera move: the rect eases from `from` to `to` on the shared camera curve, and holds
+  // while a shared-element transition is landing. The card itself never moves.
+  const p = cameraProgress(shot.start, shot.end, time, shot.enter ? TRANSITION : 0);
   const rect = from.map((a, i) => a + (to[i] - a) * p) as [number, number, number, number];
   // The rect must stay visible; the camera fills the rest of the panel with the page around it.
   const { k, left, top } = frameRect(rect, iw, ih, vw, vh);
-  const enter = prog(time, shot.start, 0.35);
+  const scene = shot.layout === "scene";
+  const c = pal(shot.tone);
 
   return (
     <div
@@ -54,9 +74,8 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
         borderRadius: v.frame === "none" ? 0 : 26,
         overflow: "hidden",
         background: t.card,
-        boxShadow: v.frame === "none" ? "none" : t.shadow,
+        boxShadow: v.frame === "none" ? "none" : scene ? c.shadow : t.shadow,
         border: v.frame === "none" ? "none" : `1px solid ${t.line}`,
-        translate: `0 ${(1 - enter) * 30}px`,
       }}
     >
       {v.frame === "browser" && (
@@ -86,11 +105,14 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
                   top: `${hl.rect[1] * 100}%`,
                   width: `${hl.rect[2] * 100}%`,
                   height: `${hl.rect[3] * 100}%`,
-                  background: t.highlight,
-                  borderRadius: 6,
+                  // On scenes the marker is a flat accent outline, so it reads on light and dark pages alike.
+                  background: scene ? "transparent" : t.highlight,
+                  outline: scene ? `4px solid ${c.accent}` : "none",
+                  outlineOffset: 8,
+                  borderRadius: 8,
                   scale: `${sweep} 1`,
                   transformOrigin: "left center",
-                  mixBlendMode: "multiply",
+                  mixBlendMode: scene ? "normal" : "multiply",
                 }}
               />
             );
@@ -132,12 +154,28 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w,
 // B-roll. In a panel it sits in a rounded card; as a cutaway it fills the frame edge to edge.
 // Either way it gets a slow push-in on top of its own motion, and the speaker's colour grade.
 const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w, h, v, filter, bleed }) => {
-  const p = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
+  // On a scene the clip sits in a card at its own shape with a locked camera; the clip is the motion.
+  if (shot.layout === "scene") {
+    const c = pal(shot.tone);
+    const [vw0, vh0] = v.size ?? [16, 9];
+    const cw = Math.min(w, (h * vw0) / vh0);
+    const ch = (cw * vh0) / vw0;
+    return (
+      <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: cw, height: ch, overflow: "hidden", borderRadius: 22, boxShadow: c.shadow, background: c.card }}>
+          <Video src={src(slug, v.src)} muted loop={v.loop} trimBefore={Math.round(v.start * 30)} objectFit="cover" style={{ width: "100%", height: "100%" }} />
+        </div>
+      </div>
+    );
+  }
+  // Elsewhere: one slow push-in on the shared camera curve.
+  const p = cameraProgress(shot.start, shot.end, time);
   return (
     <div style={{ width: w, height: h, overflow: "hidden", borderRadius: bleed ? 0 : 26, boxShadow: bleed ? "none" : t.shadow }}>
       <Video
         src={src(slug, v.src)}
         muted
+        loop={v.loop}
         trimBefore={Math.round(v.start * 30)}
         objectFit="cover"
         style={{ width: "100%", height: "100%", scale: String(1.02 + 0.05 * p), filter }}
@@ -204,7 +242,7 @@ const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v 
                   fontSize: accent ? size * 1.08 : size,
                   letterSpacing: accent ? -1 : -size * 0.035,
                   lineHeight: 1,
-                  color: accent ? c.accentInk : c.ink,
+                  color: accent ? c.accent : c.ink,
                 }}
               >
                 {word.replace(/\*/g, "")}
@@ -439,9 +477,8 @@ const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h
           width: d,
           height: d,
           borderRadius: d,
-          background: dark
-            ? `radial-gradient(circle, rgba(84,104,224,0.45) 0%, rgba(84,104,224,0.18) 38%, rgba(84,104,224,0) 70%)`
-            : `radial-gradient(circle, #FFFFFF 0%, rgba(255,255,255,0.92) 28%, rgba(45,79,163,0.16) 56%, rgba(45,79,163,0) 72%)`,
+          // Soft tech scenes are flat: no glow behind the number.
+          background: dark ? "transparent" : `radial-gradient(circle, #FFFFFF 0%, rgba(255,255,255,0.92) 28%, rgba(45,79,163,0.16) 56%, rgba(45,79,163,0) 72%)`,
           opacity: glow,
           scale: String(0.7 + 0.3 * glow + 0.04 * interpolate(time, [shot.start, shot.end], [0, 1], clamp)),
         }}
@@ -588,7 +625,7 @@ const FlowVisual: React.FC<Props & { v: V<"flow"> }> = ({ shot, time, w, h, v })
                 const q = prog(time, times[i] + 0.25 + k * 0.22, 0.4);
                 return (
                   <div key={k} style={{ display: "flex", alignItems: "center", gap: 16, opacity: q, translate: `${(1 - q) * 24}px 0` }}>
-                    <div style={{ flex: "none", width: line * 0.9, height: line * 0.9, borderRadius: line, background: c.tint, color: c.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: line * 0.55 }}>✓</div>
+                    <div style={{ flex: "none", width: line * 0.9, height: line * 0.9, borderRadius: line, background: c.chip, color: c.accent, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: line * 0.55 }}>✓</div>
                     <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: line, letterSpacing: -0.3, lineHeight: 1.2, color: c.ink }}>{ln}</div>
                   </div>
                 );
@@ -612,7 +649,7 @@ const FlowVisual: React.FC<Props & { v: V<"flow"> }> = ({ shot, time, w, h, v })
                 const q = bezier(...pts, u);
                 return <div key={off} style={{ position: "absolute", left: q.x - 6, top: q.y - 6, width: 12, height: 12, borderRadius: 6, background: c.accent, opacity: 0.8 * Math.sin(u * Math.PI) }} />;
               })}
-            <div style={{ position: "absolute", left: head.x - 13, top: head.y - 13, width: 26, height: 26, borderRadius: 13, background: c.accent, border: `5px solid ${c.card}`, boxShadow: `0 2px 14px ${c.glow}` }} />
+            <div style={{ position: "absolute", left: head.x - 13, top: head.y - 13, width: 26, height: 26, borderRadius: 13, background: c.accent, border: `5px solid ${c.card}`, boxShadow: c.shadow }} />
             {e.chip && (
               <div
                 style={{

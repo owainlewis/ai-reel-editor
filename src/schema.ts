@@ -27,7 +27,8 @@ export const Visual = z.discriminatedUnion("kind", [
   }),
   // B-roll footage: a project file, or "broll:<id>" for a clip from the library.
   // `start` is the offset into the clip in seconds.
-  z.object({ kind: z.literal("video"), src: z.string(), start: z.number().default(0) }),
+  // `loop` repeats a short clip (a library's own preview loop) to fill the shot.
+  z.object({ kind: z.literal("video"), src: z.string(), start: z.number().default(0), loop: z.boolean().default(false) }),
   // One or more official logos, never redrawn.
   z.object({
     kind: z.literal("logos"),
@@ -63,25 +64,24 @@ export const Visual = z.discriminatedUnion("kind", [
     nodes: z.array(z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(z.string()).default([]), at: Anchor.optional() })).min(2).max(4),
     edges: z.array(z.object({ from: z.number(), to: z.number(), chip: z.string().optional(), at: Anchor.optional() })).default([]),
   }),
-  // A library that fills in: tiles arrive in a wave and `count` rolls up like an odometer on `at`.
-  // `groups` light a set of tiles on their words, with the group's label swapping in above the grid.
-  // `thumb` tiles are abstract moving thumbnails; `chip` tiles are blank pills (labels only on groups).
-  // Schematic, never a stand-in for a real product's UI.
+  // A library that fills in: real thumbnails (`items`, captured from the source's own site) arrive in
+  // a wave and `count` rolls up like an odometer on `at`. `groups` light a set of tiles on their words,
+  // with the group's label landing under the count. With no items it is just the count and its labels.
   z.object({
     kind: z.literal("grid"),
+    items: z.array(z.string()).default([]),
     count: z.string().optional(),
     label: z.string().optional(),
-    tiles: z.number().int().min(2).max(60).default(24),
-    cols: z.number().int().min(2).max(8).default(4),
-    style: z.enum(["thumb", "chip"]).default("thumb"),
+    cols: z.number().int().min(2).max(6).default(3),
     at: Anchor.optional(),
-    groups: z.array(z.object({ label: z.string(), tiles: z.array(z.number()), at: Anchor.optional() })).default([]),
+    groups: z.array(z.object({ label: z.string(), tiles: z.array(z.number()).default([]), at: Anchor.optional() })).default([]),
   }),
-  // Many sources flow into one result: link chips land, lines draw from each into the result card,
-  // dots keep travelling down them, and the card's rows land on their words.
+  // Many sources flow into one result: chips (plain words, never invented URLs) land, lines draw from
+  // each into the result card, dots travel down them, and the card's rows land on their words.
+  // With no items it is the card alone, large and centred.
   z.object({
     kind: z.literal("funnel"),
-    items: z.array(z.object({ text: z.string().optional(), at: Anchor.optional() })).min(1).max(12),
+    items: z.array(z.object({ text: z.string(), at: Anchor.optional() })).max(9).default([]),
     at: Anchor.optional(),
     target: z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(Item).default([]) }),
   }),
@@ -122,6 +122,9 @@ export const Shot = z.object({
   // Scene colour: light (warm white) or dark (near-black with a soft accent glow). Alternate them
   // for rhythm. A kept shot carries the tone of the shot it keeps.
   tone: z.enum(["light", "dark"]).optional(),
+  // A shared-element transition from the previous scene: an element of it (a grid tile, the result
+  // card, the typed input, or any frame rect [x, y, w, h] in 0 to 1) grows to become this shot.
+  enter: z.object({ from: z.enum(["tile", "card", "input", "rect"]), index: z.number().default(0), rect: Rect.optional() }).optional(),
   note: z.string().optional(),
 });
 
@@ -173,6 +176,7 @@ export type ResolvedShot = {
   anchor: string;
   keep?: boolean;
   tone?: "light" | "dark";
+  enter?: { from: "tile" | "card" | "input" | "rect"; index: number; rect?: [number, number, number, number] };
 };
 export type Chunk = { words: { text: string; start: number; end: number; accent: boolean }[]; start: number; end: number };
 export type SfxEvent = { kind: z.infer<typeof SfxKind>; t: number; gain?: number };

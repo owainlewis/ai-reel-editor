@@ -5,7 +5,8 @@ import { Captions } from "./Captions";
 import { Speaker } from "./Speaker";
 import { clamp, ease, HEADER, MEDIA, splitGeom, t, W, H } from "./theme";
 import { Accented, VisualView } from "./Visuals";
-import { pal, SCENE, SceneCanvas, SoftAccented } from "./soft";
+import { funnelCardBox, gridTileBox, headlineSize, pal, SCENE, SceneCanvas, SoftAccented, typeInputBox, type Box } from "./soft";
+import { cameraEase, TRANSITION } from "./camera";
 import type { Resolved, ResolvedShot } from "./schema";
 
 // The header is large on the first shot (the on-screen hook in frame 1), then docks small.
@@ -83,10 +84,10 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
 
 // The scene headline: large, centred, words arriving out of a blur. When it swaps mid-scene
 // ("One *plans*" to "Another *builds*") the old line dissolves into a blur as the new one lands.
-const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark"; time: number; start: number }> = ({ text, prev, tone, time, start }) => {
+const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark"; time: number; start: number; animate: boolean }> = ({ text, prev, tone, time, start, animate }) => {
   const c = pal(tone);
   // Each line is sized from its own text, so the outgoing line never rewraps as it dissolves.
-  const sizeOf = (s: string) => (s.replace(/\*/g, "").length > 22 ? 84 : 100);
+  const sizeOf = headlineSize;
   const line = (words: string[], p: (i: number) => number, key: string, size: number) => (
     <div
       key={key}
@@ -103,8 +104,8 @@ const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark
         fontFamily: t.sans,
         fontWeight: 700,
         fontSize: size,
-        lineHeight: 1.02,
-        letterSpacing: -size * 0.035,
+        lineHeight: 0.98,
+        letterSpacing: -size * 0.04,
         color: c.ink,
         textWrap: "balance",
       }}
@@ -128,8 +129,79 @@ const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark
   return (
     <>
       {prev && out > 0 && line(headerWords(prev), () => out, "prev", sizeOf(prev))}
-      {line(headerWords(text), (i) => interpolate(time, [start + 0.06 + i * 0.08, start + 0.06 + i * 0.08 + 0.5], [0, 1], { ...clamp, easing: ease }), "now", sizeOf(text))}
+      {line(headerWords(text), (i) => !animate ? 1 : interpolate(time, [start + 0.06 + i * 0.08, start + 0.06 + i * 0.08 + 0.5], [0, 1], { ...clamp, easing: ease }), "now", sizeOf(text))}
     </>
+  );
+};
+
+// One scene, whole: its canvas, its visual (carried across kept shots) and its headline.
+// Drawn as a layer so a shared-element transition can lay the next scene over the last one.
+const SceneLayer: React.FC<{ r: Resolved; i: number; time: number; grade: string }> = ({ r, i, time, grade }) => {
+  const shot = r.shots[i];
+  let head = i;
+  while (head > 0 && r.shots[head].keep) head--;
+  let last = head;
+  while (r.shots[last + 1]?.keep) last++;
+  const s = { ...r.shots[head], end: r.shots[last].end };
+  const tone = shot.tone ?? "light";
+  let since = i;
+  while (since > 0 && r.shots[since - 1].header === shot.header) since--;
+  const from = Math.round(s.start * r.fps);
+  // A little longer than the scene, so it can sit under the next scene while that one grows in.
+  const dur = Math.max(1, Math.round(s.end * r.fps) - from) + Math.round(TRANSITION * r.fps) + 1;
+  const box = panel(s, r, head === 0);
+  return (
+    <AbsoluteFill>
+      <SceneCanvas tone={tone} time={time} />
+      {s.visual && (
+        <Sequence from={from} durationInFrames={dur} name={`${head + 1} scene ${s.visual.kind}`}>
+          <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} filter={grade} />
+          </div>
+        </Sequence>
+      )}
+      {shot.header && (
+        <SceneHeader
+          text={shot.header}
+          prev={since > 0 && r.shots[since - 1].layout === "scene" && !shot.enter ? r.shots[since - 1].header : undefined}
+          tone={tone}
+          time={time}
+          start={r.shots[since].start}
+          animate={since > 0}
+        />
+      )}
+    </AbsoluteFill>
+  );
+};
+
+// Where a shared element sits in the previous scene, in frame pixels.
+const enterBox = (r: Resolved, i: number): Box | undefined => {
+  const e = r.shots[i].enter;
+  if (!e) return undefined;
+  if (e.from === "rect" && e.rect) return { x: e.rect[0] * W, y: e.rect[1] * H, w: e.rect[2] * W, h: e.rect[3] * H, r: 24 };
+  let head = i - 1;
+  while (head > 0 && r.shots[head].keep) head--;
+  let last = head;
+  while (r.shots[last + 1]?.keep) last++;
+  const s = { ...r.shots[head], end: r.shots[last].end };
+  if (!s.visual || s.layout !== "scene") return undefined;
+  const box = panel(s, r, head === 0);
+  const w = W - 120;
+  const local = e.from === "tile" ? gridTileBox(s.visual, w, box.height, e.index) : e.from === "card" ? funnelCardBox(s.visual, w, box.height) : typeInputBox(s.visual, w, box.height);
+  return local && { ...local, x: local.x + 60, y: local.y + box.top };
+};
+
+// A shared-element transition: the next scene grows out of an element of the last one. The
+// element's box opens to the full frame while the scene inside scales up from that box, both on
+// the one camera curve.
+const Grow: React.FC<{ b: Box; p: number; children: React.ReactNode }> = ({ b, p, children }) => {
+  const k0 = Math.max(b.w / W, b.h / H);
+  const k = k0 + (1 - k0) * p;
+  const q = 1 - p;
+  return (
+    <AbsoluteFill style={{ clipPath: `inset(${b.y * q}px ${(W - b.x - b.w) * q}px ${(H - b.y - b.h) * q}px ${b.x * q}px round ${b.r * q}px)` }}>
+      <AbsoluteFill style={{ transform: `translate(${(b.x + b.w / 2 - W / 2) * q}px, ${(b.y + b.h / 2 - H / 2) * q}px) scale(${k})` }}>{children}</AbsoluteFill>
+    </AbsoluteFill>
   );
 };
 
@@ -144,17 +216,25 @@ export const Reel: React.FC<Resolved> = (r) => {
   let since = index;
   while (since > 0 && r.shots[since - 1].header === shot.header) since--;
 
-  // A scene's canvas starts where its visual started, so a kept scene's glow carries on unbroken.
-  let head = index;
-  while (head > 0 && r.shots[head].keep) head--;
   const scene = shot.layout === "scene";
-  const tone = shot.tone ?? "light";
+  // A shot that enters through a shared element grows out of the scene before it.
+  const grow = scene && shot.enter && index > 0 && time < shot.start + TRANSITION ? enterBox(r, index) : undefined;
 
   return (
     <AbsoluteFill style={{ background: t.canvas }}>
       {onCanvas && <Canvas />}
-      {scene && <SceneCanvas tone={tone} time={time} start={r.shots[head].start} />}
       <Speaker r={r} shot={shot} time={time} />
+      {scene &&
+        (grow ? (
+          <>
+            <SceneLayer r={r} i={index - 1} time={time} grade={grade} />
+            <Grow b={grow} p={cameraEase(Math.min(1, (time - shot.start) / TRANSITION))}>
+              <SceneLayer r={r} i={index} time={time} grade={grade} />
+            </Grow>
+          </>
+        ) : (
+          <SceneLayer r={r} i={index} time={time} grade={grade} />
+        ))}
 
       {/* Darken the bottom of speaker shots slightly so white captions hold. */}
       {(shot.layout === "full" || shot.layout === "punch") && (
@@ -179,7 +259,7 @@ export const Reel: React.FC<Resolved> = (r) => {
               </AbsoluteFill>
             </Sequence>
           );
-        if (s.layout !== "split" && s.layout !== "media" && s.layout !== "scene") return null;
+        if (s.layout !== "split" && s.layout !== "media") return null;
         const box = panel(s, r, i === 0);
         return (
           <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} ${s.layout} ${visual.kind}`}>
@@ -190,9 +270,6 @@ export const Reel: React.FC<Resolved> = (r) => {
         );
       })}
 
-      {scene && shot.header && (
-        <SceneHeader text={shot.header} prev={since > 0 && r.shots[since - 1].layout === "scene" ? r.shots[since - 1].header : undefined} tone={tone} time={time} start={r.shots[since].start} />
-      )}
       {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={r.shots[since].start} animate={since > 0} />}
       <Captions r={r} shot={shot} time={time} />
       {r.audio && <Audio src={staticFile(r.audio)} />}

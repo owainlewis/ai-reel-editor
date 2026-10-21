@@ -64,7 +64,7 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
               fontSize: scene ? (serif ? 70 : 56) : serifAll ? 108 : serif ? 92 : 74,
               letterSpacing: serif ? -0.5 : scene ? -1 : -1.8,
               lineHeight: 1.04,
-              color: scene ? (serif ? c.accentInk : c.ink) : onCanvas ? t.ink : "#FFFFFF",
+              color: scene ? (serif ? c.accent : c.ink) : onCanvas ? t.ink : "#FFFFFF",
               opacity: scene && !serif ? 0.82 : 1,
               textShadow: onCanvas || scene ? "none" : "0 2px 18px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.5)",
             }}

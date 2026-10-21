@@ -5,7 +5,7 @@
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
-//   npm run reel -- fetch <slug> <url> --name <file>
+//   npm run reel -- fetch <slug> <url> --name <file> [--dir logos|captures|broll]
 //   npm run reel -- validate <slug>
 //   npm run reel -- stills <slug>
 //   npm run reel -- render <slug> [--draft]
@@ -218,9 +218,12 @@ async function cmdFetch(slug: string, url: string) {
   const dir = project(slug);
   const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 ai-reel-editor" } });
   if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const out = join(dir, "assets/logos", name);
+  // Logos by default; real thumbnails and clips from a source's own site go in captures or broll.
+  const sub = `assets/${flag("dir") ?? "logos"}`;
+  mkdirSync(join(dir, sub), { recursive: true });
+  const out = join(dir, sub, name);
   writeFileSync(out, Buffer.from(await res.arrayBuffer()));
-  ledger(dir, { file: `assets/logos/${name}`, url, sha: sha(out) });
+  ledger(dir, { file: `${sub}/${name}`, url, sha: sha(out) });
   console.log(`Saved ${out}`);
 }
 
@@ -271,11 +274,13 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       }
     }
     if (v?.kind === "video" && existsSync(join(dir, v.src))) {
+      s.visual = { ...v, size: probeSize(join(dir, v.src)) };
       const left = probeDuration(join(dir, v.src)) - v.start;
-      if (s.end - s.start > left + 0.04)
+      if (!v.loop && s.end - s.start > left + 0.04)
         issues.push({ level: "error", message: `"${s.anchor}": shot is ${(s.end - s.start).toFixed(2)}s but ${v.src} has ${left.toFixed(2)}s from start ${v.start}` });
     }
-    if (v?.kind === "video") {
+    // A kept shot carries on the same clip; that is one use, not two.
+    if (v?.kind === "video" && !s.keep) {
       if (seen.has(v.src)) issues.push({ level: "error", message: `b-roll ${v.src} is used twice` });
       seen.add(v.src);
     }

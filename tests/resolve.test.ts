@@ -149,12 +149,29 @@ describe("soft tech scenes", () => {
   });
 
   it("film: counts reveals as beats and wants scenes to alternate tone", () => {
-    const grid = { kind: "grid" as const, tiles: 4, cols: 2, style: "thumb" as const, groups: [], times: [2] };
+    const grid = { kind: "grid" as const, items: ["a.jpg", "b.jpg"], cols: 2, groups: [], times: [2] };
     const scene = (start: number, end: number, tone: "light" | "dark") => ({ start, end, layout: "scene" as const, anchor: `${start}`, header: "H", tone, visual: grid });
     const ok = lintShots([scene(0, 4, "dark"), scene(4, 7, "light")], 7, "film");
     expect(ok).toEqual([]);
     const text = lintShots([scene(0, 3, "dark"), scene(3, 8, "dark")], 8, "film").map((i) => i.message).join("\n");
     expect(text).toMatch(/two dark scenes in a row/);
     expect(text).toMatch(/nothing new on screen for 5.0s/);
+  });
+});
+
+describe("camera and shared elements", () => {
+  it("warns on a rushed capture move and on an entrance with no scene before it", () => {
+    const img = { kind: "image" as const, src: "a.png", frame: "card" as const, highlight: [], from: [0, 0, 1, 1] as [number, number, number, number], to: [0.2, 0.2, 0.5, 0.5] as [number, number, number, number] };
+    const text = lintShots(
+      [
+        { start: 0, end: 0.8, layout: "split", anchor: "a", visual: img },
+        { start: 0.8, end: 3, layout: "full", anchor: "b" },
+        { start: 3, end: 5, layout: "scene", anchor: "c", header: "H", visual: img, enter: { from: "tile", index: 0 } },
+      ],
+      5,
+      "film",
+    ).map((i) => i.message).join("\n");
+    expect(text).toMatch(/camera move lasts 0.80s/);
+    expect(text).toMatch(/needs a scene before it/);
   });
 });
