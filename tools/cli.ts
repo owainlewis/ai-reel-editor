@@ -4,7 +4,7 @@
 //   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]   portrait for reels, landscape for YouTube
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
-//   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.35]   shorten silences, cut ranges; then transcribe again
+//   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.35] [--speed 1.1]   shorten silences, cut ranges; then transcribe again
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
 //   npm run reel -- fetch <slug> <url> --name <file> [--dir logos|captures|broll]
 //   npm run reel -- validate <slug>
@@ -166,7 +166,9 @@ function cmdTighten(slug: string) {
   if (!existsSync(origVideo)) execFileSync("mv", [video, origVideo]);
   if (!existsSync(origVoice)) execFileSync("mv", [voice, origVoice]);
   const gap = parseFloat(flag("gap") ?? "0.35");
-  const pad = 0.12;
+  // A calm delivery gains energy at 1.05 to 1.12x; pitch is kept.
+  const speed = parseFloat(flag("speed") ?? "1");
+  const pad = gap < 0.3 ? 0.09 : 0.12;
   const total = probeDuration(origVoice);
   const log = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", origVoice, "-af", `silencedetect=noise=-38dB:d=${gap}`, "-f", "null", "-"], { encoding: "utf8" }).stderr;
   const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => +m[1]);
@@ -192,10 +194,10 @@ function cmdTighten(slug: string) {
   }
   if (at < total) keep.push([at, total]);
   const expr = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join("+");
-  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
-  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB`, "-c:a", "pcm_s24le", voice]);
+  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB/${speed},fps=30`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
+  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB${speed !== 1 ? `,atempo=${speed}` : ""}`, "-c:a", "pcm_s24le", voice]);
   const removed = merged.reduce((t, [a, b]) => t + b - a, 0);
-  writeJson(join(dir, "build/tighten.json"), { gap, keep, removed: +removed.toFixed(2) });
+  writeJson(join(dir, "build/tighten.json"), { gap, speed, keep, removed: +removed.toFixed(2) });
   const meta = readJson<Record<string, unknown>>(join(dir, "project.json"));
   writeJson(join(dir, "project.json"), { ...meta, duration: probeDuration(video) });
   console.log(`Removed ${removed.toFixed(1)}s in ${merged.length} cuts: ${total.toFixed(1)}s -> ${probeDuration(video).toFixed(1)}s. Next: transcribe again.`);
@@ -368,6 +370,13 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       if (seen.has(v.src)) issues.push({ level: "error", message: `b-roll ${v.src} is used twice` });
       seen.add(v.src);
     }
+  }
+  // A reel without its music bed reads flat. Say so when the plan asks for music the library cannot give.
+  if (plan.music) {
+    const lib = existsSync(join(ROOT, "music")) ? join(ROOT, "music") : "";
+    const track = plan.music.track ? join(ROOT, "music", plan.music.track) : "";
+    const any = lib && readdirSync(lib, { recursive: true }).some((f) => /\.(mp3|wav|m4a|flac|aiff?)$/i.test(String(f)));
+    if (track ? !existsSync(track) : !any) issues.push({ level: "warn", message: `no music found${track ? ` at music/${plan.music.track}` : " in music/"}; the reel will have no bed` });
   }
   const allText = words.map((w) => w.text.toLowerCase()).join(" ");
   for (const a of plan.accents) if (!allText.includes(a.toLowerCase())) issues.push({ level: "warn", message: `accent word not spoken: "${a}"` });
