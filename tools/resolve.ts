@@ -42,7 +42,9 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
     const prev = shots[shots.length - 1];
     if (s.keep && (!(prev?.visual || prev?.keep) || prev.layout !== s.layout || s.visual))
       issues.push({ level: "error", message: `"${s.at}" keeps the previous visual, so it needs the same layout as a previous shot with a visual and no visual of its own` });
-    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header, ...(s.keep ? { keep: true } : {}) });
+    // A kept shot carries the tone of the scene it continues.
+    const tone = s.keep && prev ? prev.tone : s.tone;
+    shots.push({ start, end: duration, layout: s.layout, visual: s.visual, sfx: s.sfx, anchor: s.at, index: i, header, ...(s.keep ? { keep: true } : {}), ...(tone ? { tone } : {}) });
   }
   for (let k = 0; k < shots.length - 1; k++) shots[k].end = shots[k + 1].start;
 
@@ -69,7 +71,13 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
                 ? [v.at]
                 : v.kind === "flow"
                   ? [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)]
-                  : [];
+                  : v.kind === "grid"
+                    ? [v.at, ...v.groups.map((g) => g.at)]
+                    : v.kind === "funnel"
+                      ? [...v.items.map((it) => it.at), v.at, ...v.target.lines.map((l) => l.at)]
+                      : v.kind === "type"
+                        ? [v.at, v.settle, ...v.chips.map((c) => c.at)]
+                        : [];
     if (!anchors.length) continue;
     let from = shot.index;
     // A flow's edges are searched from the shot's start again, so they can interleave with its nodes.
@@ -166,7 +174,7 @@ export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
     if (s.keep) continue;
     const v = s.visual;
     if (!v?.times) continue;
-    const kind = v.kind === "terminal" || v.kind === "prompt" ? "key" : v.kind === "image" ? "blip" : "pop";
+    const kind = v.kind === "terminal" || v.kind === "prompt" || v.kind === "type" ? "key" : v.kind === "image" ? "blip" : "pop";
     v.times.forEach((t, n) => {
       if (n === 0 && Math.abs(t - s.start) < 0.05 && s.sfx) return;
       ev.push({ kind, t, gain: 0.45 });
@@ -178,20 +186,41 @@ export const sfxEvents = (shots: ResolvedShot[]): SfxEvent[] => {
 // House rules from docs/STYLE.md that can be checked mechanically. Each format has its own.
 //   react: the speaker stays on screen in a split while the top panel walks through the source.
 //   mixed: every layout, cut fast, the speaker can step away for b-roll and full visuals.
-export type Format = "react" | "mixed";
+//   film: full-frame scenes that build across shots; a reveal or a headline swap counts as a beat.
+export type Format = "react" | "mixed" | "film";
+
+// The longest stretch inside a shot with nothing new on screen: reveals inside its visual count.
+const longestStill = (s: ResolvedShot) => {
+  const beats = [s.start, ...(s.visual?.times ?? []).filter((x) => x > s.start && x < s.end), s.end].sort((a, b) => a - b);
+  return Math.max(...beats.slice(1).map((b, i) => b - beats[i]));
+};
 
 export const lintShots = (shots: ResolvedShot[], duration: number, format: Format = "react"): Issue[] => {
   const issues: Issue[] = [];
-  const speaker = (l: string) => l !== "media" && l !== "cutaway";
+  const speaker = (l: string) => l !== "media" && l !== "cutaway" && l !== "scene";
   const total = (pred: (s: ResolvedShot) => boolean) => shots.filter(pred).reduce((t, s) => t + s.end - s.start, 0);
   const maxHold = format === "react" ? 4.2 : 3.2;
   let away = 0;
+  let lastScene: ResolvedShot | undefined;
   shots.forEach((s, i) => {
     const len = s.end - s.start;
     const label = `shot ${i + 1} (${s.start.toFixed(2)}s "${s.anchor}")`;
+    if (format === "film") {
+      const still = longestStill(s);
+      if (still > 3.6) issues.push({ level: "warn", message: `${label}: nothing new on screen for ${still.toFixed(1)}s; add a reveal or a headline swap` });
+      if (s.layout === "scene" && !s.keep) {
+        if (lastScene && (lastScene.tone ?? "light") === (s.tone ?? "light"))
+          issues.push({ level: "warn", message: `${label}: two ${s.tone ?? "light"} scenes in a row; alternate light and dark` });
+        lastScene = s;
+      }
+      if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
+      if (s.layout !== "full" && s.layout !== "punch" && !s.visual)
+        issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
+      return;
+    }
     if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${(maxHold - 0.4).toFixed(1)}s` });
     if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
-    if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway") && !s.visual)
+    if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway" || s.layout === "scene") && !s.visual)
       issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
     if (format === "react" && !speaker(s.layout))
       issues.push({ level: "warn", message: `${label}: ${s.layout} hides the speaker; react reels keep the face on screen (use split)` });
@@ -204,7 +233,7 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
     if (format === "react" && prev && s.layout !== "split" && prev.layout !== "split")
       issues.push({ level: "warn", message: `${label}: two face-only shots in a row; react reels return to the split` });
   });
-  if (shots[0] && shots[0].layout !== "split")
+  if (shots[0] && shots[0].layout !== "split" && !(format === "film" && shots[0].layout === "scene" && shots[0].header))
     issues.push({ level: "warn", message: "first shot should be a split with the topic on top" });
   if (format === "react" && duration > 0) {
     const split = total((s) => s.layout === "split") / duration;

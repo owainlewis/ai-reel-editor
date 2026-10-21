@@ -16,9 +16,20 @@ Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
 | Format | Series | Shape | Rules `validate` checks |
 | --- | --- | --- | --- |
 | `react` (default) | Tool drop | Face stays on screen in a split for 70 to 85% of the reel. The top panel walks through the real source (site, repo, README, post), panning and highlighting each claim as it is said. Punch in on the hook's stake and the last line. | Split at least 60%. No `media` or `cutaway`. Never two face-only shots in a row. At least 2 source captures. Shots up to about 3.8 s, since a scroll with highlights earns the time. |
+| `film` | Explainers, soft tech direction (on trial) | Full-frame `scene` shots that build across beats with `keep`, light and dark alternating, the speaker as punctuation. | Something new on screen at least every 3.6 s (reveals and headline swaps count). Back-to-back scenes alternate `tone`. |
 | `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Shots under about 2.8 s. No layout three times in a row. Speaker never away more than 3.5 s. |
 
 Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
+
+## Soft tech scenes (`film` format, on trial)
+
+A calm product-film look. Use `layout: "scene"` with `tone: "light"` (warm white) or `"dark"` (near-black, one soft periwinkle glow).
+
+- One accent, `#5468E0`: in the cobalt family, glows on black without going neon, clear of the brands these reels name.
+- The scene headline is the `header`, large and centred; words arrive out of a blur and the old line dissolves as a new one lands. One Signifier italic accent per headline, tinted in the accent.
+- Build a scene across shots with `keep: true`, swapping the headline per beat while the visual grows.
+- Visuals made for scenes: `grid` (a library that fills in, odometer `count`, `groups` that light on their words), `funnel` (many links flowing into one result card whose rows land on their words), `type` (kinetic typing huge across the frame, settling into a neutral input with pasted `chips`). `flow` stacks vertically on a scene and keeps dots travelling along drawn lines. `title`, `chapter` and `flow` follow the scene tone.
+- Schematic only: tiles, chips and inputs never stand in for a real product's UI, and a chip shows a name only when the script says it.
 
 ## Frame 1 and the header
 

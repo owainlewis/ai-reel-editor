@@ -63,6 +63,38 @@ export const Visual = z.discriminatedUnion("kind", [
     nodes: z.array(z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(z.string()).default([]), at: Anchor.optional() })).min(2).max(4),
     edges: z.array(z.object({ from: z.number(), to: z.number(), chip: z.string().optional(), at: Anchor.optional() })).default([]),
   }),
+  // A library that fills in: tiles arrive in a wave and `count` rolls up like an odometer on `at`.
+  // `groups` light a set of tiles on their words, with the group's label swapping in above the grid.
+  // `thumb` tiles are abstract moving thumbnails; `chip` tiles are blank pills (labels only on groups).
+  // Schematic, never a stand-in for a real product's UI.
+  z.object({
+    kind: z.literal("grid"),
+    count: z.string().optional(),
+    label: z.string().optional(),
+    tiles: z.number().int().min(2).max(60).default(24),
+    cols: z.number().int().min(2).max(8).default(4),
+    style: z.enum(["thumb", "chip"]).default("thumb"),
+    at: Anchor.optional(),
+    groups: z.array(z.object({ label: z.string(), tiles: z.array(z.number()), at: Anchor.optional() })).default([]),
+  }),
+  // Many sources flow into one result: link chips land, lines draw from each into the result card,
+  // dots keep travelling down them, and the card's rows land on their words.
+  z.object({
+    kind: z.literal("funnel"),
+    items: z.array(z.object({ text: z.string().optional(), at: Anchor.optional() })).min(1).max(12),
+    at: Anchor.optional(),
+    target: z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(Item).default([]) }),
+  }),
+  // Kinetic typing: `text` types itself huge across the frame on `at`, then on `settle` shrinks into
+  // a small input, where `chips` (pasted links, files) pop in on their words. A neutral input, no brand UI.
+  z.object({
+    kind: z.literal("type"),
+    text: z.string(),
+    at: Anchor.optional(),
+    settle: Anchor.optional(),
+    label: z.string().optional(),
+    chips: z.array(Item).default([]),
+  }),
 ]);
 
 export const Layout = z.enum([
@@ -71,6 +103,7 @@ export const Layout = z.enum([
   "split", // visual on top, speaker below, caption on the seam
   "media", // visual fills the frame, voice continues
   "cutaway", // b-roll fills the whole frame edge to edge, voice continues
+  "scene", // a full-frame graphic scene: big headline on top, the visual below, light or dark
 ]);
 
 export const SfxKind = z.enum(["whoosh", "pop", "impact", "thud", "blip", "chime", "key"]);
@@ -86,6 +119,9 @@ export const Shot = z.object({
   // Keep the previous shot's visual on screen and running, so a scene builds across shots
   // while the header changes. Needs the same layout as the previous shot and no visual of its own.
   keep: z.boolean().optional(),
+  // Scene colour: light (warm white) or dark (near-black with a soft accent glow). Alternate them
+  // for rhythm. A kept shot carries the tone of the shot it keeps.
+  tone: z.enum(["light", "dark"]).optional(),
   note: z.string().optional(),
 });
 
@@ -94,7 +130,9 @@ export const Edit = z.object({
   // react: the default for tool drops. The speaker stays on screen in a split while the
   //   top panel walks through the source, a highlight on each claim as it is said.
   // mixed: for how-it-works and setup reels. Every layout, b-roll cutaways, faster cuts.
-  format: z.enum(["react", "mixed"]).default("react"),
+  // film: soft tech product film. Full-frame scenes that build across shots, light and dark
+  //   alternating, the speaker as punctuation. Something changes on screen at least every 3.6 s.
+  format: z.enum(["react", "mixed", "film"]).default("react"),
   // half: speaker fills the bottom half. inset: the visual gets about 60% and the speaker sits in a rounded window.
   split: z.enum(["half", "inset"]).default("half"),
   // The reel's title. It lands large in frame 1 (the on-screen hook) and then docks as a small
@@ -134,6 +172,7 @@ export type ResolvedShot = {
   sfx?: z.infer<typeof SfxKind>;
   anchor: string;
   keep?: boolean;
+  tone?: "light" | "dark";
 };
 export type Chunk = { words: { text: string; start: number; end: number; accent: boolean }[]; start: number; end: number };
 export type SfxEvent = { kind: z.infer<typeof SfxKind>; t: number; gain?: number };

@@ -5,12 +5,14 @@ import { Captions } from "./Captions";
 import { Speaker } from "./Speaker";
 import { clamp, ease, HEADER, MEDIA, splitGeom, t, W, H } from "./theme";
 import { Accented, VisualView } from "./Visuals";
+import { pal, SCENE, SceneCanvas, SoftAccented } from "./soft";
 import type { Resolved, ResolvedShot } from "./schema";
 
 // The header is large on the first shot (the on-screen hook in frame 1), then docks small.
 const headerSize = (first: boolean) => (first ? { font: 72, height: 190 } : { font: 48, height: 104 });
 
 const panel = (s: ResolvedShot, r: Resolved, first: boolean) => {
+  if (s.layout === "scene") return s.header ? { top: SCENE.top, height: SCENE.bottom - SCENE.top } : { top: 200, height: SCENE.bottom - 200 };
   const bottom = s.layout === "split" ? splitGeom(r.split).panelBottom : MEDIA.panelBottom;
   const top = s.header ? HEADER.top + headerSize(first).height + 20 : 150;
   return { top, height: bottom - top };
@@ -79,6 +81,57 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
   );
 };
 
+// The scene headline: large, centred, words arriving out of a blur. When it swaps mid-scene
+// ("One *plans*" to "Another *builds*") the old line dissolves into a blur as the new one lands.
+const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark"; time: number; start: number }> = ({ text, prev, tone, time, start }) => {
+  const c = pal(tone);
+  const size = text.replace(/\*/g, "").length > 22 ? 84 : 100;
+  const line = (words: string[], p: (i: number) => number, key: string) => (
+    <div
+      key={key}
+      style={{
+        position: "absolute",
+        left: 70,
+        right: 70,
+        top: SCENE.headTop,
+        height: SCENE.headHeight,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        fontFamily: t.sans,
+        fontWeight: 700,
+        fontSize: size,
+        lineHeight: 1.02,
+        letterSpacing: -size * 0.035,
+        color: c.ink,
+        textWrap: "balance",
+      }}
+    >
+      <span>
+        {words.map((wd, i) => {
+          const q = p(i);
+          return (
+            <React.Fragment key={i}>
+              {i > 0 && " "}
+              <span style={{ display: "inline-block", opacity: q, filter: `blur(${(1 - q) * 18}px)`, translate: `0 ${(1 - q) * 22}px` }}>
+                <SoftAccented text={wd} c={c} />
+              </span>
+            </React.Fragment>
+          );
+        })}
+      </span>
+    </div>
+  );
+  const out = prev ? 1 - interpolate(time, [start, start + 0.22], [0, 1], clamp) : 0;
+  return (
+    <>
+      {prev && out > 0 && line(headerWords(prev), () => out, "prev")}
+      {line(headerWords(text), (i) => interpolate(time, [start + 0.06 + i * 0.08, start + 0.06 + i * 0.08 + 0.5], [0, 1], { ...clamp, easing: ease }), "now")}
+    </>
+  );
+};
+
 export const Reel: React.FC<Resolved> = (r) => {
   const frame = useCurrentFrame();
   const time = frame / r.fps;
@@ -90,9 +143,16 @@ export const Reel: React.FC<Resolved> = (r) => {
   let since = index;
   while (since > 0 && r.shots[since - 1].header === shot.header) since--;
 
+  // A scene's canvas starts where its visual started, so a kept scene's glow carries on unbroken.
+  let head = index;
+  while (head > 0 && r.shots[head].keep) head--;
+  const scene = shot.layout === "scene";
+  const tone = shot.tone ?? "light";
+
   return (
     <AbsoluteFill style={{ background: t.canvas }}>
       {onCanvas && <Canvas />}
+      {scene && <SceneCanvas tone={tone} time={time} start={r.shots[head].start} />}
       <Speaker r={r} shot={shot} time={time} />
 
       {/* Darken the bottom of speaker shots slightly so white captions hold. */}
@@ -118,7 +178,7 @@ export const Reel: React.FC<Resolved> = (r) => {
               </AbsoluteFill>
             </Sequence>
           );
-        if (s.layout !== "split" && s.layout !== "media") return null;
+        if (s.layout !== "split" && s.layout !== "media" && s.layout !== "scene") return null;
         const box = panel(s, r, i === 0);
         return (
           <Sequence key={i} from={from} durationInFrames={dur} premountFor={15} name={`${i + 1} ${s.layout} ${visual.kind}`}>
@@ -129,6 +189,9 @@ export const Reel: React.FC<Resolved> = (r) => {
         );
       })}
 
+      {scene && shot.header && (
+        <SceneHeader text={shot.header} prev={since > 0 && r.shots[since - 1].layout === "scene" ? r.shots[since - 1].header : undefined} tone={tone} time={time} start={r.shots[since].start} />
+      )}
       {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={r.shots[since].start} animate={since > 0} />}
       <Captions r={r} shot={shot} time={time} />
       {r.audio && <Audio src={staticFile(r.audio)} />}

@@ -134,3 +134,27 @@ describe("estimateWords", () => {
     expect(est[3].start - est[2].end).toBeGreaterThan(est[2].start - est[1].end);
   });
 });
+
+describe("soft tech scenes", () => {
+  it("lands typing, settle and chips on their words, and kept shots carry the tone", () => {
+    const type = { kind: "type", text: "/analyze", at: "building", settle: "with", chips: [{ text: "link", at: "good" }] };
+    const { shots, issues } = resolveShots(
+      plan([{ at: "If", layout: "scene", tone: "dark", header: "A", visual: type }, { at: "having", layout: "scene", keep: true, header: "B" }]),
+      words,
+      5,
+    );
+    expect(issues).toEqual([]);
+    expect(shots[0].visual?.times?.map((x) => +x.toFixed(2))).toEqual([0.55, 1.15, 2.35]);
+    expect(shots[1].tone).toBe("dark");
+  });
+
+  it("film: counts reveals as beats and wants scenes to alternate tone", () => {
+    const grid = { kind: "grid" as const, tiles: 4, cols: 2, style: "thumb" as const, groups: [], times: [2] };
+    const scene = (start: number, end: number, tone: "light" | "dark") => ({ start, end, layout: "scene" as const, anchor: `${start}`, header: "H", tone, visual: grid });
+    const ok = lintShots([scene(0, 4, "dark"), scene(4, 7, "light")], 7, "film");
+    expect(ok).toEqual([]);
+    const text = lintShots([scene(0, 3, "dark"), scene(3, 8, "dark")], 8, "film").map((i) => i.message).join("\n");
+    expect(text).toMatch(/two dark scenes in a row/);
+    expect(text).toMatch(/nothing new on screen for 5.0s/);
+  });
+});

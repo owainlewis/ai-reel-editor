@@ -18,6 +18,7 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
       return { box: FULL, faceH: Math.max(0.5, r.face.h * Math.max(W / r.videoSize[0], H / r.videoSize[1]) * (r.videoSize[1] / H) * 1.25), faceAt: 0.3, visible: true };
     case "media":
     case "cutaway":
+    case "scene":
       return { box: FULL, faceH: 0, faceAt: 0, visible: false };
     default:
       return { box: FULL, faceH: 0, faceAt: 0, visible: true };

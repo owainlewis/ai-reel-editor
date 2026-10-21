@@ -305,7 +305,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     console.log(`\n${plan.format} format: ${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
     for (const s of shots)
       console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
-    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway"].map((l) => [l, 0]));
+    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway", "scene"].map((l) => [l, 0]));
     for (const s of shots) mix[s.layout] += s.end - s.start;
     const avg = meta.duration / shots.length;
     console.log(`\n  average shot ${avg.toFixed(2)}s; ` + Object.entries(mix).map(([l, t]) => `${l} ${Math.round((100 * t) / meta.duration)}%`).join(", "));
