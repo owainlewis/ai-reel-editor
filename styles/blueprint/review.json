@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "style": "blueprint",
+  "notes": "",
+  "cards": {
+    "blueprint.t1.chapter": {
+      "hash": "1cd6e6574a4fe0",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.title": {
+      "hash": "18553d4199faa6",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.stat": {
+      "hash": "06e2cf90fca6c2",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.quote": {
+      "hash": "086bd34653bca6",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.bento": {
+      "hash": "11379c6143db92",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.matrix": {
+      "hash": "0d7621ea8ef809",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.logowall": {
+      "hash": "1a07335796b525",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.grid": {
+      "hash": "08cf0f4a60526a",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.funnel": {
+      "hash": "154413ed5e196f",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.type": {
+      "hash": "032cc1e69d13fc",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t1.cta": {
+      "hash": "05ac8183d4fa66",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.capture": {
+      "hash": "0cecefe83e768d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.video": {
+      "hash": "057b575c36718e",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.logos": {
+      "hash": "034209fcc0feea",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.list": {
+      "hash": "0381a53f618d0a",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.steps": {
+      "hash": "0817ed99057271",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.compare": {
+      "hash": "143351c9a054bb",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.beforeafter": {
+      "hash": "0192641b9834b7",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.kpi": {
+      "hash": "1389d19071d136",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.chart.bar": {
+      "hash": "170dcd4af102fc",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.chart.line": {
+      "hash": "122277e7b22aae",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.pipeline": {
+      "hash": "1cad8eccf8817d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.timeline": {
+      "hash": "081f3e6041918f",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.levels": {
+      "hash": "05f49f4ba777dd",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.agenda": {
+      "hash": "19192b44e3ff08",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.checklist": {
+      "hash": "10e66a5f8008a1",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.flow": {
+      "hash": "1b9d0fdabacbe9",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.terminal": {
+      "hash": "09bd324d57ec1d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.prompt": {
+      "hash": "0d2cf9f3d884a4",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.overlay.lower": {
+      "hash": "02834da983bad8",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    }
+  }
+}

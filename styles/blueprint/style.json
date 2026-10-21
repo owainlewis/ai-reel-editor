@@ -1,0 +1,1877 @@
+{
+  "id": "blueprint",
+  "name": "Blueprint",
+  "number": "01",
+  "status": "draft",
+  "summary": "Cool paper and graphite with a quiet blueprint grid, white cards, cool ink and one clean blue. Split-first: graphics in the top half, the speaker on the bottom half. Calm, minimal, real content.",
+  "palette": {
+    "light": {
+      "bg": "#ECEEF1",
+      "card": "#FFFFFF",
+      "chip": "#E2E5EA",
+      "ink": "#0E1013",
+      "muted": "#6E737B",
+      "faint": "#C6CBD2",
+      "line": "rgba(14,16,19,0.10)",
+      "accent": "#2563EB",
+      "accentText": "#2563EB",
+      "shadow": "0 1px 2px rgba(14,16,19,0.06), 0 14px 36px rgba(14,16,19,0.12)"
+    },
+    "dark": {
+      "bg": "#121417",
+      "card": "#1B1E22",
+      "chip": "#262A2F",
+      "ink": "#ECEEF1",
+      "muted": "#8B9097",
+      "faint": "#3A3F45",
+      "line": "rgba(236,238,241,0.10)",
+      "accent": "#2563EB",
+      "accentText": "#A6ABB3",
+      "shadow": "0 1px 2px rgba(0,0,0,0.45), 0 18px 44px rgba(0,0,0,0.55)"
+    },
+    "accent": "#2563EB"
+  },
+  "fonts": {
+    "display": "Helvetica Neue Bold",
+    "accent": "Signifier italic",
+    "mono": "SF Mono",
+    "notes": "Helvetica for structure, one Signifier italic word per line, mono for labels and numbers."
+  },
+  "motion": "Expo-out entrances out of a light blur, staggered about 0.12 s. Things not yet said sit dim and soft, then sharpen on their word. One camera move per shot.",
+  "spacing": {
+    "panelX": 90,
+    "seamGap": 20,
+    "sceneX": 60,
+    "headlineX": 70,
+    "cardPad": 44,
+    "cardPadSmall": 32,
+    "gap": 28,
+    "radius": 28,
+    "radiusSmall": 18
+  },
+  "cards": [
+    {
+      "id": "blueprint.t1.chapter",
+      "kind": "chapter",
+      "tier": "t1",
+      "purpose": "section",
+      "summary": "A chapter marker: a large number lands out of a blur, its name tracked out below.",
+      "layouts": [
+        "scene",
+        "media",
+        "split"
+      ],
+      "slots": [
+        {
+          "name": "number",
+          "type": "text",
+          "max": 3
+        },
+        {
+          "name": "label",
+          "type": "text",
+          "max": 22
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "chapter",
+          "number": "02",
+          "label": "How it works"
+        },
+        "header": "Part *two*",
+        "scene": "Part *two*"
+      }
+    },
+    {
+      "id": "blueprint.t1.title",
+      "kind": "title",
+      "tier": "t1",
+      "purpose": "thesis",
+      "summary": "The thesis in one line, word by word, with a rule drawing under it. One *accent* word.",
+      "layouts": [
+        "scene",
+        "split",
+        "media",
+        "over"
+      ],
+      "slots": [
+        {
+          "name": "text",
+          "type": "richtext",
+          "max": 40
+        },
+        {
+          "name": "kicker",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "title",
+          "text": "Show the *real* thing",
+          "kicker": "Sample title"
+        },
+        "header": "The *rule*",
+        "scene": "The *rule*"
+      }
+    },
+    {
+      "id": "blueprint.t1.stat",
+      "kind": "stat",
+      "tier": "t1",
+      "purpose": "stat",
+      "summary": "One big number that counts up, a rule, and what it counts. Only a real, sourced number.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "value",
+          "type": "number",
+          "max": 8
+        },
+        {
+          "name": "label",
+          "type": "richtext",
+          "max": 32
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "stat",
+          "value": "120",
+          "label": "Illustration: a *sample* count"
+        },
+        "header": "By the *numbers*",
+        "scene": "By the *numbers*"
+      }
+    },
+    {
+      "id": "blueprint.t1.quote",
+      "kind": "quote",
+      "tier": "t1",
+      "purpose": "quote",
+      "added": true,
+      "summary": "A real quote in large serif, words resolving as it is read, with who said it and where.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "text",
+          "type": "text",
+          "max": 140,
+          "note": "word for word from the source"
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "max": 48
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "quote",
+          "text": "Show the real thing. If it is only a diagram, say so on the screen.",
+          "source": "Sample quote, illustration only"
+        },
+        "header": "In their *words*",
+        "scene": "In their *words*"
+      }
+    },
+    {
+      "id": "blueprint.t1.bento",
+      "kind": "bento",
+      "tier": "t1",
+      "purpose": "overview",
+      "added": true,
+      "summary": "A feature overview: one wide cell and smaller ones, each landing on its word.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "cells",
+          "type": "list",
+          "count": [
+            3,
+            5
+          ],
+          "note": "four or fewer in a split"
+        },
+        {
+          "name": "cells[].title",
+          "type": "richtext",
+          "max": 20
+        },
+        {
+          "name": "cells[].text",
+          "type": "text",
+          "max": 28,
+          "optional": true
+        },
+        {
+          "name": "cells[].value",
+          "type": "text",
+          "max": 7,
+          "optional": true
+        },
+        {
+          "name": "cells[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "bento",
+          "cells": [
+            {
+              "title": "One *workspace*",
+              "text": "Sample: the headline feature",
+              "value": "01"
+            },
+            {
+              "title": "Plans",
+              "text": "Sample: a smaller cell"
+            },
+            {
+              "title": "Reviews",
+              "text": "Sample: a smaller cell"
+            },
+            {
+              "title": "Ships",
+              "text": "Sample: a smaller cell"
+            }
+          ]
+        },
+        "header": "What you *get*",
+        "scene": "What you *get*"
+      }
+    },
+    {
+      "id": "blueprint.t1.matrix",
+      "kind": "matrix",
+      "tier": "t1",
+      "purpose": "overview",
+      "treatment": "2x2",
+      "added": true,
+      "summary": "A 2x2: two axes draw from the centre and items land in their quadrants on their words.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "x",
+          "type": "text",
+          "max": 14,
+          "count": [
+            2,
+            2
+          ],
+          "note": "[low, high] along the bottom axis"
+        },
+        {
+          "name": "y",
+          "type": "text",
+          "max": 14,
+          "count": [
+            2,
+            2
+          ],
+          "note": "[low, high] up the side"
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            1,
+            4
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 22
+        },
+        {
+          "name": "items[].quad",
+          "type": "enum",
+          "note": "tl, tr, bl or br"
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "matrix",
+          "x": [
+            "Slow",
+            "Fast"
+          ],
+          "y": [
+            "Simple",
+            "Powerful"
+          ],
+          "items": [
+            {
+              "text": "Sample A",
+              "quad": "bl"
+            },
+            {
+              "text": "Sample B",
+              "quad": "tl"
+            },
+            {
+              "text": "Sample C",
+              "quad": "br"
+            },
+            {
+              "text": "The *sweet* spot",
+              "quad": "tr"
+            }
+          ]
+        },
+        "header": "Where it *fits*",
+        "scene": "Where it *fits*"
+      }
+    },
+    {
+      "id": "blueprint.t1.logowall",
+      "kind": "logowall",
+      "tier": "t1",
+      "purpose": "overview",
+      "treatment": "logo-wall",
+      "added": true,
+      "summary": "Many official logos at once, in a wave, on white tiles. Never redrawn.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            4,
+            12
+          ]
+        },
+        {
+          "name": "items[].src",
+          "type": "image",
+          "note": "an official logo from the maker's site or press kit"
+        },
+        {
+          "name": "caption",
+          "type": "text",
+          "max": 40,
+          "optional": true
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "logowall",
+          "items": [
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%230E1013%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EA%3C%2Ftext%3E%3C%2Fsvg%3E"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%232563EB%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EB%3C%2Ftext%3E%3C%2Fsvg%3E"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%236E737B%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EC%3C%2Ftext%3E%3C%2Fsvg%3E"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%23C6CBD2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%230E1013%22%3ED%3C%2Ftext%3E%3C%2Fsvg%3E"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%230E1013%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EE%3C%2Ftext%3E%3C%2Fsvg%3E"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%232563EB%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EF%3C%2Ftext%3E%3C%2Fsvg%3E"
+            }
+          ],
+          "caption": "Sample marks, not real logos"
+        },
+        "header": "Works with *everything*",
+        "scene": "Works with *all*"
+      }
+    },
+    {
+      "id": "blueprint.t1.grid",
+      "kind": "grid",
+      "tier": "t1",
+      "purpose": "overview",
+      "treatment": "library",
+      "summary": "A library that fills in: real thumbnails in a wave, an odometer count, groups that light.",
+      "layouts": [
+        "scene",
+        "split"
+      ],
+      "slots": [
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            0,
+            12
+          ],
+          "note": "real thumbnails captured from the source"
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "max": 6,
+          "optional": true
+        },
+        {
+          "name": "label",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "groups[].label",
+          "type": "text",
+          "max": 16,
+          "optional": true
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "grid",
+          "items": [
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23E2E5EA%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22260%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%201%3C%2Ftext%3E%3C%2Fsvg%3E",
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23D3D7DD%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22320%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%202%3C%2Ftext%3E%3C%2Fsvg%3E",
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23E2E5EA%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22200%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%203%3C%2Ftext%3E%3C%2Fsvg%3E",
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23D3D7DD%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22260%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%204%3C%2Ftext%3E%3C%2Fsvg%3E",
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23E2E5EA%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22320%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%205%3C%2Ftext%3E%3C%2Fsvg%3E",
+            "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23D3D7DD%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22200%22%20height%3D%2222%22%20rx%3D%2211%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%2282%22%20width%3D%22300%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22108%22%20width%3D%22220%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22600%22%20y%3D%22320%22%20text-anchor%3D%22end%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2240%22%20fill%3D%22%236E737B%22%3ESample%206%3C%2Ftext%3E%3C%2Fsvg%3E"
+          ],
+          "count": "120",
+          "label": "Sample items",
+          "cols": 3,
+          "at": "count",
+          "groups": []
+        },
+        "header": "The *library*",
+        "scene": "The *library*"
+      }
+    },
+    {
+      "id": "blueprint.t1.funnel",
+      "kind": "funnel",
+      "tier": "t1",
+      "purpose": "structure",
+      "treatment": "many-to-one",
+      "summary": "Many sources into one result: chips land, lines draw into the result card, its rows land.",
+      "layouts": [
+        "scene",
+        "split"
+      ],
+      "slots": [
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            0,
+            9
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "text",
+          "max": 16
+        },
+        {
+          "name": "target.kicker",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "target.title",
+          "type": "richtext",
+          "max": 22
+        },
+        {
+          "name": "target.lines[].text",
+          "type": "richtext",
+          "max": 22,
+          "optional": true
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "funnel",
+          "items": [
+            {
+              "text": "Notes"
+            },
+            {
+              "text": "Docs"
+            },
+            {
+              "text": "Chats"
+            },
+            {
+              "text": "Code"
+            }
+          ],
+          "target": {
+            "kicker": "sample.md",
+            "title": "One *brief*",
+            "lines": [
+              {
+                "text": "Goal"
+              },
+              {
+                "text": "Constraints"
+              }
+            ]
+          }
+        },
+        "header": "Into *one*",
+        "scene": "Into *one*"
+      }
+    },
+    {
+      "id": "blueprint.t1.type",
+      "kind": "type",
+      "tier": "t1",
+      "purpose": "thesis",
+      "treatment": "kinetic-typing",
+      "summary": "Kinetic typing: the line types itself huge, then settles into a plain input.",
+      "layouts": [
+        "scene",
+        "split"
+      ],
+      "slots": [
+        {
+          "name": "text",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "name": "label",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "chips[].text",
+          "type": "text",
+          "max": 16,
+          "optional": true
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        },
+        {
+          "name": "settle",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "type",
+          "text": "Make me a sample",
+          "at": "make",
+          "settle": "sample",
+          "label": "Sample input",
+          "chips": []
+        },
+        "header": "Just *ask*",
+        "scene": "Just *ask*"
+      }
+    },
+    {
+      "id": "blueprint.t1.cta",
+      "kind": "cta",
+      "tier": "t1",
+      "purpose": "cta",
+      "summary": "The end card: what to comment and what they get. Only when a real resource exists.",
+      "layouts": [
+        "split",
+        "media",
+        "scene"
+      ],
+      "slots": [
+        {
+          "name": "keyword",
+          "type": "text",
+          "max": 12
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "name": "src",
+          "type": "image",
+          "optional": true
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "cta",
+          "keyword": "SAMPLE",
+          "text": "Illustration of an end card"
+        },
+        "header": "Get the *guide*",
+        "scene": "Get the *guide*"
+      }
+    },
+    {
+      "id": "blueprint.t2.capture",
+      "kind": "image",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "capture",
+      "summary": "A real capture with one camera move and a highlight sweeping the words being said.",
+      "layouts": [
+        "split",
+        "media",
+        "scene",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "src",
+          "type": "image",
+          "note": "a capture made with reel capture, never a mock-up"
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "max": 60,
+          "optional": true
+        },
+        {
+          "name": "highlight[].label",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "highlight[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "image",
+          "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%221000%22%20viewBox%3D%220%200%201600%201000%22%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%221600%22%20height%3D%2288%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2264%22%20y%3D%2236%22%20width%3D%22180%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23C6CBD2%22%2F%3E%3Crect%20x%3D%221300%22%20y%3D%2236%22%20width%3D%22236%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2276%22%20fill%3D%22%230E1013%22%3ESample%20page%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2234%22%20fill%3D%22%236E737B%22%3EIllustration%20of%20a%20capture.%20A%20real%20reel%20shows%20the%20source%20itself.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22380%22%20width%3D%221180%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22424%22%20width%3D%221240%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22468%22%20width%3D%221100%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22512%22%20width%3D%22760%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22610%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2244%22%20fill%3D%22%230E1013%22%3EThe%20line%20being%20discussed%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22670%22%20width%3D%221260%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22714%22%20width%3D%221200%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22758%22%20width%3D%221320%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22802%22%20width%3D%221080%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22846%22%20width%3D%22640%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3C%2Fsvg%3E",
+          "size": [
+            1600,
+            1000
+          ],
+          "frame": "card",
+          "from": [
+            0.04,
+            0.12,
+            0.62,
+            0.62
+          ],
+          "to": [
+            0.05,
+            0.5,
+            0.5,
+            0.28
+          ],
+          "highlight": [
+            {
+              "rect": [
+                0.07,
+                0.565,
+                0.34,
+                0.06
+              ],
+              "label": "Sample callout"
+            }
+          ]
+        },
+        "header": "The *source*",
+        "scene": "The *source*"
+      }
+    },
+    {
+      "id": "blueprint.t2.video",
+      "kind": "video",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "clip",
+      "summary": "B-roll or a product's own clip, in a card, with one slow push-in.",
+      "layouts": [
+        "split",
+        "media",
+        "cutaway",
+        "scene",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "src",
+          "type": "image",
+          "note": "a project clip or broll:<id>"
+        }
+      ],
+      "noSample": "Needs a real clip; the lab shows no stand-in footage."
+    },
+    {
+      "id": "blueprint.t2.logos",
+      "kind": "logos",
+      "tier": "t2",
+      "purpose": "label",
+      "treatment": "logos",
+      "summary": "One to four official logos on white tiles, each landing on its spoken name.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            1,
+            4
+          ]
+        },
+        {
+          "name": "items[].src",
+          "type": "image"
+        },
+        {
+          "name": "items[].name",
+          "type": "text",
+          "max": 16,
+          "optional": true
+        },
+        {
+          "name": "caption",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "logos",
+          "items": [
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%230E1013%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EA%3C%2Ftext%3E%3C%2Fsvg%3E",
+              "name": "Sample A"
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%20viewBox%3D%220%200%20200%20200%22%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2244%22%20fill%3D%22%232563EB%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22100%22%20y%3D%22128%22%20text-anchor%3D%22middle%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2284%22%20fill%3D%22%23FFFFFF%22%3EB%3C%2Ftext%3E%3C%2Fsvg%3E",
+              "name": "Sample B"
+            }
+          ]
+        },
+        "header": "The *tools*",
+        "scene": "The *tools*"
+      }
+    },
+    {
+      "id": "blueprint.t2.list",
+      "kind": "list",
+      "tier": "t2",
+      "purpose": "list",
+      "summary": "Rows that arrive as each is said; the newest is active. `preview` shows all dim first.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 30,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            5
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 26
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "list",
+          "title": "Sample *list*",
+          "items": [
+            {
+              "text": "First point"
+            },
+            {
+              "text": "Second point"
+            },
+            {
+              "text": "Third point"
+            }
+          ],
+          "preview": false
+        },
+        "header": "Three *ideas*",
+        "scene": "Three *ideas*"
+      }
+    },
+    {
+      "id": "blueprint.t2.steps",
+      "kind": "steps",
+      "tier": "t2",
+      "purpose": "process",
+      "summary": "Numbered steps joined by a line that draws as each is spoken.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            4
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 20
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "steps",
+          "items": [
+            {
+              "text": "Install"
+            },
+            {
+              "text": "Connect"
+            },
+            {
+              "text": "Run it"
+            }
+          ]
+        },
+        "header": "How to *start*",
+        "scene": "How to *start*"
+      }
+    },
+    {
+      "id": "blueprint.t2.compare",
+      "kind": "compare",
+      "tier": "t2",
+      "purpose": "compare",
+      "treatment": "strike",
+      "summary": "Old way against new way; when the new one lands, the old is struck through.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "left.label",
+          "type": "text",
+          "max": 14
+        },
+        {
+          "name": "left.text",
+          "type": "text",
+          "max": 32
+        },
+        {
+          "name": "right.label",
+          "type": "text",
+          "max": 14
+        },
+        {
+          "name": "right.text",
+          "type": "text",
+          "max": 32
+        },
+        {
+          "name": "right.at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "compare",
+          "left": {
+            "label": "Before",
+            "text": "Sample old way"
+          },
+          "right": {
+            "label": "After",
+            "text": "Sample new way"
+          }
+        },
+        "header": "Old vs *new*",
+        "scene": "Old vs *new*"
+      }
+    },
+    {
+      "id": "blueprint.t2.beforeafter",
+      "kind": "beforeafter",
+      "tier": "t2",
+      "purpose": "compare",
+      "treatment": "before-after",
+      "added": true,
+      "summary": "Two states of one thing, with an arrow; the after lands on its word and takes the accent.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "before.label",
+          "type": "text",
+          "max": 14
+        },
+        {
+          "name": "before.value",
+          "type": "richtext",
+          "max": 12
+        },
+        {
+          "name": "before.text",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "after.label",
+          "type": "text",
+          "max": 14
+        },
+        {
+          "name": "after.value",
+          "type": "richtext",
+          "max": 12
+        },
+        {
+          "name": "after.text",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "after.at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "beforeafter",
+          "before": {
+            "label": "Before",
+            "value": "By hand",
+            "text": "Sample: the old routine"
+          },
+          "after": {
+            "label": "After",
+            "value": "*Automatic*",
+            "text": "Sample: the new routine"
+          }
+        },
+        "header": "What *changes*",
+        "scene": "What *changes*"
+      }
+    },
+    {
+      "id": "blueprint.t2.kpi",
+      "kind": "kpi",
+      "tier": "t2",
+      "purpose": "stat",
+      "treatment": "kpi-row",
+      "added": true,
+      "summary": "Two to four key numbers that count up on their words, with a source line.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            4
+          ]
+        },
+        {
+          "name": "items[].value",
+          "type": "number",
+          "max": 7
+        },
+        {
+          "name": "items[].label",
+          "type": "text",
+          "max": 22
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "max": 60,
+          "note": "where the numbers come from, or Illustration"
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "kpi",
+          "items": [
+            {
+              "value": "12",
+              "label": "Sample metric"
+            },
+            {
+              "value": "3.5x",
+              "label": "Sample ratio"
+            },
+            {
+              "value": "2,400",
+              "label": "Sample count"
+            }
+          ],
+          "source": "Illustration"
+        },
+        "header": "The *results*",
+        "scene": "The *results*"
+      }
+    },
+    {
+      "id": "blueprint.t2.chart.bar",
+      "kind": "chart",
+      "tier": "t2",
+      "purpose": "data",
+      "treatment": "bar",
+      "summary": "A bar chart; each bar grows on its word, the highlight takes the accent. Always a source.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "points",
+          "type": "list",
+          "count": [
+            2,
+            6
+          ]
+        },
+        {
+          "name": "points[].label",
+          "type": "text",
+          "max": 8
+        },
+        {
+          "name": "unit",
+          "type": "text",
+          "max": 3,
+          "optional": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "name": "points[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "chart",
+          "type": "bar",
+          "title": "Sample series",
+          "points": [
+            {
+              "label": "A",
+              "value": 18
+            },
+            {
+              "label": "B",
+              "value": 31
+            },
+            {
+              "label": "C",
+              "value": 44
+            },
+            {
+              "label": "D",
+              "value": 72
+            }
+          ],
+          "source": "Illustration"
+        },
+        "header": "It *grows*",
+        "scene": "It *grows*"
+      }
+    },
+    {
+      "id": "blueprint.t2.chart.line",
+      "kind": "chart",
+      "tier": "t2",
+      "purpose": "data",
+      "treatment": "line",
+      "summary": "A line chart for change over time; the end value labelled big. Always a source.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "points",
+          "type": "list",
+          "count": [
+            2,
+            8
+          ]
+        },
+        {
+          "name": "points[].label",
+          "type": "text",
+          "max": 6
+        },
+        {
+          "name": "points[].note",
+          "type": "text",
+          "max": 20,
+          "optional": true
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "name": "points[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "chart",
+          "type": "line",
+          "title": "Sample trend",
+          "points": [
+            {
+              "label": "Q1",
+              "value": 10
+            },
+            {
+              "label": "Q2",
+              "value": 16
+            },
+            {
+              "label": "Q3",
+              "value": 25
+            },
+            {
+              "label": "Q4",
+              "value": 41,
+              "note": "Sample note"
+            }
+          ],
+          "source": "Illustration"
+        },
+        "header": "Over *time*",
+        "scene": "Over *time*"
+      }
+    },
+    {
+      "id": "blueprint.t2.pipeline",
+      "kind": "pipeline",
+      "tier": "t2",
+      "purpose": "process",
+      "summary": "Numbered stages on a track that light as named; unnamed stages wait as dim numbers.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "stages",
+          "type": "list",
+          "count": [
+            2,
+            8
+          ]
+        },
+        {
+          "name": "stages[].label",
+          "type": "text",
+          "max": 14,
+          "optional": true
+        },
+        {
+          "name": "stages[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "pipeline",
+          "stages": [
+            {
+              "label": "Plan"
+            },
+            {
+              "label": "Build"
+            },
+            {
+              "label": "Review"
+            },
+            {
+              "label": "Ship"
+            }
+          ]
+        },
+        "header": "The *process*",
+        "scene": "The *process*"
+      }
+    },
+    {
+      "id": "blueprint.t2.timeline",
+      "kind": "timeline",
+      "tier": "t2",
+      "purpose": "process",
+      "treatment": "milestones",
+      "added": true,
+      "summary": "Dated milestones on a track that fills as each is named. Across for four, down for more.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            6
+          ]
+        },
+        {
+          "name": "items[].date",
+          "type": "text",
+          "max": 8
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 20
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "timeline",
+          "items": [
+            {
+              "date": "Step 1",
+              "text": "Sample start"
+            },
+            {
+              "date": "Step 2",
+              "text": "Sample beta"
+            },
+            {
+              "date": "Step 3",
+              "text": "Sample launch"
+            },
+            {
+              "date": "Step 4",
+              "text": "*Today*"
+            }
+          ]
+        },
+        "header": "How we *got* here",
+        "scene": "How we *got* here"
+      }
+    },
+    {
+      "id": "blueprint.t2.levels",
+      "kind": "levels",
+      "tier": "t2",
+      "purpose": "structure",
+      "treatment": "layers",
+      "added": true,
+      "summary": "A stack of layers built from the bottom up; each drops onto the stack on its word.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            5
+          ],
+          "note": "the first item is the foundation"
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 22
+        },
+        {
+          "name": "items[].note",
+          "type": "text",
+          "max": 8,
+          "optional": true
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "levels",
+          "items": [
+            {
+              "text": "Sample base",
+              "note": "layer"
+            },
+            {
+              "text": "Sample middle",
+              "note": "layer"
+            },
+            {
+              "text": "Sample top",
+              "note": "layer"
+            },
+            {
+              "text": "The *app*",
+              "note": "you"
+            }
+          ]
+        },
+        "header": "The *stack*",
+        "scene": "The *stack*"
+      }
+    },
+    {
+      "id": "blueprint.t2.agenda",
+      "kind": "agenda",
+      "tier": "t2",
+      "purpose": "overview",
+      "treatment": "agenda",
+      "added": true,
+      "summary": "A table of contents shown dim up front, an open loop; each part lights on its word.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            5
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 24
+        },
+        {
+          "name": "items[].note",
+          "type": "text",
+          "max": 6,
+          "optional": true
+        },
+        {
+          "name": "active",
+          "type": "number",
+          "optional": true
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "agenda",
+          "items": [
+            {
+              "text": "Sample setup",
+              "note": "0:10"
+            },
+            {
+              "text": "Sample *workflow*",
+              "note": "0:25"
+            },
+            {
+              "text": "Sample results",
+              "note": "0:40"
+            }
+          ]
+        },
+        "header": "In this *video*",
+        "scene": "Coming *up*"
+      }
+    },
+    {
+      "id": "blueprint.t2.checklist",
+      "kind": "checklist",
+      "tier": "t2",
+      "purpose": "list",
+      "treatment": "checklist",
+      "added": true,
+      "summary": "Boxes that tick as each item is said.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 32,
+          "optional": true
+        },
+        {
+          "name": "items",
+          "type": "list",
+          "count": [
+            2,
+            6
+          ]
+        },
+        {
+          "name": "items[].text",
+          "type": "richtext",
+          "max": 26
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "checklist",
+          "items": [
+            {
+              "text": "Sample item one"
+            },
+            {
+              "text": "Sample item two"
+            },
+            {
+              "text": "Sample item three"
+            },
+            {
+              "text": "Sample item four"
+            }
+          ]
+        },
+        "header": "Before you *ship*",
+        "scene": "Before you *ship*"
+      }
+    },
+    {
+      "id": "blueprint.t2.flow",
+      "kind": "flow",
+      "tier": "t2",
+      "purpose": "structure",
+      "treatment": "diagram",
+      "summary": "How parts talk: cards joined by lines that draw, a chip riding along what is passed.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "nodes",
+          "type": "list",
+          "count": [
+            2,
+            4
+          ]
+        },
+        {
+          "name": "nodes[].title",
+          "type": "richtext",
+          "max": 18
+        },
+        {
+          "name": "nodes[].kicker",
+          "type": "text",
+          "max": 14,
+          "optional": true
+        },
+        {
+          "name": "nodes[].lines",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "edges[].chip",
+          "type": "text",
+          "max": 14,
+          "optional": true
+        },
+        {
+          "name": "nodes[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "flow",
+          "root": false,
+          "nodes": [
+            {
+              "title": "Planner",
+              "kicker": "Sample",
+              "lines": []
+            },
+            {
+              "title": "*Builder*",
+              "kicker": "Sample",
+              "lines": []
+            }
+          ],
+          "edges": [
+            {
+              "from": 0,
+              "to": 1,
+              "chip": "plan.md"
+            }
+          ]
+        },
+        "header": "How it *works*",
+        "scene": "How it *works*"
+      }
+    },
+    {
+      "id": "blueprint.t2.terminal",
+      "kind": "terminal",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "terminal",
+      "summary": "A terminal that types each line on its spoken word. Real commands only.",
+      "layouts": [
+        "split",
+        "media",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "max": 24,
+          "optional": true
+        },
+        {
+          "name": "lines",
+          "type": "list",
+          "count": [
+            1,
+            5
+          ]
+        },
+        {
+          "name": "lines[].text",
+          "type": "text",
+          "max": 32,
+          "note": "start with > for output"
+        },
+        {
+          "name": "lines[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "terminal",
+          "title": "sample",
+          "lines": [
+            {
+              "text": "npm run sample"
+            },
+            {
+              "text": "> Illustration output"
+            }
+          ]
+        },
+        "header": "Run *it*",
+        "scene": "Run *it*"
+      }
+    },
+    {
+      "id": "blueprint.t2.prompt",
+      "kind": "prompt",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "chat-input",
+      "summary": "A plain chat input where a prompt types itself out on its word.",
+      "layouts": [
+        "split",
+        "media",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "app",
+          "type": "text",
+          "max": 16
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "max": 120
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "prompt",
+          "app": "Sample app",
+          "text": "Write a sample prompt that types itself out."
+        },
+        "header": "The *prompt*",
+        "scene": "The *prompt*"
+      }
+    },
+    {
+      "id": "blueprint.overlay.lower",
+      "kind": "lower",
+      "tier": "overlay",
+      "purpose": "lower-third",
+      "summary": "A lower third: a serif name or point, a sans line under it, a short rule. No box.",
+      "layouts": [
+        "over"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "richtext",
+          "max": 36
+        },
+        {
+          "name": "sub",
+          "type": "text",
+          "max": 56,
+          "optional": true
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "lower",
+          "title": "Sample *name*",
+          "sub": "Sample role or point, illustration"
+        },
+        "header": "",
+        "scene": ""
+      }
+    }
+  ]
+}

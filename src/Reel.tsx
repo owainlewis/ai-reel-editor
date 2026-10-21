@@ -7,6 +7,7 @@ import { clamp, ease, HEADER, MEDIA, splitGeom, t, W, H } from "./theme";
 import { Accented, VisualView } from "./Visuals";
 import { Blueprint, funnelCardBox, gridTileBox, headlineSize, pal, SCENE, SceneCanvas, SoftAccented, typeInputBox, type Box } from "./soft";
 import { cameraEase, TRANSITION } from "./camera";
+import { style } from "./style";
 import type { Resolved, ResolvedShot } from "./schema";
 
 // The header is large on the first shot (the on-screen hook in frame 1), then docks small.
@@ -16,17 +17,18 @@ const headerSize = (first: boolean) => (first ? { font: 72, height: 190 } : { fo
 const panel = (s: ResolvedShot, r: Resolved, first: boolean) => {
   if (s.layout === "scene") return s.header ? { top: SCENE.top, height: SCENE.bottom - SCENE.top } : { top: 200, height: SCENE.bottom - 200 };
   // Breathing room: a gap above the seam so the graphic never runs into the speaker's half.
-  const bottom = (s.layout === "split" ? splitGeom(r.split).panelBottom : MEDIA.panelBottom) - 20;
+  const bottom = (s.layout === "split" ? splitGeom(r.split).panelBottom : MEDIA.panelBottom) - style.space.seamGap;
   const top = s.header ? HEADER.top + headerSize(first).height + 30 : 150;
   return { top, height: bottom - top };
 };
 // Side margins for split and media panels: 90 px, wider than the 60 px edge of a scene.
-export const PANEL_X = 90;
+export const PANEL_X = style.space.panelX;
+const SCENE_X = style.space.sceneX;
 
-// Quiet paper canvas: warm off-white with a faint dot grid.
-const Canvas: React.FC = () => (
-  <AbsoluteFill style={{ background: t.canvas }}>
-    <Blueprint tone="light" margin={PANEL_X} />
+// Quiet paper canvas with the blueprint layer. Paper unless the shot asks for graphite.
+const Canvas: React.FC<{ tone: "light" | "dark" }> = ({ tone }) => (
+  <AbsoluteFill style={{ background: pal(tone).bg }}>
+    <Blueprint tone={tone} margin={PANEL_X} />
   </AbsoluteFill>
 );
 
@@ -34,7 +36,7 @@ const Canvas: React.FC = () => (
 const headerWords = (text: string) =>
   text.split(/(\*[^*]+\*)/).flatMap((part) => (part.startsWith("*") ? [part] : part.split(/\s+/).filter(Boolean)));
 
-const Header: React.FC<{ text: string; first: boolean; time: number; start: number; animate: boolean }> = ({ text, first, time, start, animate }) => {
+const Header: React.FC<{ text: string; first: boolean; time: number; start: number; animate: boolean; tone: "light" | "dark" }> = ({ text, first, time, start, animate, tone }) => {
   const size = headerSize(first);
   // Visible from the very first frame; it only settles a few pixels as it lands.
   const settle = interpolate(time, [start, start + 0.3], [10, 0], { ...clamp, easing: ease });
@@ -58,7 +60,7 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
         fontSize: size.font,
         lineHeight: 1.04,
         letterSpacing: -size.font * 0.03,
-        color: t.ink,
+        color: pal(tone).ink,
         textWrap: "balance",
       }}
     >
@@ -90,8 +92,8 @@ const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark
       key={key}
       style={{
         position: "absolute",
-        left: 70,
-        right: 70,
+        left: style.space.headlineX,
+        right: style.space.headlineX,
         top: SCENE.headTop,
         height: SCENE.headHeight,
         display: "flex",
@@ -152,8 +154,8 @@ const SceneLayer: React.FC<{ r: Resolved; i: number; time: number; grade: string
       <SceneCanvas tone={tone} time={time} />
       {s.visual && (
         <Sequence from={from} durationInFrames={dur} name={`${head + 1} scene ${s.visual.kind}`}>
-          <div style={{ position: "absolute", left: 60, width: W - 120, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center", color: pal(tone).ink }}>
-            <VisualView slug={r.slug} shot={s} time={time} w={W - 120} h={box.height} v={s.visual} filter={grade} />
+          <div style={{ position: "absolute", left: SCENE_X, width: W - SCENE_X * 2, top: box.top, height: box.height, display: "flex", alignItems: "center", justifyContent: "center", color: pal(tone).ink }}>
+            <VisualView slug={r.slug} shot={s} time={time} w={W - SCENE_X * 2} h={box.height} v={s.visual} filter={grade} />
           </div>
         </Sequence>
       )}
@@ -183,9 +185,9 @@ const enterBox = (r: Resolved, i: number): Box | undefined => {
   const s = { ...r.shots[head], end: r.shots[last].end };
   if (!s.visual || s.layout !== "scene") return undefined;
   const box = panel(s, r, head === 0);
-  const w = W - 120;
+  const w = W - SCENE_X * 2;
   const local = e.from === "tile" ? gridTileBox(s.visual, w, box.height, e.index) : e.from === "card" ? funnelCardBox(s.visual, w, box.height) : typeInputBox(s.visual, w, box.height);
-  return local && { ...local, x: local.x + 60, y: local.y + box.top };
+  return local && { ...local, x: local.x + SCENE_X, y: local.y + box.top };
 };
 
 // A shared-element transition: the next scene grows out of an element of the last one. The
@@ -219,7 +221,7 @@ export const Reel: React.FC<Resolved> = (r) => {
 
   return (
     <AbsoluteFill style={{ background: t.canvas }}>
-      {onCanvas && <Canvas />}
+      {onCanvas && <Canvas tone={shot.tone ?? "light"} />}
       <Speaker r={r} shot={shot} time={time} />
       {scene &&
         (grow ? (
@@ -267,7 +269,7 @@ export const Reel: React.FC<Resolved> = (r) => {
         );
       })}
 
-      {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={r.shots[since].start} animate={since > 0} />}
+      {onCanvas && shot.header && <Header text={shot.header} first={index === 0} time={time} start={r.shots[since].start} animate={since > 0} tone={shot.tone ?? "light"} />}
       <Captions r={r} shot={shot} time={time} />
       {r.audio && <Audio src={staticFile(r.audio)} />}
     </AbsoluteFill>

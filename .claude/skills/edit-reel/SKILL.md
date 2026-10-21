@@ -86,6 +86,7 @@ Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb
 - Every list item, step and logo gets its own `at` so it lands on its word.
 - Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual, cutaway for b-roll edge to edge.
 - A graphic shows the example or relationship. It does not repeat the caption.
+- **Pick graphics from the card catalog** (`styles/blueprint/style.json`, or `npm run reel -- styles` for the list; the "Picking a card" table in `styles/blueprint/DESIGN.md` maps a line to a card). Fill each card's slots with real content and keep every slot under its `max`: the card is sized and tested for that length, and `validate` warns past it. Reach past text cards: a number gets `stat`, `kpi` or `chart`; a sequence `pipeline` or `timeline`; layers `levels`; a trade-off `matrix`; a feature set `bento`.
 - `accents`: four to six words in the whole reel, the ones that carry the meaning.
 
 ### Framing captures
@@ -95,6 +96,8 @@ For `image` visuals, `from` and `to` are rectangles `[x, y, w, h]` in 0 to 1 ima
 - End tight. `validate` warns when page text would be too small to read on a phone.
 - Use `highlight` with an `at` to sweep a marker over the exact words being spoken. Add a `label` for a callout tag.
 - The rect is the region that must stay visible; the camera widens it to the panel's shape with the page around it. You don't need to match the panel's proportions.
+
+Before a new card kind or a style change lands in a reel, Owain reviews it in the style lab (`npm run reel -- review`, then "Blueprint style lab"); `npm run reel -- styles feedback` prints his notes and `npm run reel -- styles stills` renders a contact sheet of every card.
 
 ## 5. Check before rendering
 

@@ -13,6 +13,9 @@
 //   npm run reel -- check <slug>
 //   npm run reel -- review [slug] [--no-open]   the review board: watch and note each shot
 //   npm run reel -- feedback <slug>             the open notes from the review board
+//   npm run reel -- styles [--write]            the Blueprint card catalog (--write updates style.json)
+//   npm run reel -- styles stills               contact sheet of every card, light and dark
+//   npm run reel -- styles feedback             the open notes from the style lab
 //   npm run reel -- index                 split broll/ files into shots, update broll/index.json
 //   npm run reel -- broll [words...]      list library clips, best matches first
 import { createHash } from "node:crypto";
@@ -28,6 +31,7 @@ import { indexLibrary, listLibrary, useClip } from "./broll.ts";
 import { compositionFor } from "../src/canvas.ts";
 import { formatFeedback } from "../review/model.ts";
 import { loadReel } from "../review/store.ts";
+import { blueprint, cards, slotIssues } from "../styles/blueprint/style.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FPS = 30;
@@ -402,7 +406,9 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   const seen = new Set<string>();
   for (const s of shots) {
     const v = s.visual;
-    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
+    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" || v.kind === "logowall" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
+    // The style's cards are sized for their slots' max lengths.
+    if (v && !s.keep) for (const m of slotIssues(v)) issues.push({ level: "warn", message: `"${s.anchor}": ${m}` });
     for (const src of srcs) if (!existsSync(join(dir, src))) issues.push({ level: "error", message: `missing asset ${src}` });
     if (v?.kind === "image" && existsSync(join(dir, v.src))) {
       const size = imageSize(join(dir, v.src));
@@ -579,6 +585,26 @@ function cmdFeedback(slug: string) {
   if (moved.length) console.log(`\nSince the last review: ${moved.join(", ")}. These wait for Owain.`);
 }
 
+// The style library: list the catalog, write style.json, render a contact sheet, print the lab's notes.
+async function cmdStyles(sub?: string) {
+  const dir = join(ROOT, "styles", blueprint.id);
+  if (sub === "stills") {
+    const { renderCardSheet } = await import("./stylesheet.ts");
+    return renderCardSheet(ROOT, join(dir, "checks"));
+  }
+  if (sub === "feedback") {
+    const { loadStyleReview, formatStyleFeedback } = await import("../review/styles.ts");
+    return console.log(formatStyleFeedback(loadStyleReview(dir).review));
+  }
+  if (has("write")) {
+    writeJson(join(dir, "style.json"), blueprint);
+    console.log(`Wrote ${join(dir, "style.json")}`);
+  }
+  console.log(`${blueprint.name} (${blueprint.id}): ${cards.length} cards\n`);
+  for (const c of cards) console.log(`  ${c.id.padEnd(30)} ${c.kind.padEnd(12)} ${c.layouts.join(",").padEnd(30)} ${c.added ? "new  " : "     "}${c.summary}`);
+  console.log(`\nStyle lab: npm run reel -- review, then Style lab. Slots and maxes: styles/${blueprint.id}/style.json`);
+}
+
 async function main() {
   const [, slug, third] = positional;
   switch (cmd) {
@@ -595,10 +621,11 @@ async function main() {
     case "check": return cmdCheck(slug);
     case "review": return cmdReview(slug);
     case "feedback": return cmdFeedback(slug);
+    case "styles": return cmdStyles(slug);
     case "index": return void indexLibrary(ROOT);
     case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
-      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 17).join("\n"));
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 20).join("\n"));
   }
 }
 

@@ -1,6 +1,6 @@
 // Turn an edit plan plus a word-timed transcript into exact times.
 // Pure functions, so they are easy to test.
-import type { Chunk, EditPlan, ResolvedShot, SfxEvent, Word } from "../src/schema.ts";
+import type { Chunk, EditPlan, ResolvedShot, SfxEvent, VisualSpec, Word } from "../src/schema.ts";
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}']+/gu, "");
 
@@ -23,6 +23,39 @@ export type Issue = { level: "error" | "warn"; message: string };
 
 // Shot boundaries sit exactly on frames, so the layout and its visual always switch on the same frame.
 const snap = (t: number, fps: number) => Math.round(t * fps) / fps;
+
+// The spoken anchors inside a visual, in the order its parts reveal. `times` in the resolved plan
+// follows this order, one time per anchor (an unanchored part cascades in after the shot starts).
+export const visualAnchors = (v: VisualSpec): (string | undefined)[] => {
+  switch (v.kind) {
+    case "list":
+    case "steps":
+    case "agenda":
+    case "levels":
+    case "checklist":
+    case "matrix":
+    case "timeline":
+      return v.items.map((it) => it.at);
+    case "terminal": return v.lines.map((it) => it.at);
+    case "logos": return v.items.map((it) => it.at);
+    case "image": return v.highlight.map((h) => h.at);
+    case "compare": return [v.right.at];
+    case "beforeafter": return [v.after.at];
+    case "prompt":
+    case "quote":
+    case "logowall":
+      return [v.at];
+    case "chart": return v.points.map((pt) => pt.at);
+    case "kpi": return v.items.map((it) => it.at);
+    case "bento": return v.cells.map((c) => c.at);
+    case "pipeline": return v.stages.map((st) => st.at);
+    case "flow": return [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)];
+    case "grid": return [v.at, ...v.groups.map((g) => g.at)];
+    case "funnel": return [...v.items.map((it) => it.at), v.at, ...v.target.lines.map((l) => l.at)];
+    case "type": return [v.at, v.settle, ...v.chips.map((c) => c.at)];
+    default: return [];
+  }
+};
 
 export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fps = 30) => {
   const issues: Issue[] = [];
@@ -58,30 +91,7 @@ export const resolveShots = (plan: EditPlan, words: Word[], duration: number, fp
     }
     const v = shot.visual;
     if (!v) continue;
-    const anchors: (string | undefined)[] =
-      v.kind === "list" || v.kind === "steps" || v.kind === "terminal"
-        ? (v.kind === "terminal" ? v.lines : v.items).map((it) => it.at)
-        : v.kind === "logos"
-          ? v.items.map((it) => it.at)
-          : v.kind === "image"
-            ? v.highlight.map((h) => h.at)
-            : v.kind === "compare"
-              ? [v.right.at]
-              : v.kind === "prompt"
-                ? [v.at]
-                : v.kind === "chart"
-                  ? v.points.map((pt) => pt.at)
-                  : v.kind === "pipeline"
-                    ? v.stages.map((st) => st.at)
-                    : v.kind === "flow"
-                  ? [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)]
-                  : v.kind === "grid"
-                    ? [v.at, ...v.groups.map((g) => g.at)]
-                    : v.kind === "funnel"
-                      ? [...v.items.map((it) => it.at), v.at, ...v.target.lines.map((l) => l.at)]
-                      : v.kind === "type"
-                        ? [v.at, v.settle, ...v.chips.map((c) => c.at)]
-                        : [];
+    const anchors = visualAnchors(v);
     if (!anchors.length) continue;
     let from = shot.index;
     // A flow's edges are searched from the shot's start again, so they can interleave with its nodes.

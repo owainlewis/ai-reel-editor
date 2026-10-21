@@ -30,7 +30,10 @@ export const Library: React.FC = () => {
         <h1>
           Review <span className="accent">board</span>
         </h1>
-        <span className="muted">{rows ? `${rows.length} reels` : ""}</span>
+        <span className="muted">
+          <a href="#/styles/blueprint">Blueprint style lab →</a>
+          {rows ? ` · ${rows.length} reels` : ""}
+        </span>
       </div>
       {rows && !rows.length && <div className="empty">No projects yet. Make one with npm run reel -- script or new.</div>}
       <div className="grid">

@@ -103,3 +103,27 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); 
 .board.wide { grid-template-columns: 520px 1fr; }
 .board.wide .card { grid-template-columns: 380px 1fr; }
 @media (max-width: 1100px) { .board.wide { grid-template-columns: 1fr; } .board.wide .card { grid-template-columns: 1fr; } }
+
+/* Style lab */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.ghost.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.lab-note { font-size: 12px; margin-left: auto; }
+.lab { max-width: 1400px; margin: 0 auto; padding: 24px 28px 120px; display: flex; flex-direction: column; gap: 18px; }
+.lab-notes textarea { min-height: 56px; }
+.lab-card { display: block; scroll-margin-top: 130px; }
+.lab-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lab-head h2 { margin: 0 8px 0 0; font-size: 20px; letter-spacing: -0.01em; font-family: var(--mono); font-weight: 600; }
+.chip.new { background: #2563eb; color: #fff; border-color: #2563eb; }
+.lab-summary { margin: 0 0 14px; font-size: 15px; color: var(--muted); }
+.lab-players { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.lab-players figure { margin: 0; width: 180px; }
+.lab-players figure.wide { width: 520px; }
+.lab-players figure > div { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.lab-players figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.lab-placeholder { aspect-ratio: 9 / 16; background: var(--paper); }
+.lab-players figure.wide .lab-placeholder { aspect-ratio: 16 / 9; }
+.lab-nosample { font-size: 14px; color: var(--muted); padding: 30px 0; }
+.lab-bottom { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+.slots { border-collapse: collapse; font-size: 12px; width: 100%; }
+.slots td { padding: 3px 10px 3px 0; border-top: 1px solid var(--line); vertical-align: top; }
+@media (max-width: 900px) { .lab-bottom { grid-template-columns: 1fr; } .lab-players figure { width: calc(50% - 7px); } .lab-players figure.wide { width: 100%; } }

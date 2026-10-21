@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createServer as createVite } from "vite";
 import { listProjects, loadReel, saveReview } from "./store.ts";
 import type { Status } from "./model.ts";
+import { loadStyleReview, saveStyleReview } from "./styles.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -90,6 +91,30 @@ export async function startReview(root: string, port = 4317) {
       return;
     }
     if (parts[0] === "projects") return send(res, 200, listProjects(root));
+    // The style lab: the catalog's review, one entry per card, in styles/<style>/review.json.
+    if (parts[0] === "styles" && parts[1]) {
+      if (!/^[\w-]+$/.test(parts[1]) || !existsSync(join(root, "styles", parts[1]))) return send(res, 404, { error: `no style ${parts[1]}` });
+      const dir = join(root, "styles", parts[1]);
+      const current = loadStyleReview(dir);
+      if (req.method === "GET") return send(res, 200, current);
+      if (req.method !== "PUT") return send(res, 405, { error: "method" });
+      const input = await body(req);
+      const review = current.review;
+      if (parts[2] === "notes") review.notes = String(input.text ?? "");
+      else if (parts[2] === "card" && parts[3]) {
+        const card = current.cards.find((c) => c.id === parts[3]);
+        if (!card || card.hash !== input.hash) return send(res, 409, { error: "this card changed; reloading" });
+        const entry = review.cards[card.id];
+        if (input.status !== undefined) {
+          if (!["waiting", "approved", "change"].includes(String(input.status))) return send(res, 400, { error: "bad status" });
+          entry.status = input.status as Status;
+        }
+        if (input.comment !== undefined) entry.comment = String(input.comment);
+        entry.at = new Date().toISOString();
+      } else return send(res, 404, { error: "not found" });
+      saveStyleReview(dir, review);
+      return send(res, 200, { review });
+    }
     if (parts[0] !== "reel" || !parts[1]) return send(res, 404, { error: "not found" });
     const dir = project(parts[1]);
     if (req.method === "GET") {

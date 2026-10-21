@@ -5,14 +5,23 @@ import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
 import { ChartVisual, PipelineVisual } from "./elements";
+import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, QuoteCard, TimelineCard } from "./cards";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
 type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: number; filter?: string; bleed?: boolean };
 type V<K extends ResolvedVisual["kind"]> = Extract<ResolvedVisual, { kind: K }> & { times?: number[]; size?: [number, number] };
 
-const src = (slug: string, p: string) => (/^https?:/.test(p) ? p : staticFile(`${slug}/${p}`));
+// Project files, web URLs, or inline data (the style lab's illustrative samples).
+const src = (slug: string, p: string) => (/^(https?|data):/.test(p) ? p : staticFile(`${slug}/${p}`));
 // 0 to 1 over `dur` seconds from `at`, eased.
 const prog = (time: number, at: number, dur = 0.45) => interpolate(time, [at, at + dur], [0, 1], { ...clamp, easing: ease });
+
+// Colours for a designed graphic in the shot's tone. On paper the hairline and shadow are the split
+// canvas's own (as they always were); on graphite everything comes from the dark tone.
+const surface = (tone?: "light" | "dark") => {
+  const c = pal(tone);
+  return { ...c, canvas: c.bg, line: tone === "dark" ? c.line : t.line, shadow: tone === "dark" ? c.shadow : t.shadow };
+};
 
 // Text with *one accent* set in Signifier italic.
 export const Accented: React.FC<{ text: string }> = ({ text }) => (
@@ -187,6 +196,7 @@ const VideoVisual: React.FC<Props & { v: V<"video"> }> = ({ slug, shot, time, w,
 
 // Official logos on white tiles. Each one lands on its spoken word.
 const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const n = v.items.length;
   // Tiles grow with the panel so logos never float small in empty space.
   const tile = n === 1 ? Math.min(460, h * 0.55) : n === 2 ? Math.min(400, h * 0.42, (w - 48) / 2) : n === 3 ? Math.min(290, (w - 96) / 3) : 210;
@@ -199,16 +209,16 @@ const LogosVisual: React.FC<Props & { v: V<"logos"> }> = ({ slug, shot, time, w,
           const settle = interpolate(time, [at, at + 0.5], [1.12, 1], { ...clamp, easing: ease });
           return (
             <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, opacity: p, translate: `0 ${(1 - p) * 40}px` }}>
-              <div style={{ width: tile, height: tile, borderRadius: tile * 0.22, background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, display: "flex", alignItems: "center", justifyContent: "center", scale: String(settle) }}>
+              <div style={{ width: tile, height: tile, borderRadius: tile * 0.22, background: t.card, boxShadow: c.shadow, border: `1px solid ${c.line}`, display: "flex", alignItems: "center", justifyContent: "center", scale: String(settle) }}>
                 <Img src={src(slug, it.src)} style={{ width: tile * 0.58, height: tile * 0.58, objectFit: "contain" }} />
               </div>
-              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.max(40, tile * 0.15), letterSpacing: -1, color: "inherit" }}>{it.name}</div>}
+              {it.name && <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.max(40, tile * 0.15), letterSpacing: -1, color: c.ink }}>{it.name}</div>}
             </div>
           );
         })}
       </div>
       {v.caption && (
-        <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: 52, color: t.muted, opacity: prog(time, shot.start + 0.3) }}>{v.caption}</div>
+        <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: 52, color: c.muted, opacity: prog(time, shot.start + 0.3) }}>{v.caption}</div>
       )}
     </div>
   );
@@ -259,6 +269,7 @@ const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v 
 
 // Rows that arrive as each item is spoken; the newest is active, earlier ones step back.
 const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const n = v.items.length;
   const times = v.times ?? v.items.map((_, i) => shot.start + i * 0.12);
   const current = v.active ?? Math.max(0, times.filter((x) => time >= x).length - 1);
@@ -266,7 +277,7 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
       {v.title && (
-        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 64, letterSpacing: -2, color: t.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 64, letterSpacing: -2, color: c.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -285,16 +296,16 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
               gap: 34,
               padding: "0 40px",
               borderRadius: 24,
-              background: t.card,
-              border: `1.5px solid ${on ? t.ink : t.line}`,
-              boxShadow: on ? t.shadow : "none",
+              background: c.card,
+              border: `1.5px solid ${on ? c.ink : c.line}`,
+              boxShadow: on ? c.shadow : "none",
               opacity: v.preview ? 0.3 + 0.7 * (on ? 1 : arrived * 0.6) : p * (on ? 1 : 0.55),
               filter: v.preview ? `blur(${(1 - arrived) * 4}px)` : undefined,
               translate: `${(1 - p) * 80}px 0`,
             }}
           >
-            <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: rowH * 0.5, color: on ? t.accent : t.faint, width: rowH * 0.4 }}>{i + 1}</div>
-            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.min(68, rowH * 0.36), letterSpacing: -1.5, color: t.ink }}>
+            <div style={{ fontFamily: t.serif, fontStyle: "italic", fontSize: rowH * 0.5, color: on ? c.accent : c.faint, width: rowH * 0.4 }}>{i + 1}</div>
+            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: Math.min(68, rowH * 0.36), letterSpacing: -1.5, color: c.ink }}>
               <Accented text={it.text} />
             </div>
           </div>
@@ -306,13 +317,14 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
 
 // A process: nodes join by a line that draws as each step is spoken.
 const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const n = v.items.length;
   const times = v.times ?? v.items.map((_, i) => shot.start + i * 0.3);
   const gap = Math.min(250, (h - (v.title ? 140 : 0)) / n);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 30 }}>
       {v.title && (
-        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 84, letterSpacing: -3, color: t.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 84, letterSpacing: -3, color: c.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -324,13 +336,13 @@ const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v 
           return (
             <React.Fragment key={i}>
               {i < n - 1 && (
-                <div style={{ position: "absolute", left: dot / 2 - 1.5, top: i * gap + dot, width: 3, height: gap - dot, background: t.ink, scale: `1 ${line}`, transformOrigin: "top" }} />
+                <div style={{ position: "absolute", left: dot / 2 - 1.5, top: i * gap + dot, width: 3, height: gap - dot, background: c.ink, scale: `1 ${line}`, transformOrigin: "top" }} />
               )}
               <div style={{ position: "absolute", top: i * gap, left: 0, display: "flex", alignItems: "center", gap: 36, opacity: 0.25 + 0.75 * p }}>
-                <div style={{ width: dot, height: dot, borderRadius: dot, border: `3px solid ${t.ink}`, background: p > 0.5 ? t.ink : t.canvas, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.serif, fontStyle: "italic", fontSize: 38, color: p > 0.5 ? t.canvas : t.ink }}>
+                <div style={{ width: dot, height: dot, borderRadius: dot, border: `3px solid ${c.ink}`, background: p > 0.5 ? c.ink : c.canvas, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.serif, fontStyle: "italic", fontSize: 38, color: p > 0.5 ? c.canvas : c.ink }}>
                   {i + 1}
                 </div>
-                <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 70, letterSpacing: -2, color: t.ink, translate: `${(1 - p) * 40}px 0` }}>
+                <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 70, letterSpacing: -2, color: c.ink, translate: `${(1 - p) * 40}px 0` }}>
                   <Accented text={it.text} />
                 </div>
               </div>
@@ -344,15 +356,16 @@ const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v 
 
 // Old way against new way. When the new way lands, the old one is struck through.
 const CompareVisual: React.FC<Props & { v: V<"compare"> }> = ({ shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const rightAt = v.times?.[0] ?? shot.start + 0.6;
   const pl = prog(time, shot.start, 0.45);
   const pr = prog(time, rightAt, 0.5);
   const card = (label: string, text: string, p: number, right: boolean) => (
-    <div style={{ flex: 1, height: h * 0.8, borderRadius: 28, padding: 44, background: t.card, border: `1.5px solid ${right ? t.ink : t.line}`, boxShadow: right ? t.shadow : "none", display: "flex", flexDirection: "column", justifyContent: "space-between", opacity: p, translate: `0 ${(1 - p) * 50}px` }}>
-      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 28, letterSpacing: 5, textTransform: "uppercase", color: t.muted }}>{label}</div>
-      <div style={{ position: "relative", fontFamily: right ? t.serif : t.sans, fontStyle: right ? "italic" : "normal", fontWeight: right ? 400 : 700, fontSize: right ? 84 : 68, lineHeight: 1.02, letterSpacing: right ? -1 : -1.5, color: right ? t.ink : t.muted }}>
+    <div style={{ flex: 1, height: h * 0.8, borderRadius: 28, padding: 44, background: c.card, border: `1.5px solid ${right ? c.ink : c.line}`, boxShadow: right ? c.shadow : "none", display: "flex", flexDirection: "column", justifyContent: "space-between", opacity: p, translate: `0 ${(1 - p) * 50}px` }}>
+      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 28, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{label}</div>
+      <div style={{ position: "relative", fontFamily: right ? t.serif : t.sans, fontStyle: right ? "italic" : "normal", fontWeight: right ? 400 : 700, fontSize: right ? 84 : 68, lineHeight: 1.02, letterSpacing: right ? -1 : -1.5, color: right ? c.ink : c.muted }}>
         {text}
-        {!right && <div style={{ position: "absolute", left: -6, right: -6, top: "52%", height: 5, background: t.ink, scale: `${pr} 1`, transformOrigin: "left" }} />}
+        {!right && <div style={{ position: "absolute", left: -6, right: -6, top: "52%", height: 5, background: c.ink, scale: `${pr} 1`, transformOrigin: "left" }} />}
       </div>
     </div>
   );
@@ -365,6 +378,7 @@ const CompareVisual: React.FC<Props & { v: V<"compare"> }> = ({ shot, time, w, h
 };
 
 const StatVisual: React.FC<Props & { v: V<"stat"> }> = ({ shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const m = v.value.match(/^([^\d]*)([\d,.]+)(.*)$/);
   const p = prog(time, shot.start, 0.9);
   let shown = v.value;
@@ -375,9 +389,9 @@ const StatVisual: React.FC<Props & { v: V<"stat"> }> = ({ shot, time, w, h, v })
   }
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
-      <div style={{ fontFamily: t.serif, fontSize: v.value.length > 6 ? 220 : 300, lineHeight: 0.9, letterSpacing: -8, color: t.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
-      <div style={{ width: 160, height: 3, background: t.ink, scale: `${prog(time, shot.start + 0.3, 0.6)} 1`, transformOrigin: "left" }} />
-      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 52, letterSpacing: -1, color: t.muted, opacity: prog(time, shot.start + 0.2) }}>
+      <div style={{ fontFamily: t.serif, fontSize: v.value.length > 6 ? 220 : 300, lineHeight: 0.9, letterSpacing: -8, color: c.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
+      <div style={{ width: 160, height: 3, background: c.ink, scale: `${prog(time, shot.start + 0.3, 0.6)} 1`, transformOrigin: "left" }} />
+      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 52, letterSpacing: -1, color: c.muted, opacity: prog(time, shot.start + 0.2) }}>
         <Accented text={v.label} />
       </div>
     </div>
@@ -420,6 +434,7 @@ const TerminalVisual: React.FC<Props & { v: V<"terminal"> }> = ({ shot, time, w,
 
 // A chat input where a prompt types itself out, like the real app.
 const PromptVisual: React.FC<Props & { v: V<"prompt"> }> = ({ shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const at = v.times?.[0] ?? shot.start + 0.2;
   const typed = Math.floor(Math.max(0, (time - at) * 32));
   const shown = v.text.slice(0, typed);
@@ -427,14 +442,14 @@ const PromptVisual: React.FC<Props & { v: V<"prompt"> }> = ({ shot, time, w, h, 
   const enter = prog(time, shot.start, 0.35);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36, translate: `0 ${(1 - enter) * 30}px` }}>
-      <div style={{ fontFamily: t.serif, fontSize: 64, color: t.ink, textAlign: "center" }}>{v.app}</div>
-      <div style={{ borderRadius: 32, background: t.card, border: `1.5px solid ${t.line}`, boxShadow: t.shadow, padding: "36px 40px 28px", display: "flex", flexDirection: "column", gap: 28 }}>
-        <div style={{ minHeight: 120, fontFamily: t.sans, fontSize: 46, lineHeight: 1.3, color: t.ink, whiteSpace: "pre-wrap" }}>
-          {shown || <span style={{ color: t.faint }}>Reply to {v.app}...</span>}
-          {!done && Math.floor(time * 2.5) % 2 === 0 && <span style={{ borderLeft: `3px solid ${t.ink}`, marginLeft: 2 }} />}
+      <div style={{ fontFamily: t.serif, fontSize: 64, color: c.ink, textAlign: "center" }}>{v.app}</div>
+      <div style={{ borderRadius: 32, background: c.card, border: `1.5px solid ${c.line}`, boxShadow: c.shadow, padding: "36px 40px 28px", display: "flex", flexDirection: "column", gap: 28 }}>
+        <div style={{ minHeight: 120, fontFamily: t.sans, fontSize: 46, lineHeight: 1.3, color: c.ink, whiteSpace: "pre-wrap" }}>
+          {shown || <span style={{ color: c.faint }}>Reply to {v.app}...</span>}
+          {!done && Math.floor(time * 2.5) % 2 === 0 && <span style={{ borderLeft: `3px solid ${c.ink}`, marginLeft: 2 }} />}
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: done ? t.accent : t.faint, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: 36 }}>↑</div>
+          <div style={{ width: 64, height: 64, borderRadius: 18, background: done ? c.accent : c.faint, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.sans, fontWeight: 700, fontSize: 36 }}>↑</div>
         </div>
       </div>
     </div>
@@ -443,16 +458,17 @@ const PromptVisual: React.FC<Props & { v: V<"prompt"> }> = ({ shot, time, w, h, 
 
 // The end card: what to comment, what they get, and the resource itself when there is one.
 const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, v }) => {
+  const c = surface(shot.tone);
   const a = prog(time, shot.start, 0.4);
   const b = prog(time, shot.start + 0.15, 0.5);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 34 }}>
-      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: v.src ? 96 : 128, letterSpacing: -3, color: t.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
+      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: v.src ? 96 : 128, letterSpacing: -3, color: c.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
         Comment <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -1 }}>“{v.keyword}”</span>
       </div>
-      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: v.src ? 46 : 60, color: t.muted, textAlign: "center", opacity: a }}>{v.text}</div>
+      <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: v.src ? 46 : 60, color: c.muted, textAlign: "center", opacity: a }}>{v.text}</div>
       {v.src && (
-        <div style={{ width: w * 0.86, height: h * 0.5, borderRadius: 26, overflow: "hidden", background: t.card, boxShadow: t.shadow, border: `1px solid ${t.line}`, opacity: b, translate: `0 ${(1 - b) * 40}px` }}>
+        <div style={{ width: w * 0.86, height: h * 0.5, borderRadius: 26, overflow: "hidden", background: c.card, boxShadow: c.shadow, border: `1px solid ${c.line}`, opacity: b, translate: `0 ${(1 - b) * 40}px` }}>
           <Img src={src(slug, v.src)} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
         </div>
       )}
@@ -702,5 +718,15 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "lower": return null;
     case "chart": return <ChartVisual {...p} v={v} />;
     case "pipeline": return <PipelineVisual {...p} v={v} />;
+    case "agenda": return <AgendaCard {...p} v={v} />;
+    case "beforeafter": return <BeforeAfterCard {...p} v={v} />;
+    case "kpi": return <KpiCard {...p} v={v} />;
+    case "matrix": return <MatrixCard {...p} v={v} />;
+    case "timeline": return <TimelineCard {...p} v={v} />;
+    case "levels": return <LevelsCard {...p} v={v} />;
+    case "checklist": return <ChecklistCard {...p} v={v} />;
+    case "quote": return <QuoteCard {...p} v={v} />;
+    case "logowall": return <LogowallCard {...p} v={v} />;
+    case "bento": return <BentoCard {...p} v={v} />;
   }
 };

@@ -24,6 +24,17 @@ Owain edits the rough cut by hand. The plan only lays graphics and text over it,
 
 About one graphic every 20 to 60 seconds. Graphics hold 4 to 12 seconds and build with reveals or `keep`. No word captions unless `"captions": true`. `validate` checks these.
 
+## Style library
+
+The look is a named style with a card catalog, modelled on herk-edit-kit's style library. The first is **Blueprint**, in `styles/blueprint/`:
+
+- `tokens.ts`: palette, type, spacing, grid and motion in one place. Components read them through `src/style.ts`; swapping a style is swapping that module.
+- `DESIGN.md`: the spec, how to pick a card for a line, and what not to do.
+- `style.ts` and `style.json`: every visual kind as a card (`blueprint.t1.stat`, `blueprint.t2.kpi`, `blueprint.overlay.lower`), with its tier, purpose, layouts and slots with max lengths. `t1` is a full-frame scene, `t2` sits beside the speaker, `overlay` sits over the picture.
+- The style lab on the review board plays every card live, light and dark, split and scene, with Approve / Change and a note per card (`styles/blueprint/review.json`, printed by `npm run reel -- styles feedback`).
+
+Pick graphics from the catalog and keep slots under their max. New in Blueprint: `agenda`, `beforeafter`, `kpi`, `matrix`, `timeline`, `levels`, `checklist`, `quote`, `logowall`, `bento`.
+
 ## Look: light editorial
 
 - Cool paper canvas (`#ECEEF1`) with a faint dot grid. Ink black type. One clean blue (`#2563EB`) for accents and highlights.
@@ -87,7 +98,7 @@ Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run
 1. The user's own b-roll (`broll/` library) or footage of the real thing. B-roll sets mood; it never stands in for evidence.
 2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
 3. Official logos, on white tiles, each landing on its spoken name.
-4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+4. Designed graphics, from the card catalog (`styles/blueprint/style.json`): `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`, and the Blueprint cards (`kpi`, `timeline`, `levels`, `matrix`, `bento` and the rest). Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
 
 Data and structure, not only text: when a line has numbers, use `chart` (bar for a few categories, line for change over time; the end value labelled big, a `source` line always); when it has a sequence, use `pipeline` (stages light as they are named) or `steps`; when one thing feeds several, use `flow` with `root`. Give each graphic room: one per panel, generous margins, nothing touching the seam.
 

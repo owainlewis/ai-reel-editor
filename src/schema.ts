@@ -101,6 +101,67 @@ export const Visual = z.discriminatedUnion("kind", [
     at: Anchor.optional(),
     target: z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(Item).default([]) }),
   }),
+  // ---- Blueprint card kinds (see styles/blueprint/DESIGN.md and the catalog in styles/blueprint/style.ts) ----
+  // A table of contents: every part shows dimmed from the start, an open loop, and each lights on its
+  // word. `note` is a short tag on the right (a duration, a count). `active` lights one, for a callback.
+  z.object({
+    kind: z.literal("agenda"),
+    title: z.string().optional(),
+    items: z.array(z.object({ text: z.string(), note: z.string().optional(), at: Anchor.optional() })).min(2).max(5),
+    active: z.number().optional(),
+  }),
+  // Two states of one thing: the old one lands, then the new one on `at` takes the accent and the old dims.
+  // Values are real (a measured time, a real count) or the reel says it is an illustration.
+  z.object({
+    kind: z.literal("beforeafter"),
+    before: z.object({ label: z.string().default("Before"), value: z.string(), text: z.string().optional() }),
+    after: z.object({ label: z.string().default("After"), value: z.string(), text: z.string().optional(), at: Anchor.optional() }),
+  }),
+  // A row of key numbers that count up on their words. `source` is required, like a chart's.
+  z.object({
+    kind: z.literal("kpi"),
+    title: z.string().optional(),
+    items: z.array(z.object({ value: z.string(), label: z.string(), at: Anchor.optional() })).min(2).max(4),
+    highlight: z.number().optional(),
+    source: z.string(),
+  }),
+  // A 2x2: two axes draw from the centre, and items land in their quadrants on their words.
+  z.object({
+    kind: z.literal("matrix"),
+    title: z.string().optional(),
+    x: z.tuple([z.string(), z.string()]),
+    y: z.tuple([z.string(), z.string()]),
+    items: z.array(z.object({ text: z.string(), quad: z.enum(["tl", "tr", "bl", "br"]), at: Anchor.optional() })).min(1).max(4),
+  }),
+  // Dated milestones on a track that fills as each is named. Across for up to four, down for more.
+  z.object({
+    kind: z.literal("timeline"),
+    title: z.string().optional(),
+    items: z.array(z.object({ date: z.string(), text: z.string(), at: Anchor.optional() })).min(2).max(6),
+  }),
+  // A stack of layers, built from the bottom up: the first item is the foundation. Each drops onto
+  // the stack on its word.
+  z.object({
+    kind: z.literal("levels"),
+    title: z.string().optional(),
+    items: z.array(z.object({ text: z.string(), note: z.string().optional(), at: Anchor.optional() })).min(2).max(5),
+  }),
+  // Boxes that tick as each is said.
+  z.object({ kind: z.literal("checklist"), title: z.string().optional(), items: z.array(Item).min(2).max(6) }),
+  // A real quote, word for word, with who said it and where. Never paraphrased, never invented.
+  z.object({ kind: z.literal("quote"), text: z.string(), source: z.string(), at: Anchor.optional() }),
+  // Many official logos at once, in a wave. Never redrawn.
+  z.object({
+    kind: z.literal("logowall"),
+    items: z.array(z.object({ src: z.string(), name: z.string().optional() })).min(4).max(12),
+    caption: z.string().optional(),
+    at: Anchor.optional(),
+  }),
+  // A feature overview: one large cell and smaller ones, each landing on its word.
+  z.object({
+    kind: z.literal("bento"),
+    cells: z.array(z.object({ title: z.string(), text: z.string().optional(), value: z.string().optional(), at: Anchor.optional() })).min(3).max(5),
+  }),
   // Kinetic typing: `text` types itself huge across the frame on `at`, then on `settle` shrinks into
   // a small input, where `chips` (pasted links, files) pop in on their words. A neutral input, no brand UI.
   z.object({
