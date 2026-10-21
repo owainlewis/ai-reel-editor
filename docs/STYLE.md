@@ -115,6 +115,6 @@ Never:
 
 - Music bed about 20 dB under the voice, ducked under speech. Off when the footage already has music.
 - Sound is rare and tactile: soft whooshes on scene changes, mechanical clicks when something lands, a camera focus beep on a highlight, a real key on typing. At most one sound every 2.5 s apart from typing. Most cuts get nothing. Never drops, glitches, swords, static or synthesised tones.
-- No music is better than generic music. With no track in `music/`, the reel has none. Owain's picks for reels live in `music/reels/`; a talking head wants a steady, driving bed at about `"level": -14`.
-- A calm delivery gets energy from pace first: `reel tighten --speed 1.1 --gap 0.25`.
+- No music is better than generic music. With no track in `music/`, the reel has none. Owain's picks for reels live in `music/reels/`; a talking head wants a steady bed at about `"level": -18`, ducked gently (ratio 3, slow release) so it never pumps.
+- Pace comes from trimming dead air, not from stretching the voice: `reel tighten` trims pauses over 0.55 s to a natural breath (0.2 s) with click-free joins. `--speed` is capped at 1.05.
 - Master at -14 LUFS integrated, true peak at or under -1 dBTP. The last word is never faded.

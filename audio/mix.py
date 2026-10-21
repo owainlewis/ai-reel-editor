@@ -99,8 +99,8 @@ def main(project: Path) -> None:
     graph = (
         f"[0:a]volume={gain}dB,{VOICE_CHAIN},asplit=2[v][key];"
         f"[1:a]volume={music_db}dB[m];"
-        "[m][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=400:makeup=1[duck];"
-        "[2:a]volume=-4dB[fx];"
+        "[m][key]sidechaincompress=threshold=0.05:ratio=3:attack=40:release=900:makeup=1[duck];"
+        "[2:a]volume=-7dB[fx];"
         "[v][duck][fx]amix=inputs=3:normalize=0,alimiter=limit=0.89:attack=3:release=60[mix]"
     )
     pre = work / "premaster.wav"

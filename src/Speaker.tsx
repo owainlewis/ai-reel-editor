@@ -12,11 +12,12 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
   switch (layout) {
     case "split": {
       const inset = r.split === "inset";
-      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.62 : 0.6, faceAt: inset ? 0.48 : 0.4, visible: true };
+      return { box: splitGeom(r.split).speaker, faceH: inset ? 0.62 : 0.52, faceAt: inset ? 0.48 : 0.4, visible: true };
     }
     case "punch":
-      // Punch is always visibly tighter than full: at least 1.25x the full framing.
-      return { box: FULL, faceH: Math.max(0.5, r.face.h * Math.max(W / r.videoSize[0], H / r.videoSize[1]) * (r.videoSize[1] / H) * 1.25), faceAt: 0.3, visible: true };
+      // A gentle push, never an extreme close-up (Owain is self-conscious about them, 2026-10-21):
+      // 1.12x the full framing, and the head never more than 40% of the frame's height.
+      return { box: FULL, faceH: Math.min(0.4, r.face.h * Math.max(W / r.videoSize[0], H / r.videoSize[1]) * (r.videoSize[1] / H) * 1.12), faceAt: 0.3, visible: true };
     case "media":
     case "cutaway":
     case "scene":

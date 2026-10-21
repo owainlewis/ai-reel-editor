@@ -4,7 +4,7 @@
 //   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]   portrait for reels, landscape for YouTube
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
-//   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.35] [--speed 1.1]   shorten silences, cut ranges; then transcribe again
+//   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.55] [--speed 1.05]   trim pauses to a breath, cut ranges; then transcribe again
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
 //   npm run reel -- fetch <slug> <url> --name <file> [--dir logos|captures|broll]
 //   npm run reel -- validate <slug>
@@ -178,16 +178,23 @@ function cmdTighten(slug: string) {
   const origVoice = join(dir, "source/voice.orig.wav");
   if (!existsSync(origVideo)) execFileSync("mv", [video, origVideo]);
   if (!existsSync(origVoice)) execFileSync("mv", [voice, origVoice]);
-  const gap = parseFloat(flag("gap") ?? "0.35");
-  // A calm delivery gains energy at 1.05 to 1.12x; pitch is kept.
-  const speed = parseFloat(flag("speed") ?? "1");
-  const pad = gap < 0.3 ? 0.09 : 0.12;
+  // Natural breathing, after herk-edit-kit's cut-silences: only pauses over 0.55 s are trimmed, and
+  // each keeps a breath (0.2 s, 0.24 s for long ones) biased toward the end of the phrase. Owain
+  // found 0.25 s gaps plus a 1.1x stretch made the audio sound off (2026-10-21).
+  const gap = parseFloat(flag("gap") ?? "0.55");
+  // Time-stretching speech can sound processed: keep it at 1 unless asked, and never past 1.05.
+  const speed = Math.min(1.05, parseFloat(flag("speed") ?? "1"));
   const total = probeDuration(origVoice);
   const log = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", origVoice, "-af", `silencedetect=noise=-38dB:d=${gap}`, "-f", "null", "-"], { encoding: "utf8" }).stderr;
   const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => +m[1]);
   const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => +m[1]);
   // Ranges to remove: the inside of each silence (keeping a beat each side), plus --cut ranges.
-  const remove: [number, number][] = starts.map((a, i) => [a === 0 || a < 0.5 ? 0 : a + pad, Math.min(total, (ends[i] ?? total) - pad)]);
+  const remove: [number, number][] = starts.map((a, i) => {
+    const b = Math.min(total, ends[i] ?? total);
+    if (a < 0.5) return [0, Math.max(0, b - 0.22)];
+    const breath = b - a >= 2 ? 0.24 : 0.2;
+    return [a + breath * 0.55, b - breath * 0.45];
+  });
   args.forEach((a, i) => {
     if (a !== "--cut") return;
     const [x, y] = args[i + 1].split("-").map(Number);
@@ -219,14 +226,22 @@ function cmdTighten(slug: string) {
     at = Math.max(at, b);
   }
   if (at < total) keep.push([at, total]);
-  const expr = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join("+");
+  const segs = keep.filter(([a, b]) => b - a >= 0.04);
   // When the recording stops soon after the last word, hold the last frame in silence to make the tail.
   const kept = keep.length ? keep[keep.length - 1][1] : total;
   const hold = Math.max(0, 0.8 - (kept - Math.min(speechEnd, kept)) / speed);
   const padV = hold > 0.02 ? `,tpad=stop_mode=clone:stop_duration=${hold.toFixed(2)}` : "";
   const padA = hold > 0.02 ? `,apad=pad_dur=${hold.toFixed(2)}` : "";
-  ffmpeg(["-i", origVideo, "-vf", `select='${expr}',setpts=N/FRAME_RATE/TB/${speed},fps=30${padV}`, "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
-  ffmpeg(["-i", origVoice, "-af", `aselect='${expr}',asetpts=N/SR/TB${speed !== 1 ? `,atempo=${speed}` : ""}${padA}`, "-c:a", "pcm_s24le", voice]);
+  // Trim and concat each kept range (frame-accurate, A/V in step). Every audio join gets a 10 ms
+  // fade so a cut never clicks.
+  const vGraph = segs.map(([a, b], i) => `[0:v]trim=start=${a.toFixed(3)}:end=${b.toFixed(3)},setpts=PTS-STARTPTS[v${i}];`).join("\n")
+    + `\n${segs.map((_, i) => `[v${i}]`).join("")}concat=n=${segs.length}:v=1:a=0,setpts=PTS/${speed},fps=30${padV}[v]`;
+  const aGraph = segs.map(([a, b], i) => `[0:a]atrim=start=${a.toFixed(3)}:end=${b.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:d=0.01,afade=t=out:st=${Math.max(0, b - a - 0.01).toFixed(3)}:d=0.01[a${i}];`).join("\n")
+    + `\n${segs.map((_, i) => `[a${i}]`).join("")}concat=n=${segs.length}:v=0:a=1${speed !== 1 ? `,atempo=${speed}` : ""}${padA}[a]`;
+  writeFileSync(join(dir, "build/tighten-video.txt"), vGraph);
+  writeFileSync(join(dir, "build/tighten-audio.txt"), aGraph);
+  ffmpeg(["-i", origVideo, "-filter_complex_script", join(dir, "build/tighten-video.txt"), "-map", "[v]", "-an", "-c:v", "libx264", "-crf", "15", "-preset", "fast", "-pix_fmt", "yuv420p", video]);
+  ffmpeg(["-i", origVoice, "-filter_complex_script", join(dir, "build/tighten-audio.txt"), "-map", "[a]", "-c:a", "pcm_s24le", voice]);
   const removed = merged.reduce((t, [a, b]) => t + b - a, 0);
   writeJson(join(dir, "build/tighten.json"), { gap, speed, keep, removed: +removed.toFixed(2) });
   const meta = readJson<Record<string, unknown>>(join(dir, "project.json"));
