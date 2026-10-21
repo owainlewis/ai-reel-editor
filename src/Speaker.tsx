@@ -1,7 +1,8 @@
 import React from "react";
 import { Video } from "@remotion/media";
-import { interpolate, staticFile } from "remotion";
-import { clamp, H, splitGeom, W, type Box } from "./theme";
+import { staticFile } from "remotion";
+import { cameraProgress } from "./camera";
+import { H, splitGeom, W, type Box } from "./theme";
 import type { Resolved, ResolvedShot } from "./schema";
 
 const FULL: Box = { left: 0, top: 0, width: W, height: H, radius: 0 };
@@ -18,6 +19,7 @@ const framing = (layout: ResolvedShot["layout"], r: Resolved): { box: Box; faceH
       return { box: FULL, faceH: Math.max(0.5, r.face.h * Math.max(W / r.videoSize[0], H / r.videoSize[1]) * (r.videoSize[1] / H) * 1.25), faceAt: 0.3, visible: true };
     case "media":
     case "cutaway":
+    case "scene":
       return { box: FULL, faceH: 0, faceAt: 0, visible: false };
     default:
       return { box: FULL, faceH: 0, faceAt: 0, visible: true };
@@ -62,7 +64,7 @@ export const Speaker: React.FC<{ r: Resolved; shot: ResolvedShot; time: number }
   const cover = Math.max(box.width / sw, box.height / sh);
   const base = Math.max(cover, faceScale);
   // Every shot moves: a slow push-in across the shot.
-  const progress = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
+  const progress = cameraProgress(shot.start, shot.end, time);
   const scale = base * (1 + 0.035 * progress);
   const vw = sw * scale;
   const vh = sh * scale;

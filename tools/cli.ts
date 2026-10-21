@@ -5,7 +5,7 @@
 //   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
-//   npm run reel -- fetch <slug> <url> --name <file>
+//   npm run reel -- fetch <slug> <url> --name <file> [--dir logos|captures|broll]
 //   npm run reel -- validate <slug>
 //   npm run reel -- stills <slug>
 //   npm run reel -- render <slug> [--draft]
@@ -218,9 +218,12 @@ async function cmdFetch(slug: string, url: string) {
   const dir = project(slug);
   const res = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 ai-reel-editor" } });
   if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const out = join(dir, "assets/logos", name);
+  // Logos by default; real thumbnails and clips from a source's own site go in captures or broll.
+  const sub = `assets/${flag("dir") ?? "logos"}`;
+  mkdirSync(join(dir, sub), { recursive: true });
+  const out = join(dir, sub, name);
   writeFileSync(out, Buffer.from(await res.arrayBuffer()));
-  ledger(dir, { file: `assets/logos/${name}`, url, sha: sha(out) });
+  ledger(dir, { file: `${sub}/${name}`, url, sha: sha(out) });
   console.log(`Saved ${out}`);
 }
 
@@ -271,11 +274,13 @@ function cmdValidate(slug: string, quiet = false): Resolved {
       }
     }
     if (v?.kind === "video" && existsSync(join(dir, v.src))) {
+      s.visual = { ...v, size: probeSize(join(dir, v.src)) };
       const left = probeDuration(join(dir, v.src)) - v.start;
-      if (s.end - s.start > left + 0.04)
+      if (!v.loop && s.end - s.start > left + 0.04)
         issues.push({ level: "error", message: `"${s.anchor}": shot is ${(s.end - s.start).toFixed(2)}s but ${v.src} has ${left.toFixed(2)}s from start ${v.start}` });
     }
-    if (v?.kind === "video") {
+    // A kept shot carries on the same clip; that is one use, not two.
+    if (v?.kind === "video" && !s.keep) {
       if (seen.has(v.src)) issues.push({ level: "error", message: `b-roll ${v.src} is used twice` });
       seen.add(v.src);
     }
@@ -305,7 +310,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     console.log(`\n${plan.format} format: ${shots.length} shots, ${resolved.chunks.length} caption chunks, ${resolved.sfx.length} sound events\n`);
     for (const s of shots)
       console.log(`  ${s.start.toFixed(2).padStart(6)} ${(s.end - s.start).toFixed(2).padStart(5)}s  ${s.layout.padEnd(6)} ${(s.visual?.kind ?? "").padEnd(9)} ${s.anchor}`);
-    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway"].map((l) => [l, 0]));
+    const mix = Object.fromEntries(["full", "punch", "split", "media", "cutaway", "scene"].map((l) => [l, 0]));
     for (const s of shots) mix[s.layout] += s.end - s.start;
     const avg = meta.duration / shots.length;
     console.log(`\n  average shot ${avg.toFixed(2)}s; ` + Object.entries(mix).map(([l, t]) => `${l} ${Math.round((100 * t) / meta.duration)}%`).join(", "));
@@ -364,6 +369,19 @@ function cmdCheck(slug: string) {
   ffmpeg(["-pattern_type", "glob", "-i", join(checks, "cuts", "*.jpg"), "-vf", `tile=2x${Math.ceil((r.shots.length - 1) / 2)}:padding=6:color=white`, "-frames:v", "1", join(checks, "cuts.jpg")]);
   // The first 2.5 seconds frame by frame at low size: the hook gate.
   ffmpeg(["-i", file, "-t", "2.5", "-vf", "fps=6,scale=180:-1,tile=8x2", "-frames:v", "1", join(checks, "opening.jpg")]);
+  // No frame of a scene may show black outside its canvas: sample the outermost columns of each
+  // scene shot at its start, middle and end. Pure black there means the frame is offset or a
+  // layer did not land at x = 0. Pure black decodes to 0 to 4; the dark canvas #141413 decodes to 14.
+  const edge = (t: number, x: string) =>
+    execFileSync("ffmpeg", ["-v", "error", "-ss", t.toFixed(3), "-i", file, "-frames:v", "1", "-vf", `crop=4:ih:${x}:0,scale=1:1,format=gray`, "-f", "rawvideo", "-"])[0];
+  const black: string[] = [];
+  for (const s of r.shots.filter((s) => s.layout === "scene")) {
+    for (const t of [s.start + 1 / FPS, (s.start + s.end) / 2, s.end - 2 / FPS]) {
+      const [l, rt] = [edge(t, "0"), edge(t, "iw-4")];
+      if (l < 8 || rt < 8) black.push(`${t.toFixed(2)}s (left ${l}, right ${rt})`);
+    }
+  }
+  console.log(black.length ? `  BLACK EDGE on scene frames: ${black.join(", ")}` : `  edges: no black at the frame edges on scene shots`);
   // Loudness of the delivered file.
   const ln = spawnSync("ffmpeg", ["-hide_banner", "-i", file, "-af", "loudnorm=print_format=json", "-f", "null", "-"], { encoding: "utf8" }).stderr;
   const stats = JSON.parse(ln.slice(ln.lastIndexOf("{"), ln.lastIndexOf("}") + 1));

@@ -1,5 +1,6 @@
 import React from "react";
 import { H, MEDIA, splitGeom, t } from "./theme";
+import { pal, SCENE } from "./soft";
 import type { Chunk, Resolved, ResolvedShot } from "./schema";
 
 const clean = (s: string) => s.replace(/^["“'(]+|["”,.;:)]+$/g, "");
@@ -14,6 +15,9 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
   // In the 50/50 split the caption sits on the speaker's half; in the inset it sits on the canvas seam.
   const onCanvas = shot.layout === "media" || (shot.layout === "split" && r.split === "inset");
   const serifAll = shot.layout === "media";
+  // On a scene the headline leads; the caption sits low and quieter, in the scene's ink.
+  const scene = shot.layout === "scene";
+  const c = pal(shot.tone);
   // On the speaker the caption sits on the chest, below the chin and clear of the mouth.
   // face.h is the head's height, so the chin sits half of it below the centre.
   // Landscape footage is framed with the face a third down (see Speaker), portrait keeps its own framing.
@@ -22,7 +26,9 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
   const y =
     shot.layout === "split"
       ? splitGeom(r.split).seam
-      : shot.layout === "media"
+      : scene
+        ? SCENE.caption
+        : shot.layout === "media"
         ? MEDIA.caption
         : shot.layout === "cutaway"
           ? 1480
@@ -55,11 +61,12 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
               fontFamily: serif ? t.serif : t.sans,
               fontStyle: serif ? "italic" : "normal",
               fontWeight: serif ? 400 : 700,
-              fontSize: serifAll ? 108 : serif ? 92 : 74,
-              letterSpacing: serif ? -0.5 : -1.8,
+              fontSize: scene ? (serif ? 70 : 56) : serifAll ? 108 : serif ? 92 : 74,
+              letterSpacing: serif ? -0.5 : scene ? -1 : -1.8,
               lineHeight: 1.04,
-              color: onCanvas ? t.ink : "#FFFFFF",
-              textShadow: onCanvas ? "none" : "0 2px 18px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.5)",
+              color: scene ? (serif ? c.accent : c.ink) : onCanvas ? t.ink : "#FFFFFF",
+              opacity: scene && !serif ? 0.82 : 1,
+              textShadow: onCanvas || scene ? "none" : "0 2px 18px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.5)",
             }}
           >
             {clean(w.text)}

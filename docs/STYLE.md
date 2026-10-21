@@ -16,9 +16,23 @@ Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
 | Format | Series | Shape | Rules `validate` checks |
 | --- | --- | --- | --- |
 | `react` (default) | Tool drop | Face stays on screen in a split for 70 to 85% of the reel. The top panel walks through the real source (site, repo, README, post), panning and highlighting each claim as it is said. Punch in on the hook's stake and the last line. | Split at least 60%. No `media` or `cutaway`. Never two face-only shots in a row. At least 2 source captures. Shots up to about 3.8 s, since a scroll with highlights earns the time. |
+| `film` | Explainers, soft tech direction | Full-frame `scene` shots that build across beats with `keep`, light and dark alternating, the speaker as punctuation. | Something new on screen at least every 3.6 s (reveals and headline swaps count). Back-to-back scenes alternate `tone`. |
 | `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Shots under about 2.8 s. No layout three times in a row. Speaker never away more than 3.5 s. |
 
 Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
+
+## Soft tech scenes (`film` format, v2)
+
+A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` with `tone: "light"` or `"dark"`, and alternate them.
+
+- **Ink and paper.** Light scenes are warm paper `#F2F0EB`, dark scenes warm near-black `#141413`, both with fine film grain. No glow, no gradient backgrounds, no light effects. Depth comes from real shadows and layered cards.
+- **One flat accent:** deep vermilion `#D4452B`, the print spot colour. It reads on paper and on black, it is warm without copying Claude's clay orange, and it goes on type, lines, dots and chips only.
+- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Helvetica Neue Bold with one Signifier italic accent word in vermilion. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
+- **Real content in every graphic.** Grids show real thumbnails captured from the source's own site (`reel fetch --dir captures`, logged in the ledger). Cards list the real fields the script names. Chips are plain words unless a capture shows the real URL. Captures in a scene sit in a card cut to the region being discussed. Never fake a product's UI and never fill space with placeholder shapes.
+- **Fewer elements.** At most one diagram per scene. Build it across beats with `keep: true`, swapping the headline per beat.
+- **One camera move per shot.** One eased move (a capture's `from` to `to`) or a locked camera. The video and the elements move; the camera does not also zoom and pan on other curves.
+- **Shared-element transitions.** Use `enter` on two or three cuts per reel: a grid tile grows into the next scene (`tile`), a result card becomes the next card (`card`), the typed input opens into what it made (`input`), or any frame region grows (`rect`). Inside a shot, `type` shrinks the typed prompt into its input.
+- Scene visuals: `grid` (real thumbnails, odometer `count`, `groups` that light on their words), `funnel` (plain-word chips flowing into one result card whose rows land on their words, or the card alone), `type` (kinetic typing that settles into an input), `video` with `loop` (a library's own preview clip in a card at its own shape), `image` captures, `flow` (stacked vertically), `title`.
 
 ## Frame 1 and the header
 
