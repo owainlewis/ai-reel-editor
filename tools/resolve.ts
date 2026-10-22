@@ -35,6 +35,7 @@ export const visualAnchors = (v: VisualSpec): (string | undefined)[] => {
     case "checklist":
     case "matrix":
     case "timeline":
+    case "windows":
       return v.items.map((it) => it.at);
     case "terminal": return v.lines.map((it) => it.at);
     case "logos": return v.items.map((it) => it.at);

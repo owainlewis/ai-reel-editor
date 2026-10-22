@@ -7,7 +7,10 @@ const paper = style.color.light;
 export const t = {
   sans: style.font.sans,
   serif: style.font.serif,
-  mono: style.font.mono,
+  // Labels and numbers (Helvetica); `mono` is only for code.
+  label: style.font.label,
+  display: style.type.display.family,
+  mono: style.font.code,
   canvas: paper.bg,
   card: paper.card,
   ink: paper.ink,

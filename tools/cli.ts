@@ -408,10 +408,12 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   const seen = new Set<string>();
   for (const s of shots) {
     const v = s.visual;
-    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" || v.kind === "logowall" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
+    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" || v.kind === "logowall" || v.kind === "windows" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
     // The style's cards are sized for their slots' max lengths.
     if (v && !s.keep) for (const m of slotIssues(v)) issues.push({ level: "warn", message: `"${s.anchor}": ${m}` });
     for (const src of srcs) if (!existsSync(join(dir, src))) issues.push({ level: "error", message: `missing asset ${src}` });
+    // Each stacked window frames its own capture, so it needs that capture's pixel size.
+    if (v?.kind === "windows") s.visual = { ...v, items: v.items.map((it) => ({ ...it, ...(existsSync(join(dir, it.src)) ? { size: imageSize(join(dir, it.src)) } : {}) })) };
     if (v?.kind === "image" && existsSync(join(dir, v.src))) {
       const size = imageSize(join(dir, v.src));
       s.visual = { ...v, size };

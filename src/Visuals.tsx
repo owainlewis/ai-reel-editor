@@ -3,8 +3,10 @@ import { Video } from "@remotion/media";
 import { Img, interpolate, staticFile } from "remotion";
 import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
+import { style } from "./style";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
 import { ChartVisual, PipelineVisual } from "./elements";
+import { BrowserChrome, chromeHeight, WindowsVisual } from "./browser";
 import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, MeterCard, QuoteCard, RingCard, TimelineCard, WaffleCard } from "./cards";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
@@ -24,11 +26,11 @@ const surface = (tone?: "light" | "dark") => {
 };
 
 // Text with *one accent* set in Signifier italic.
-export const Accented: React.FC<{ text: string }> = ({ text }) => (
+export const Accented: React.FC<{ text: string; color?: string }> = ({ text, color }) => (
   <>
     {text.split(/(\*[^*]+\*)/).map((part, i) =>
       part.startsWith("*") ? (
-        <span key={i} style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5 }}>
+        <span key={i} style={style.type.accent === "colour" ? { color } : { fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5 }}>
           {part.slice(1, -1)}
         </span>
       ) : (
@@ -47,7 +49,10 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = (props) => {
   if (shot.layout === "scene" && v.from) {
     const [iw, ih] = v.size ?? [1600, 1000];
     const tall = (r: number[]) => (w * r[3] * ih) / (r[2] * iw);
-    const cardH = Math.min(h, Math.max(260, tall(v.from), tall(v.to ?? v.from)));
+    // A browser keeps a window's shape (at least 62% of the panel) with its bar on top; the page
+    // around the region fills the rest, so it reads as the site, not a strip cut from it.
+    const region = Math.max(tall(v.from), tall(v.to ?? v.from));
+    const cardH = v.frame === "browser" ? Math.min(h, Math.max(h * 0.62, region + chromeHeight(w))) : Math.min(h, Math.max(260, region));
     return (
       <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <ImageCard {...props} h={cardH} />
@@ -59,7 +64,7 @@ const ImageVisual: React.FC<Props & { v: V<"image"> }> = (props) => {
 
 const ImageCard: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w, h, v }) => {
   const [iw, ih] = v.size ?? [1600, 1000];
-  const chrome = v.frame === "browser" ? 64 : 0;
+  const chrome = v.frame === "browser" ? chromeHeight(w) : 0;
   const pad = v.frame === "none" ? 0 : 0;
   const vw = w - pad * 2;
   const vh = h - chrome - pad * 2;
@@ -88,18 +93,7 @@ const ImageCard: React.FC<Props & { v: V<"image"> }> = ({ slug, shot, time, w, h
         border: v.frame === "none" ? "none" : `1px solid ${t.line}`,
       }}
     >
-      {v.frame === "browser" && (
-        <div style={{ height: chrome, display: "flex", alignItems: "center", gap: 12, padding: "0 26px", borderBottom: `1px solid ${t.line}`, background: "#FAFAF8" }}>
-          {["#E5E3DE", "#E5E3DE", "#E5E3DE"].map((c, i) => (
-            <div key={i} style={{ width: 16, height: 16, borderRadius: 8, background: c }} />
-          ))}
-          {v.url && (
-            <div style={{ marginLeft: 18, flex: 1, height: 38, borderRadius: 19, background: "#EFEDE8", display: "flex", alignItems: "center", padding: "0 20px", fontFamily: t.sans, fontSize: 22, color: t.muted, whiteSpace: "nowrap", overflow: "hidden" }}>
-              {v.url}
-            </div>
-          )}
-        </div>
-      )}
+      {v.frame === "browser" && <BrowserChrome slug={slug} w={w} tone={shot.tone} url={v.url} title={v.title} icon={v.icon} />}
       <div style={{ position: "relative", width: vw, height: vh, overflow: "hidden" }}>
         <div style={{ position: "absolute", left, top, width: iw * k, height: ih * k }}>
           <Img src={src(slug, v.src)} style={{ width: "100%", height: "100%", display: "block" }} />
@@ -247,11 +241,11 @@ const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v 
                   translate: `0 ${(1 - p) * size * 0.5}px`,
                   opacity: p,
                   filter: `blur(${(1 - p) * 12}px)`,
-                  fontFamily: accent ? t.serif : t.sans,
-                  fontStyle: accent ? "italic" : "normal",
-                  fontWeight: accent ? 400 : 700,
-                  fontSize: accent ? size * 1.08 : size,
-                  letterSpacing: accent ? -1 : -size * 0.035,
+                  // One face for the whole line; the accent word changes colour only.
+                  fontFamily: t.display,
+                  fontWeight: style.type.display.weight,
+                  fontSize: size,
+                  letterSpacing: size * style.type.display.tracking,
                   lineHeight: 1,
                   color: accent ? c.accentText : c.ink,
                 }}
@@ -277,7 +271,7 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
       {v.title && (
-        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 64, letterSpacing: -2, color: c.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: 64, letterSpacing: 64 * style.type.display.tracking, color: c.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -324,7 +318,7 @@ const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v 
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 30 }}>
       {v.title && (
-        <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 84, letterSpacing: -3, color: c.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: 84, letterSpacing: 84 * style.type.display.tracking, color: c.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -467,8 +461,8 @@ const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, 
   const b = prog(time, shot.start + 0.15, 0.5);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 34 }}>
-      <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: v.src ? 96 : 128, letterSpacing: -3, color: c.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
-        Comment <span style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -1 }}>“{v.keyword}”</span>
+      <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: v.src ? 96 : 128, letterSpacing: (v.src ? 96 : 128) * style.type.display.tracking, color: c.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
+        Comment <span style={{ color: c.accentText }}>“{v.keyword}”</span>
       </div>
       <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: v.src ? 46 : 60, color: c.muted, textAlign: "center", opacity: a }}>{v.text}</div>
       {v.src && (
@@ -506,11 +500,11 @@ const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h
       <div
         style={{
           position: "relative",
-          fontFamily: t.sans,
-          fontWeight: 700,
+          fontFamily: t.display,
+          fontWeight: 400,
           fontSize: 340,
           lineHeight: 0.9,
-          letterSpacing: -16,
+          letterSpacing: 340 * style.type.display.tracking,
           color: c.ink,
           fontVariantNumeric: "tabular-nums",
           opacity: num,
@@ -732,6 +726,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "quote": return <QuoteCard {...p} v={v} />;
     case "logowall": return <LogowallCard {...p} v={v} />;
     case "bento": return <BentoCard {...p} v={v} />;
+    case "windows": return <WindowsVisual {...p} v={v} />;
     case "ring": return <RingCard {...p} v={v} />;
     case "meter": return <MeterCard {...p} v={v} />;
     case "waffle": return <WaffleCard {...p} v={v} />;

@@ -42,3 +42,42 @@ export const sampleThumb = (n: number) =>
      ${bar(40, 82, 300, 14, "#FFFFFF")}${bar(40, 108, 220, 14, "#FFFFFF")}
      <text x="600" y="320" text-anchor="end" ${font} font-weight="700" font-size="40" fill="#6E737B">Sample ${n}</text>`,
   );
+
+// An article page: a headline, a byline, paragraphs, one quotable line. Labelled as a sample.
+export const sampleArticle = () =>
+  svg(
+    1600,
+    2000,
+    `<rect width="1600" height="2000" fill="#FFFFFF"/>
+     ${bar(300, 60, 160, 18, "#C6CBD2")}${bar(1120, 60, 180, 14, "#DADDE2")}
+     <text x="300" y="300" ${font} font-size="30" fill="#6E737B">SAMPLE ARTICLE · ILLUSTRATION</text>
+     <text x="300" y="400" ${font} font-weight="700" font-size="74" fill="#0E1013">A sample headline about</text>
+     <text x="300" y="490" ${font} font-weight="700" font-size="74" fill="#0E1013">the thing being discussed</text>
+     <text x="300" y="570" ${font} font-size="30" fill="#6E737B">By a sample author · 6 min read</text>
+     ${[0, 1, 2, 3, 4].map((i) => bar(300, 660 + i * 50, [1000, 960, 1000, 900, 620][i], 18)).join("")}
+     <text x="300" y="990" ${font} font-size="40" fill="#0E1013">The one line the reel quotes sits here.</text>
+     ${[0, 1, 2, 3, 4, 5, 6].map((i) => bar(300, 1060 + i * 50, [1000, 980, 940, 1000, 860, 1000, 540][i], 18)).join("")}`,
+  );
+export const SAMPLE_ARTICLE_SIZE: [number, number] = [1600, 2000];
+
+// A code repository page, generic and unbranded: owner / name, a description, a file list, a
+// README heading. Labelled as a sample; a real reel captures the repository itself.
+export const sampleRepo = () =>
+  svg(
+    1600,
+    2000,
+    `<rect width="1600" height="2000" fill="#FFFFFF"/>
+     <rect width="1600" height="110" fill="#F5F6F8"/>
+     ${bar(60, 46, 150, 18, "#C6CBD2")}
+     <text x="120" y="230" ${font} font-size="44" fill="#6E737B">sample-owner /</text>
+     <text x="440" y="230" ${font} font-weight="700" font-size="44" fill="#2563EB">sample-repo</text>
+     <text x="120" y="300" ${font} font-size="32" fill="#0E1013">Sample repository page, an illustration. A real reel captures the repo.</text>
+     <rect x="120" y="360" width="1360" height="470" rx="14" fill="none" stroke="#DADDE2" stroke-width="2"/>
+     ${[0, 1, 2, 3, 4, 5].map((i) => `<rect x="120" y="${360 + i * 78}" width="1360" height="78" fill="none" stroke="#EDEFF2" stroke-width="1"/>${bar(160, 390 + i * 78, [140, 200, 120, 260, 180, 150][i], 18)}${bar(1260, 390 + i * 78, 180, 18, "#ECEEF1")}`).join("")}
+     <text x="120" y="960" ${font} font-weight="700" font-size="58" fill="#0E1013">README</text>
+     <text x="120" y="1050" ${font} font-size="36" fill="#0E1013">What the project does, in one sentence.</text>
+     ${[0, 1, 2, 3].map((i) => bar(120, 1110 + i * 50, [1200, 1140, 1260, 700][i], 18)).join("")}
+     <rect x="120" y="1340" width="1360" height="150" rx="12" fill="#F5F6F8"/>
+     ${bar(160, 1395, 520, 20, "#C6CBD2")}`,
+  );
+export const SAMPLE_REPO_SIZE: [number, number] = [1600, 2000];

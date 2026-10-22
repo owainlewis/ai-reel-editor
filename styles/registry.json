@@ -480,12 +480,12 @@
           "preview": true
         },
         {
-          "id": "blueprint.t2.capture",
+          "id": "blueprint.t2.capture.card",
           "kind": "image",
           "tier": "t2",
           "purpose": "evidence",
-          "treatment": "capture",
-          "summary": "A real capture with one camera move and a highlight sweeping the words being said.",
+          "treatment": "card",
+          "summary": "A real capture in a plain card (a post, a screenshot, a photo), with one camera move and a highlight sweeping the words being said.",
           "layouts": [
             "split",
             "media",
@@ -500,7 +500,7 @@
             },
             {
               "name": "url",
-              "type": "text",
+              "type": "url",
               "maxChars": 60,
               "optional": true
             },
@@ -520,6 +520,165 @@
           "duration": {
             "min": 1.5,
             "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "blueprint.t2.capture.browser",
+          "kind": "image",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "browser",
+          "added": true,
+          "summary": "An article or web page in a browser window: its real URL and tab, one camera move down the page to the line being said, a highlight on it.",
+          "layouts": [
+            "split",
+            "media",
+            "scene",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "src",
+              "type": "image",
+              "note": "reel capture <url> --full; the real page"
+            },
+            {
+              "name": "url",
+              "type": "url",
+              "maxChars": 60,
+              "note": "the page's real address"
+            },
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 40,
+              "optional": true,
+              "note": "the page's real title, for the tab"
+            },
+            {
+              "name": "icon",
+              "type": "image",
+              "optional": true,
+              "note": "the site's real favicon (reel fetch)"
+            },
+            {
+              "name": "highlight[].label",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "highlight[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "blueprint.t2.capture.repo",
+          "kind": "image",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "repo",
+          "added": true,
+          "summary": "A code repository in a browser window: open on the name and description, then move to the README line that backs the claim.",
+          "layouts": [
+            "split",
+            "media",
+            "scene",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "src",
+              "type": "image",
+              "note": "reel capture <repo url> --full"
+            },
+            {
+              "name": "url",
+              "type": "url",
+              "maxChars": 60,
+              "note": "the repo's address, e.g. github.com/owner/name"
+            },
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 40,
+              "optional": true,
+              "note": "the tab's real title"
+            },
+            {
+              "name": "icon",
+              "type": "image",
+              "optional": true
+            },
+            {
+              "name": "highlight[].label",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "highlight[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "blueprint.t1.windows",
+          "kind": "windows",
+          "tier": "t1",
+          "purpose": "evidence",
+          "treatment": "stack",
+          "added": true,
+          "summary": "Two or three real pages as stacked browser windows, each landing in front on its word.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 3
+            },
+            {
+              "name": "items[].src",
+              "type": "image",
+              "note": "a real capture per page"
+            },
+            {
+              "name": "items[].url",
+              "type": "url",
+              "maxChars": 48
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
           },
           "preview": true
         },

@@ -20,8 +20,12 @@ export const Visual = z.discriminatedUnion("kind", [
     src: z.string(),
     from: Rect.optional(),
     to: Rect.optional(),
+    // "browser" puts the capture in a browser window: `url` in the address bar (the site in ink, the
+    // path muted), and `title` and `icon` (the page's real title and favicon) on its tab.
     frame: z.enum(["none", "browser", "card"]).default("card"),
     url: z.string().optional(),
+    title: z.string().optional(),
+    icon: z.string().optional(),
     // A marker over a region, swept in on `at`. `label` adds a callout tag pointing at it.
     highlight: z.array(z.object({ rect: Rect, at: Anchor.optional(), label: z.string().optional() })).default([]),
   }),
@@ -100,6 +104,13 @@ export const Visual = z.discriminatedUnion("kind", [
     items: z.array(z.object({ text: z.string(), at: Anchor.optional() })).max(9).default([]),
     at: Anchor.optional(),
     target: z.object({ title: z.string(), kicker: z.string().optional(), lines: z.array(Item).default([]) }),
+  }),
+  // Two or three real pages as stacked browser windows, each landing in front on its word ("I read
+  // three posts about this"). Each shows its capture at `from` (default: the top of the page).
+  z.object({
+    kind: z.literal("windows"),
+    items: z.array(z.object({ src: z.string(), url: z.string().optional(), from: Rect.optional(), at: Anchor.optional() })).min(2).max(3),
+    active: z.number().optional(),
   }),
   // ---- Blueprint card kinds (see styles/blueprint/DESIGN.md and the catalog in styles/blueprint/style.ts) ----
   // A table of contents: every part shows dimmed from the start, an open loop, and each lights on its

@@ -55,11 +55,11 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
         justifyContent: "center",
         textAlign: "center",
         translate: `0 ${settle}px`,
-        fontFamily: t.sans,
-        fontWeight: 700,
+        fontFamily: t.display,
+        fontWeight: style.type.display.weight,
         fontSize: size.font,
-        lineHeight: 1.04,
-        letterSpacing: -size.font * 0.03,
+        lineHeight: style.type.display.leading,
+        letterSpacing: size.font * style.type.display.tracking,
         color: pal(tone).ink,
         textWrap: "balance",
       }}
@@ -71,7 +71,7 @@ const Header: React.FC<{ text: string; first: boolean; time: number; start: numb
             <React.Fragment key={i}>
               {i > 0 && " "}
               <span style={{ display: "inline-block", opacity: p, filter: `blur(${(1 - p) * 14}px)`, translate: `0 ${(1 - p) * 18}px` }}>
-                <Accented text={wd} />
+                <Accented text={wd} color={pal(tone).accentText} />
               </span>
             </React.Fragment>
           );
@@ -100,11 +100,11 @@ const SceneHeader: React.FC<{ text: string; prev?: string; tone: "light" | "dark
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        fontFamily: t.sans,
-        fontWeight: 700,
+        fontFamily: t.display,
+        fontWeight: style.type.display.weight,
         fontSize: size,
         lineHeight: 0.98,
-        letterSpacing: -size * 0.04,
+        letterSpacing: size * style.type.display.tracking,
         color: c.ink,
         textWrap: "balance",
       }}

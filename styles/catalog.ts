@@ -18,6 +18,8 @@ export type ToneTokens = {
   shadow: string;
 };
 
+export type WindowTokens = { bar: string; field: string; tab: string; dot: string };
+
 export type StyleTokens = {
   id: string;
   name: string;
@@ -26,9 +28,11 @@ export type StyleTokens = {
     dark: ToneTokens;
     split: { line: string; shadow: string; highlight: string };
     terminal: string;
+    window: { light: WindowTokens; dark: WindowTokens };
     onAccent: string;
   };
-  font: { sans: string; serif: string; mono: string; sansWidth: number; monoWidth: number; minSize: number; labelMin: number };
+  font: { sans: string; serif: string; label: string; code: string; sansWidth: number; labelWidth: number; minSize: number; labelMin: number };
+  type: { display: { family: string; weight: number; tracking: number; leading: number }; accent: "colour" | "italic" };
   space: { panelX: number; seamGap: number; sceneX: number; headlineX: number; cardPad: number; cardPadSmall: number; gap: number; radius: number; radiusSmall: number };
   grid: {
     ink: { light: string; dark: string };
@@ -49,7 +53,9 @@ export type StyleTokens = {
 // t1: a full-frame scene takeover. t2: beside the speaker (the split panel, or `side` on 16:9).
 // overlay: over the speaker's picture.
 export type Tier = "t1" | "t2" | "overlay";
-export type SlotType = "text" | "richtext" | "number" | "image" | "anchor" | "enum" | "list";
+export type SlotType = "text" | "richtext" | "number" | "image" | "anchor" | "enum" | "list" | "url";
+// A URL's site (github.com, example.org) must show whole in a browser bar; the path may be cut.
+export const MAX_SITE = 28;
 // `name` is a path into the visual: `items[].text` is every item's text. Limits are typed, not
 // comments: `maxChars` is the longest value (asterisks for the accent do not count), and a list
 // slot takes `minItems` to `maxItems` entries. The card's layout is sized and tested for them.
@@ -104,11 +110,13 @@ export const slotValues = (v: unknown, path: string): unknown[] => {
   return vals;
 };
 const len = (x: unknown) => String(x).replace(/\*/g, "").length;
+const site = (url: string) => url.replace(/^[a-z]+:\/\//i, "").replace(/^www\./, "").split(/[/?#]/)[0];
 
-// The card a visual uses in a catalog (a chart picks its treatment by type).
+// The card a visual uses in a catalog (a chart picks its treatment by type, a capture by frame).
 export const cardFor = (cards: Card[], v: VisualSpec) => {
   const all = cards.filter((c) => c.kind === v.kind);
-  return all.find((c) => v.kind !== "chart" || c.treatment === (v as { type?: string }).type) ?? all[0];
+  const treatment = v.kind === "chart" ? v.type : v.kind === "image" ? (v.frame === "browser" ? "browser" : "card") : undefined;
+  return all.find((c) => !treatment || c.treatment === treatment) ?? all[0];
 };
 
 // Slots past their limits, for `validate`.
@@ -121,6 +129,9 @@ export const slotIssuesIn = (cards: Card[], v: VisualSpec): string[] => {
     if (s.maxChars !== undefined)
       for (const x of vals.flatMap((y) => (Array.isArray(y) ? y : [y])))
         if (typeof x === "string" && len(x) > s.maxChars) out.push(`${card.id} ${s.name} "${x}" is ${len(x)} characters; the card is sized for ${s.maxChars}`);
+    if (s.type === "url")
+      for (const x of vals)
+        if (typeof x === "string" && site(x).length > MAX_SITE) out.push(`${card.id} ${s.name} site "${site(x)}" is over ${MAX_SITE} characters and will not show whole`);
     if (s.type === "list" && vals.length === 1 && Array.isArray(vals[0])) {
       const n = (vals[0] as unknown[]).length;
       if ((s.minItems !== undefined && n < s.minItems) || (s.maxItems !== undefined && n > s.maxItems))
@@ -138,9 +149,14 @@ export const atMax = (card: Card): Card["sample"] => {
   if (!card.sample) return undefined;
   const v = structuredClone(card.sample.visual) as Record<string, unknown>;
   const words = "Every card holds the longest text it accepts with room to spare around it ";
+  // A URL at its limit: the longest site that shows whole, then a path to the slot's max.
+  const urlAt = (n: number) => {
+    const head = `https://${"a-long-site-name-for-testing".slice(0, MAX_SITE - 4)}.com/`;
+    return (head + "a-path-to-the-page/".repeat(5)).slice(0, Math.max(head.length, n + 8));
+  };
   const fill = (n: number) => words.repeat(Math.ceil(n / words.length) + 1).slice(0, n).trimEnd().padEnd(n, "s");
   for (const s of card.slots) {
-    if (s.maxChars === undefined || (s.type !== "text" && s.type !== "richtext" && s.type !== "number")) continue;
+    if (s.maxChars === undefined || (s.type !== "text" && s.type !== "richtext" && s.type !== "number" && s.type !== "url")) continue;
     // Captures and images keep their own content; only words are stretched.
     const parts = s.name.split(".");
     const walk = (x: unknown, i: number) => {
@@ -149,7 +165,7 @@ export const atMax = (card: Card): Card["sample"] => {
       const o = x as Record<string, unknown>;
       if (i === parts.length - 1) {
         if (Array.isArray(o[key])) o[key] = (o[key] as unknown[]).map(() => fill(s.maxChars!));
-        else if (o[key] !== undefined) o[key] = s.type === "number" ? "9".repeat(s.maxChars!) : fill(s.maxChars!);
+        else if (o[key] !== undefined) o[key] = s.type === "number" ? "9".repeat(s.maxChars!) : s.type === "url" ? urlAt(s.maxChars!) : fill(s.maxChars!);
         return;
       }
       const next = o[key];

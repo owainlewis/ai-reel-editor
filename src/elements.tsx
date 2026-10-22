@@ -35,7 +35,7 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
   return (
     <div style={{ position: "relative", width: w, height: h, opacity: enter, filter: `blur(${(1 - enter) * 8}px)` }}>
       {v.title && (
-        <div style={{ position: "absolute", left: 20, top: 0, fontFamily: t.mono, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>
+        <div style={{ position: "absolute", left: 20, top: 0, fontFamily: t.label, fontWeight: 500, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>
       )}
       {/* Baseline and two faint guides; no boxed axes. */}
       {[0, 0.5, 1].map((g) => (
@@ -52,7 +52,7 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
             return (
               <React.Fragment key={i}>
                 <div style={{ position: "absolute", left: x, width: bw, top: top + plotH - bh, height: bh, background: on ? c.accent : c.ink, opacity: on ? 1 : 0.85, borderRadius: "6px 6px 0 0" }} />
-                <div style={{ position: "absolute", left: x - 30, width: bw + 60, top: top + plotH - bh - 66, textAlign: "center", fontFamily: t.mono, fontSize: on ? 46 : 38, fontWeight: 600, color: on ? c.accentText : c.ink, opacity: grow }}>
+                <div style={{ position: "absolute", left: x - 30, width: bw + 60, top: top + plotH - bh - 66, textAlign: "center", fontFamily: t.label, fontSize: on ? 46 : 38, fontWeight: 600, color: on ? c.accentText : c.ink, opacity: grow }}>
                   {fmt(Number.isInteger(pt.value) ? Math.round(pt.value * grow) : pt.value * grow, v.unit)}
                 </div>
                 <div style={{ position: "absolute", left: x - 40, width: bw + 80, top: top + plotH + 16, textAlign: "center", fontFamily: t.sans, fontWeight: 700, fontSize: 30, color: c.muted }}>{pt.label}</div>
@@ -73,17 +73,17 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
                   ))}
                 </svg>
                 {v.points.map((pt, i) => (
-                  <div key={i} style={{ position: "absolute", left: xs[i] - 70, width: 140, top: top + plotH + 16, textAlign: "center", fontFamily: t.mono, fontSize: 26, color: c.muted, opacity: p(i) }}>{pt.label}</div>
+                  <div key={i} style={{ position: "absolute", left: xs[i] - 70, width: 140, top: top + plotH + 16, textAlign: "center", fontFamily: t.label, fontWeight: 500, fontSize: 26, color: c.muted, opacity: p(i) }}>{pt.label}</div>
                 ))}
                 <div style={{ position: "absolute", left: xs[hi] + 30, top: y(v.points[hi].value) - 40, opacity: lastOn, filter: `blur(${(1 - lastOn) * 6}px)` }}>
-                  <div style={{ fontFamily: t.mono, fontWeight: 600, fontSize: 64, letterSpacing: -2, color: c.accentText, lineHeight: 1 }}>{fmt(v.points[hi].value, v.unit)}</div>
+                  <div style={{ fontFamily: t.label, fontWeight: 600, fontSize: 64, letterSpacing: -2, color: c.accentText, lineHeight: 1 }}>{fmt(v.points[hi].value, v.unit)}</div>
                   {v.points[hi].note && <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: 26, color: c.muted, marginTop: 8 }}>{v.points[hi].note}</div>}
                 </div>
               </>
             );
           })()}
       {v.source && (
-        <div style={{ position: "absolute", left: 20, bottom: 0, fontFamily: t.mono, fontSize: 22, letterSpacing: 0.5, color: c.muted, opacity: enter }}>{v.source}</div>
+        <div style={{ position: "absolute", left: 20, bottom: 0, fontFamily: t.label, fontWeight: 500, fontSize: 22, letterSpacing: 0.5, color: c.muted, opacity: enter }}>{v.source}</div>
       )}
     </div>
   );
@@ -109,7 +109,7 @@ export const PipelineVisual: React.FC<Props & { v: V<"pipeline"> }> = ({ shot, t
   return (
     <div style={{ position: "relative", width: w, height: h, opacity: enter }}>
       {v.title && (
-        <div style={{ position: "absolute", left: 0, right: 0, top: cy - dot / 2 - 150, textAlign: "center", fontFamily: t.mono, fontSize: 28, letterSpacing: 6, textTransform: "uppercase", color: c.muted }}>{v.title}</div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: cy - dot / 2 - 150, textAlign: "center", fontFamily: t.label, fontWeight: 500, fontSize: 28, letterSpacing: 6, textTransform: "uppercase", color: c.muted }}>{v.title}</div>
       )}
       <div style={{ position: "absolute", left: pad, width: w - pad * 2, top: cy - 1.5, height: 3, background: c.line }} />
       <div style={{ position: "absolute", left: pad, width: step * fill, top: cy - 1.5, height: 3, background: c.ink }} />
@@ -134,7 +134,7 @@ export const PipelineVisual: React.FC<Props & { v: V<"pipeline"> }> = ({ shot, t
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontFamily: t.mono,
+                fontFamily: t.label,
                 fontWeight: 600,
                 fontSize: dot * 0.36,
                 color: done ? c.card : c.faint,
@@ -184,7 +184,7 @@ const PipelineColumn: React.FC<Props & { v: V<"pipeline">; times: number[]; reac
   const fill = times.reduce((acc, at, i) => (i === 0 || !isFinite(at) ? acc : acc + prog(time, at, 0.6)), 0);
   return (
     <div style={{ position: "relative", width: w, height: h, opacity: enter }}>
-      {v.title && <div style={{ position: "absolute", left: x - dot / 2, top: 0, fontFamily: t.mono, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>}
+      {v.title && <div style={{ position: "absolute", left: x - dot / 2, top: 0, fontFamily: t.label, fontWeight: 500, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>}
       <div style={{ position: "absolute", left: x - 1.5, top, width: 3, height: gap * (n - 1), background: c.line }} />
       <div style={{ position: "absolute", left: x - 1.5, top, width: 3, height: gap * fill, background: c.ink }} />
       {v.stages.map((st, i) => {
@@ -194,7 +194,7 @@ const PipelineColumn: React.FC<Props & { v: V<"pipeline">; times: number[]; reac
         const q = prog(time, times[i], 0.45);
         return (
           <React.Fragment key={i}>
-            <div style={{ position: "absolute", left: x - dot / 2, top: y - dot / 2, width: dot, height: dot, borderRadius: dot, background: on ? c.accent : done ? c.ink : c.card, border: `2px solid ${on ? c.accent : done ? c.ink : c.faint}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.mono, fontWeight: 600, fontSize: dot * 0.36, color: done ? c.card : c.faint }}>
+            <div style={{ position: "absolute", left: x - dot / 2, top: y - dot / 2, width: dot, height: dot, borderRadius: dot, background: on ? c.accent : done ? c.ink : c.card, border: `2px solid ${on ? c.accent : done ? c.ink : c.faint}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: t.label, fontWeight: 600, fontSize: dot * 0.36, color: done ? c.card : c.faint }}>
               {String(i + 1).padStart(2, "0")}
             </div>
             {st.label && (

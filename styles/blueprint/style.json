@@ -708,12 +708,12 @@
       }
     },
     {
-      "id": "blueprint.t2.capture",
+      "id": "blueprint.t2.capture.card",
       "kind": "image",
       "tier": "t2",
       "purpose": "evidence",
-      "treatment": "capture",
-      "summary": "A real capture with one camera move and a highlight sweeping the words being said.",
+      "treatment": "card",
+      "summary": "A real capture in a plain card (a post, a screenshot, a photo), with one camera move and a highlight sweeping the words being said.",
       "layouts": [
         "split",
         "media",
@@ -728,7 +728,7 @@
         },
         {
           "name": "url",
-          "type": "text",
+          "type": "url",
           "maxChars": 60,
           "optional": true
         },
@@ -784,6 +784,270 @@
       "duration": {
         "min": 1.5,
         "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t2.capture.browser",
+      "kind": "image",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "browser",
+      "added": true,
+      "summary": "An article or web page in a browser window: its real URL and tab, one camera move down the page to the line being said, a highlight on it.",
+      "layouts": [
+        "split",
+        "media",
+        "scene",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "src",
+          "type": "image",
+          "note": "reel capture <url> --full; the real page"
+        },
+        {
+          "name": "url",
+          "type": "url",
+          "maxChars": 60,
+          "note": "the page's real address"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "maxChars": 40,
+          "optional": true,
+          "note": "the page's real title, for the tab"
+        },
+        {
+          "name": "icon",
+          "type": "image",
+          "optional": true,
+          "note": "the site's real favicon (reel fetch)"
+        },
+        {
+          "name": "highlight[].label",
+          "type": "text",
+          "maxChars": 24,
+          "optional": true
+        },
+        {
+          "name": "highlight[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "image",
+          "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%222000%22%20viewBox%3D%220%200%201600%202000%22%3E%3Crect%20width%3D%221600%22%20height%3D%222000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%2260%22%20width%3D%22160%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23C6CBD2%22%2F%3E%3Crect%20x%3D%221120%22%20y%3D%2260%22%20width%3D%22180%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2230%22%20fill%3D%22%236E737B%22%3ESAMPLE%20ARTICLE%20%C2%B7%20ILLUSTRATION%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22400%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2274%22%20fill%3D%22%230E1013%22%3EA%20sample%20headline%20about%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22490%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2274%22%20fill%3D%22%230E1013%22%3Ethe%20thing%20being%20discussed%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22570%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2230%22%20fill%3D%22%236E737B%22%3EBy%20a%20sample%20author%20%C2%B7%206%20min%20read%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%22660%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22710%22%20width%3D%22960%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22760%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22810%22%20width%3D%22900%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22860%22%20width%3D%22620%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22990%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%230E1013%22%3EThe%20one%20line%20the%20reel%20quotes%20sits%20here.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%221060%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221110%22%20width%3D%22980%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221160%22%20width%3D%22940%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221210%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221260%22%20width%3D%22860%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221310%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221360%22%20width%3D%22540%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3C%2Fsvg%3E",
+          "size": [
+            1600,
+            2000
+          ],
+          "frame": "browser",
+          "url": "https://example.com/blog/a-sample-article",
+          "title": "A sample article",
+          "from": [
+            0.12,
+            0.1,
+            0.8,
+            0.26
+          ],
+          "to": [
+            0.16,
+            0.45,
+            0.66,
+            0.08
+          ],
+          "highlight": [
+            {
+              "rect": [
+                0.18,
+                0.475,
+                0.56,
+                0.032
+              ]
+            }
+          ]
+        },
+        "header": "The *article*",
+        "scene": "The *article*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t2.capture.repo",
+      "kind": "image",
+      "tier": "t2",
+      "purpose": "evidence",
+      "treatment": "repo",
+      "added": true,
+      "summary": "A code repository in a browser window: open on the name and description, then move to the README line that backs the claim.",
+      "layouts": [
+        "split",
+        "media",
+        "scene",
+        "side"
+      ],
+      "slots": [
+        {
+          "name": "src",
+          "type": "image",
+          "note": "reel capture <repo url> --full"
+        },
+        {
+          "name": "url",
+          "type": "url",
+          "maxChars": 60,
+          "note": "the repo's address, e.g. github.com/owner/name"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "maxChars": 40,
+          "optional": true,
+          "note": "the tab's real title"
+        },
+        {
+          "name": "icon",
+          "type": "image",
+          "optional": true
+        },
+        {
+          "name": "highlight[].label",
+          "type": "text",
+          "maxChars": 24,
+          "optional": true
+        },
+        {
+          "name": "highlight[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "image",
+          "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%222000%22%20viewBox%3D%220%200%201600%202000%22%3E%3Crect%20width%3D%221600%22%20height%3D%222000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20width%3D%221600%22%20height%3D%22110%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2260%22%20y%3D%2246%22%20width%3D%22150%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23C6CBD2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2244%22%20fill%3D%22%236E737B%22%3Esample-owner%20%2F%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22440%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2244%22%20fill%3D%22%232563EB%22%3Esample-repo%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2232%22%20fill%3D%22%230E1013%22%3ESample%20repository%20page%2C%20an%20illustration.%20A%20real%20reel%20captures%20the%20repo.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22360%22%20width%3D%221360%22%20height%3D%22470%22%20rx%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%23DADDE2%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22360%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22390%22%20width%3D%22140%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22390%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22438%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22468%22%20width%3D%22200%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22468%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22516%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22546%22%20width%3D%22120%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22546%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22594%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22624%22%20width%3D%22260%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22624%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22672%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22702%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22702%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22750%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22780%22%20width%3D%22150%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22780%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22960%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2258%22%20fill%3D%22%230E1013%22%3EREADME%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%221050%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2236%22%20fill%3D%22%230E1013%22%3EWhat%20the%20project%20does%2C%20in%20one%20sentence.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%221110%22%20width%3D%221200%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221160%22%20width%3D%221140%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221210%22%20width%3D%221260%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221260%22%20width%3D%22700%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%221340%22%20width%3D%221360%22%20height%3D%22150%22%20rx%3D%2212%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22160%22%20y%3D%221395%22%20width%3D%22520%22%20height%3D%2220%22%20rx%3D%2210%22%20fill%3D%22%23C6CBD2%22%2F%3E%3C%2Fsvg%3E",
+          "size": [
+            1600,
+            2000
+          ],
+          "frame": "browser",
+          "url": "https://example.com/sample-owner/sample-repo",
+          "title": "sample-owner/sample-repo",
+          "from": [
+            0.04,
+            0.07,
+            0.92,
+            0.36
+          ],
+          "to": [
+            0.05,
+            0.46,
+            0.84,
+            0.1
+          ],
+          "highlight": [
+            {
+              "rect": [
+                0.07,
+                0.505,
+                0.72,
+                0.03
+              ],
+              "label": "Sample claim"
+            }
+          ]
+        },
+        "header": "The *repo*",
+        "scene": "The *repo*"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
+      "id": "blueprint.t1.windows",
+      "kind": "windows",
+      "tier": "t1",
+      "purpose": "evidence",
+      "treatment": "stack",
+      "added": true,
+      "summary": "Two or three real pages as stacked browser windows, each landing in front on its word.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "items",
+          "type": "list",
+          "minItems": 2,
+          "maxItems": 3
+        },
+        {
+          "name": "items[].src",
+          "type": "image",
+          "note": "a real capture per page"
+        },
+        {
+          "name": "items[].url",
+          "type": "url",
+          "maxChars": 48
+        },
+        {
+          "name": "items[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "sample": {
+        "visual": {
+          "kind": "windows",
+          "items": [
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%221000%22%20viewBox%3D%220%200%201600%201000%22%3E%3Crect%20width%3D%221600%22%20height%3D%221000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%221600%22%20height%3D%2288%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2264%22%20y%3D%2236%22%20width%3D%22180%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23C6CBD2%22%2F%3E%3Crect%20x%3D%221300%22%20y%3D%2236%22%20width%3D%22236%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2276%22%20fill%3D%22%230E1013%22%3ESample%20page%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2234%22%20fill%3D%22%236E737B%22%3EIllustration%20of%20a%20capture.%20A%20real%20reel%20shows%20the%20source%20itself.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22380%22%20width%3D%221180%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22424%22%20width%3D%221240%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22468%22%20width%3D%221100%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22512%22%20width%3D%22760%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22610%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2244%22%20fill%3D%22%230E1013%22%3EThe%20line%20being%20discussed%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22670%22%20width%3D%221260%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22714%22%20width%3D%221200%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22758%22%20width%3D%221320%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22802%22%20width%3D%221080%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22846%22%20width%3D%22640%22%20height%3D%2216%22%20rx%3D%228%22%20fill%3D%22%23DADDE2%22%2F%3E%3C%2Fsvg%3E",
+              "url": "https://example.com/first-sample",
+              "size": [
+                1600,
+                1000
+              ]
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%222000%22%20viewBox%3D%220%200%201600%202000%22%3E%3Crect%20width%3D%221600%22%20height%3D%222000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%2260%22%20width%3D%22160%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23C6CBD2%22%2F%3E%3Crect%20x%3D%221120%22%20y%3D%2260%22%20width%3D%22180%22%20height%3D%2214%22%20rx%3D%227%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2230%22%20fill%3D%22%236E737B%22%3ESAMPLE%20ARTICLE%20%C2%B7%20ILLUSTRATION%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22400%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2274%22%20fill%3D%22%230E1013%22%3EA%20sample%20headline%20about%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22490%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2274%22%20fill%3D%22%230E1013%22%3Ethe%20thing%20being%20discussed%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22570%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2230%22%20fill%3D%22%236E737B%22%3EBy%20a%20sample%20author%20%C2%B7%206%20min%20read%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%22660%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22710%22%20width%3D%22960%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22760%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22810%22%20width%3D%22900%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%22860%22%20width%3D%22620%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22300%22%20y%3D%22990%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%230E1013%22%3EThe%20one%20line%20the%20reel%20quotes%20sits%20here.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22300%22%20y%3D%221060%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221110%22%20width%3D%22980%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221160%22%20width%3D%22940%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221210%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221260%22%20width%3D%22860%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221310%22%20width%3D%221000%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22300%22%20y%3D%221360%22%20width%3D%22540%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3C%2Fsvg%3E",
+              "url": "https://example.org/second-sample",
+              "size": [
+                1600,
+                2000
+              ]
+            },
+            {
+              "src": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%222000%22%20viewBox%3D%220%200%201600%202000%22%3E%3Crect%20width%3D%221600%22%20height%3D%222000%22%20fill%3D%22%23FFFFFF%22%2F%3E%0A%20%20%20%20%20%3Crect%20width%3D%221600%22%20height%3D%22110%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%2260%22%20y%3D%2246%22%20width%3D%22150%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23C6CBD2%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2244%22%20fill%3D%22%236E737B%22%3Esample-owner%20%2F%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22440%22%20y%3D%22230%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2244%22%20fill%3D%22%232563EB%22%3Esample-repo%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22300%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2232%22%20fill%3D%22%230E1013%22%3ESample%20repository%20page%2C%20an%20illustration.%20A%20real%20reel%20captures%20the%20repo.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22360%22%20width%3D%221360%22%20height%3D%22470%22%20rx%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%23DADDE2%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%22360%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22390%22%20width%3D%22140%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22390%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22438%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22468%22%20width%3D%22200%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22468%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22516%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22546%22%20width%3D%22120%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22546%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22594%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22624%22%20width%3D%22260%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22624%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22672%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22702%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22702%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%22750%22%20width%3D%221360%22%20height%3D%2278%22%20fill%3D%22none%22%20stroke%3D%22%23EDEFF2%22%20stroke-width%3D%221%22%2F%3E%3Crect%20x%3D%22160%22%20y%3D%22780%22%20width%3D%22150%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%221260%22%20y%3D%22780%22%20width%3D%22180%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23ECEEF1%22%2F%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%22960%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2258%22%20fill%3D%22%230E1013%22%3EREADME%3C%2Ftext%3E%0A%20%20%20%20%20%3Ctext%20x%3D%22120%22%20y%3D%221050%22%20font-family%3D%22Helvetica%20Neue%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2236%22%20fill%3D%22%230E1013%22%3EWhat%20the%20project%20does%2C%20in%20one%20sentence.%3C%2Ftext%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%221110%22%20width%3D%221200%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221160%22%20width%3D%221140%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221210%22%20width%3D%221260%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%3Crect%20x%3D%22120%22%20y%3D%221260%22%20width%3D%22700%22%20height%3D%2218%22%20rx%3D%229%22%20fill%3D%22%23DADDE2%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22120%22%20y%3D%221340%22%20width%3D%221360%22%20height%3D%22150%22%20rx%3D%2212%22%20fill%3D%22%23F5F6F8%22%2F%3E%0A%20%20%20%20%20%3Crect%20x%3D%22160%22%20y%3D%221395%22%20width%3D%22520%22%20height%3D%2220%22%20rx%3D%2210%22%20fill%3D%22%23C6CBD2%22%2F%3E%3C%2Fsvg%3E",
+              "url": "https://example.net/sample-owner/sample-repo",
+              "size": [
+                1600,
+                2000
+              ]
+            }
+          ]
+        },
+        "header": "Everyone's *writing* about it",
+        "scene": "Three *posts*"
+      },
+      "duration": {
+        "min": 2.5,
+        "max": 7
       }
     },
     {
