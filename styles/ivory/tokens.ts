@@ -66,12 +66,12 @@ export const tokens = {
     minSize: 26,
     labelMin: 24,
   },
-  // The voice: headlines, headers and titles in one serif, regular, set tight like a film title;
-  // an accent word changes colour only (Owain, 2026-10-22: "the sans + serif combo looks very AI").
-  // Heavy lowercase Helvetica is for keyword captions and chapter words, never mixed in one line.
+  // The voice (Owain, 2026-10-22, choosing the Ivory he loved over a serif-only voice): headlines,
+  // headers and titles in bold Helvetica, set tight, with one Signifier italic accent word.
+  // Keyword captions are heavy lowercase Helvetica alone; their accent changes colour only.
   type: {
-    display: { family: 'Signifier, "Iowan Old Style", Georgia, serif', weight: 400, tracking: -0.035, leading: 1.04 },
-    accent: "colour",
+    display: { family: '"Helvetica Neue", Helvetica, Arial, sans-serif', weight: 700, tracking: -0.03, leading: 1.04 },
+    accent: "italic",
   },
   space: {
     // More air than Blueprint: wider margins and padding.

@@ -15,7 +15,8 @@ The house style, and the only one (Owain, 2026-10-22). Warm off-white and pine g
 
 Helvetica and Signifier, always (Owain, 2026-10-22).
 
-- **Helvetica Neue 800, lowercase, tight tracking:** the big word, headlines and keyword captions.
+- **Headlines, headers and titles:** bold Helvetica Neue, set tight, with one Signifier italic accent word.
+- **Keyword captions and chapter words:** Helvetica Neue 800, lowercase, tight. A caption's accent word changes colour only.
 - **Signifier italic:** the one phrase that matters, in a stacked emphasis (about once a section) or an accent word.
 - **Labels, axes and numbers:** small Helvetica, tracked when uppercase. No mono.
 

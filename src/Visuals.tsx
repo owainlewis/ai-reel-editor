@@ -242,11 +242,11 @@ const TitleVisual: React.FC<Props & { v: V<"title"> }> = ({ shot, time, w, h, v 
                   translate: `0 ${(1 - p) * size * 0.5}px`,
                   opacity: p,
                   filter: `blur(${(1 - p) * 12}px)`,
-                  // One face for the whole line; the accent word changes colour only.
-                  fontFamily: t.display,
-                  fontWeight: style.type.display.weight,
-                  fontSize: size,
-                  letterSpacing: size * style.type.display.tracking,
+                  // The style's accent: Ivory sets the accent word in Signifier italic; a colour-only
+                  // style keeps one face and recolours it.
+                  ...(accent && style.type.accent === "italic"
+                    ? { fontFamily: t.serif, fontStyle: "italic" as const, fontWeight: 400, fontSize: size * 1.08, letterSpacing: -size * 0.01 }
+                    : { fontFamily: t.display, fontWeight: style.type.display.weight, fontSize: size, letterSpacing: size * style.type.display.tracking }),
                   lineHeight: 1,
                   color: accent ? c.accentText : c.ink,
                 }}
@@ -272,7 +272,7 @@ const ListVisual: React.FC<Props & { v: V<"list"> }> = ({ shot, time, w, h, v })
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
       {v.title && (
-        <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: 64, letterSpacing: 64 * style.type.display.tracking, color: c.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.display, fontWeight: style.type.display.weight, fontSize: 64, letterSpacing: 64 * style.type.display.tracking, color: c.ink, marginBottom: 12, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -319,7 +319,7 @@ const StepsVisual: React.FC<Props & { v: V<"steps"> }> = ({ shot, time, w, h, v 
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 30 }}>
       {v.title && (
-        <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: 84, letterSpacing: 84 * style.type.display.tracking, color: c.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
+        <div style={{ fontFamily: t.display, fontWeight: style.type.display.weight, fontSize: 84, letterSpacing: 84 * style.type.display.tracking, color: c.ink, marginBottom: 60, opacity: prog(time, shot.start) }}>
           <Accented text={v.title} />
         </div>
       )}
@@ -388,7 +388,7 @@ const StatVisual: React.FC<Props & { v: V<"stat"> }> = ({ shot, time, w, h, v })
   const size = Math.min(v.value.length > 6 ? 220 : 300, Math.floor((w * 0.95) / (final.length * 0.52)));
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
-      <div style={{ fontFamily: t.serif, fontSize: size, lineHeight: 0.9, letterSpacing: -8, color: c.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
+      <div style={{ fontFamily: t.serif, fontSize: Math.min(size, (w * 0.95) / (v.value.length * 0.55)), whiteSpace: "nowrap", lineHeight: 0.9, letterSpacing: -8, color: c.ink, fontVariantNumeric: "tabular-nums" }}>{shown}</div>
       <div style={{ width: 160, height: 3, background: c.ink, scale: `${prog(time, shot.start + 0.3, 0.6)} 1`, transformOrigin: "left" }} />
       <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: 52, letterSpacing: -1, color: c.muted, opacity: prog(time, shot.start + 0.2) }}>
         <Accented text={v.label} />
@@ -462,7 +462,7 @@ const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, 
   const b = prog(time, shot.start + 0.15, 0.5);
   return (
     <div style={{ width: w, height: h, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 34 }}>
-      <div style={{ fontFamily: t.display, fontWeight: 400, fontSize: v.src ? 96 : 128, letterSpacing: (v.src ? 96 : 128) * style.type.display.tracking, color: c.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
+      <div style={{ fontFamily: t.display, fontWeight: style.type.display.weight, fontSize: v.src ? 96 : 128, letterSpacing: (v.src ? 96 : 128) * style.type.display.tracking, color: c.ink, textAlign: "center", lineHeight: 1.05, opacity: a, translate: `0 ${(1 - a) * 30}px` }}>
         Comment <span style={{ color: c.accentText }}>“{v.keyword}”</span>
       </div>
       <div style={{ fontFamily: t.sans, fontWeight: 500, fontSize: v.src ? 46 : 60, color: c.muted, textAlign: "center", opacity: a }}>{v.text}</div>

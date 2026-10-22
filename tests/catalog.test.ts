@@ -167,11 +167,15 @@ describe("tokens only", () => {
   });
 });
 
-// Owain, 2026-10-22: "the sans + serif combo looks very AI". Headlines are one serif; accents are colour.
+// Owain chose the Ivory he loved (2026-10-22): bold Helvetica headlines with one Signifier italic
+// accent word. The italic is applied only through the accent helpers, never set inline in the
+// reel's header or captions, so the voice stays one token.
 describe("type voice", () => {
-  it("sets headlines in the serif and never switches face for an accent", () => {
-    expect(style.type.display.family).toBe(style.font.serif);
-    expect(style.type.accent).toBe("colour");
+  it("sets headlines in bold Helvetica with an italic accent from the tokens", () => {
+    // Ivory: bold Helvetica headlines with one Signifier italic accent word (Owain, 2026-10-22).
+    expect(style.type.display.family).toBe(style.font.sans);
+    expect(style.type.display.weight).toBe(700);
+    expect(style.type.accent).toBe("italic");
     for (const f of ["../src/Reel.tsx", "../src/Captions.tsx"]) expect(readFileSync(new URL(f, import.meta.url), "utf8"), f).not.toMatch(/fontStyle: [^,]*"italic"/);
   });
 });
