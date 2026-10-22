@@ -1,0 +1,15 @@
+Claude writes about ninety percent of Claude Code's own code. So how does the team review all of it?
+
+They just published the whole system. Here are the layers.
+
+One. Before a pull request even opens, Claude has to prove the work. It runs the tests, the build and the linter, and a second agent reviews the diff with fresh eyes.
+
+Two. AI code review. Several agents hunt for bugs in parallel, then other agents vote on each finding. Only the ones they agree on get posted.
+
+Three. The risk of the change sets the human review, not the author. Low risk merges once the checks pass. Medium needs one person. High needs two.
+
+Four. Everything is easy to undo. New code ships behind feature flags that turn off without a deploy.
+
+And it works. Merged pull requests more than doubled, and the share that got reverted fell by more than forty percent.
+
+The lesson: stop trying to read every line. Build a system you trust, and keep humans on the risky parts.
