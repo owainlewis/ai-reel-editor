@@ -39,12 +39,8 @@ def library_root() -> Path:
 TARGET_LUFS = -14.0
 TRUE_PEAK = -1.5  # headroom for AAC encoding, which adds about 0.5 dB
 
-# Gentle: the source is usually already a finished voice recording.
-VOICE_CHAIN = (
-    "highpass=f=70,"
-    "equalizer=f=3200:t=q:w=1.0:g=1.5,"
-    "acompressor=threshold=-20dB:ratio=2.5:attack=5:release=120:makeup=2dB"
-)
+# The voice arrives finished: Owain grades and masters it in Final Cut (2026-10-22). It is never
+# filtered, EQ'd or compressed here; only one linear gain reaches the platform loudness target.
 
 
 def ffmpeg(args: list[str]) -> str:
@@ -97,7 +93,7 @@ def main(project: Path) -> None:
 
     gain = float(cfg.get("voiceGain", 0))
     graph = (
-        f"[0:a]volume={gain}dB,{VOICE_CHAIN},asplit=2[v][key];"
+        f"[0:a]volume={gain}dB,asplit=2[v][key];"
         f"[1:a]volume={music_db}dB[m];"
         "[m][key]sidechaincompress=threshold=0.05:ratio=3:attack=40:release=900:makeup=1[duck];"
         "[2:a]volume=-7dB[fx];"

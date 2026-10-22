@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Edit } from "../src/schema.ts";
+import { isKeyword } from "../src/Captions.tsx";
 import { chunkWords, estimateWords, findPhrase, lintShots, resolveShots } from "../tools/resolve.ts";
 
 const words = "If you're building software with AI, having a good code review tool is essential."
@@ -222,5 +223,12 @@ describe("chart and pipeline", () => {
     expect(issues).toEqual([]);
     expect(shots[0].visual?.times?.[1]).toBeCloseTo(8 * 0.3 - 0.05);
     expect(shots[1].visual?.times?.[0]).toBeCloseTo(10 * 0.3 - 0.05);
+  });
+});
+
+describe("keyword captions", () => {
+  it("skip filler words and keep content words", () => {
+    expect(["the", "a", "is", "of", "and", "It's"].some(isKeyword)).toBe(false);
+    expect(["factory", "massive", "30,000", "Claude", "agents."].every(isKeyword)).toBe(true);
   });
 });

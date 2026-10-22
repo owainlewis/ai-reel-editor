@@ -1517,6 +1517,1523 @@
           "preview": true
         }
       ]
+    },
+    {
+      "id": "ivory",
+      "name": "Ivory",
+      "number": "02",
+      "status": "draft",
+      "folder": "styles/ivory",
+      "summary": "Warm off-white and deep green, heavy Helvetica and Signifier italic. One big thing per beat, no card chrome, no grid.",
+      "cards": [
+        {
+          "id": "ivory.t1.chapter",
+          "kind": "chapter",
+          "tier": "t1",
+          "purpose": "section",
+          "summary": "A chapter marker: a large number lands out of a blur, its name tracked out below.",
+          "layouts": [
+            "scene",
+            "media",
+            "split"
+          ],
+          "slots": [
+            {
+              "name": "number",
+              "type": "text",
+              "maxChars": 3
+            },
+            {
+              "name": "label",
+              "type": "text",
+              "maxChars": 22
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.title",
+          "kind": "title",
+          "tier": "t1",
+          "purpose": "thesis",
+          "summary": "The thesis in one line, word by word, with a rule drawing under it. One *accent* word.",
+          "layouts": [
+            "scene",
+            "split",
+            "media",
+            "over"
+          ],
+          "slots": [
+            {
+              "name": "text",
+              "type": "richtext",
+              "maxChars": 40
+            },
+            {
+              "name": "kicker",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.stat",
+          "kind": "stat",
+          "tier": "t1",
+          "purpose": "stat",
+          "summary": "One big number that counts up, a rule, and what it counts. Only a real, sourced number.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "value",
+              "type": "number",
+              "maxChars": 6,
+              "note": "digits; thousands get a comma"
+            },
+            {
+              "name": "label",
+              "type": "richtext",
+              "maxChars": 32
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.quote",
+          "kind": "quote",
+          "tier": "t1",
+          "purpose": "quote",
+          "added": true,
+          "summary": "A real quote in large serif, words resolving as it is read, with who said it and where.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "text",
+              "type": "text",
+              "maxChars": 140,
+              "note": "word for word from the source"
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 48
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.bento",
+          "kind": "bento",
+          "tier": "t1",
+          "purpose": "overview",
+          "added": true,
+          "summary": "A feature overview: one wide cell and smaller ones, each landing on its word.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "cells",
+              "type": "list",
+              "minItems": 3,
+              "maxItems": 5,
+              "note": "four or fewer in a split"
+            },
+            {
+              "name": "cells[].title",
+              "type": "richtext",
+              "maxChars": 20
+            },
+            {
+              "name": "cells[].text",
+              "type": "text",
+              "maxChars": 28,
+              "optional": true
+            },
+            {
+              "name": "cells[].value",
+              "type": "text",
+              "maxChars": 7,
+              "optional": true
+            },
+            {
+              "name": "cells[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.matrix",
+          "kind": "matrix",
+          "tier": "t1",
+          "purpose": "overview",
+          "treatment": "2x2",
+          "added": true,
+          "summary": "A 2x2: two axes draw from the centre and items land in their quadrants on their words.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "x",
+              "type": "text",
+              "maxChars": 14,
+              "minItems": 2,
+              "maxItems": 2,
+              "note": "[low, high] along the bottom axis"
+            },
+            {
+              "name": "y",
+              "type": "text",
+              "maxChars": 14,
+              "minItems": 2,
+              "maxItems": 2,
+              "note": "[low, high] up the side"
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 1,
+              "maxItems": 4
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 22
+            },
+            {
+              "name": "items[].quad",
+              "type": "enum",
+              "note": "tl, tr, bl or br"
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.logowall",
+          "kind": "logowall",
+          "tier": "t1",
+          "purpose": "overview",
+          "treatment": "logo-wall",
+          "added": true,
+          "summary": "Many official logos at once, in a wave, on white tiles. Never redrawn.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 4,
+              "maxItems": 12
+            },
+            {
+              "name": "items[].src",
+              "type": "image",
+              "note": "an official logo from the maker's site or press kit"
+            },
+            {
+              "name": "caption",
+              "type": "text",
+              "maxChars": 40,
+              "optional": true
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.grid",
+          "kind": "grid",
+          "tier": "t1",
+          "purpose": "overview",
+          "treatment": "library",
+          "summary": "A library that fills in: real thumbnails in a wave, an odometer count, groups that light.",
+          "layouts": [
+            "scene",
+            "split"
+          ],
+          "slots": [
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 0,
+              "maxItems": 12,
+              "note": "real thumbnails captured from the source"
+            },
+            {
+              "name": "count",
+              "type": "number",
+              "maxChars": 6,
+              "optional": true
+            },
+            {
+              "name": "label",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "groups[].label",
+              "type": "text",
+              "maxChars": 16,
+              "optional": true
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.funnel",
+          "kind": "funnel",
+          "tier": "t1",
+          "purpose": "structure",
+          "treatment": "many-to-one",
+          "summary": "Many sources into one result: chips land, lines draw into the result card, its rows land.",
+          "layouts": [
+            "scene",
+            "split"
+          ],
+          "slots": [
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 0,
+              "maxItems": 9
+            },
+            {
+              "name": "items[].text",
+              "type": "text",
+              "maxChars": 16
+            },
+            {
+              "name": "target.kicker",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "target.title",
+              "type": "richtext",
+              "maxChars": 22
+            },
+            {
+              "name": "target.lines[].text",
+              "type": "richtext",
+              "maxChars": 22,
+              "optional": true
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.type",
+          "kind": "type",
+          "tier": "t1",
+          "purpose": "thesis",
+          "treatment": "kinetic-typing",
+          "summary": "Kinetic typing: the line types itself huge, then settles into a plain input.",
+          "layouts": [
+            "scene",
+            "split"
+          ],
+          "slots": [
+            {
+              "name": "text",
+              "type": "text",
+              "maxChars": 60
+            },
+            {
+              "name": "label",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "chips[].text",
+              "type": "text",
+              "maxChars": 16,
+              "optional": true
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            },
+            {
+              "name": "settle",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t1.cta",
+          "kind": "cta",
+          "tier": "t1",
+          "purpose": "cta",
+          "summary": "The end card: what to comment and what they get. Only when a real resource exists.",
+          "layouts": [
+            "split",
+            "media",
+            "scene"
+          ],
+          "slots": [
+            {
+              "name": "keyword",
+              "type": "text",
+              "maxChars": 12
+            },
+            {
+              "name": "text",
+              "type": "text",
+              "maxChars": 40
+            },
+            {
+              "name": "src",
+              "type": "image",
+              "optional": true
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 7
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.capture",
+          "kind": "image",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "capture",
+          "summary": "A real capture with one camera move and a highlight sweeping the words being said.",
+          "layouts": [
+            "split",
+            "media",
+            "scene",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "src",
+              "type": "image",
+              "note": "a capture made with reel capture, never a mock-up"
+            },
+            {
+              "name": "url",
+              "type": "text",
+              "maxChars": 60,
+              "optional": true
+            },
+            {
+              "name": "highlight[].label",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "highlight[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.video",
+          "kind": "video",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "clip",
+          "summary": "B-roll or a product's own clip, in a card, with one slow push-in.",
+          "layouts": [
+            "split",
+            "media",
+            "cutaway",
+            "scene",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "src",
+              "type": "image",
+              "note": "a project clip or broll:<id>"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": false
+        },
+        {
+          "id": "ivory.t2.logos",
+          "kind": "logos",
+          "tier": "t2",
+          "purpose": "label",
+          "treatment": "logos",
+          "summary": "One to four official logos on white tiles, each landing on its spoken name.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 1,
+              "maxItems": 4
+            },
+            {
+              "name": "items[].src",
+              "type": "image"
+            },
+            {
+              "name": "items[].name",
+              "type": "text",
+              "maxChars": 16,
+              "optional": true
+            },
+            {
+              "name": "caption",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.list",
+          "kind": "list",
+          "tier": "t2",
+          "purpose": "list",
+          "summary": "Rows that arrive as each is said; the newest is active. `preview` shows all dim first.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 30,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 5
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 26
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.steps",
+          "kind": "steps",
+          "tier": "t2",
+          "purpose": "process",
+          "summary": "Numbered steps joined by a line that draws as each is spoken.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 4
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 20
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.compare",
+          "kind": "compare",
+          "tier": "t2",
+          "purpose": "compare",
+          "treatment": "strike",
+          "summary": "Old way against new way; when the new one lands, the old is struck through.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "left.label",
+              "type": "text",
+              "maxChars": 14
+            },
+            {
+              "name": "left.text",
+              "type": "text",
+              "maxChars": 32
+            },
+            {
+              "name": "right.label",
+              "type": "text",
+              "maxChars": 14
+            },
+            {
+              "name": "right.text",
+              "type": "text",
+              "maxChars": 32
+            },
+            {
+              "name": "right.at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.beforeafter",
+          "kind": "beforeafter",
+          "tier": "t2",
+          "purpose": "compare",
+          "treatment": "before-after",
+          "added": true,
+          "summary": "Two states of one thing, with an arrow; the after lands on its word and takes the accent.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "before.label",
+              "type": "text",
+              "maxChars": 14
+            },
+            {
+              "name": "before.value",
+              "type": "richtext",
+              "maxChars": 12
+            },
+            {
+              "name": "before.text",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "after.label",
+              "type": "text",
+              "maxChars": 14
+            },
+            {
+              "name": "after.value",
+              "type": "richtext",
+              "maxChars": 12
+            },
+            {
+              "name": "after.text",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "after.at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.kpi",
+          "kind": "kpi",
+          "tier": "t2",
+          "purpose": "stat",
+          "treatment": "kpi-row",
+          "added": true,
+          "summary": "Two to four key numbers that count up on their words, with a source line.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 4
+            },
+            {
+              "name": "items[].value",
+              "type": "number",
+              "maxChars": 7
+            },
+            {
+              "name": "items[].label",
+              "type": "text",
+              "maxChars": 22
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 60,
+              "note": "where the numbers come from, or Illustration"
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.stat.ring",
+          "kind": "ring",
+          "tier": "t2",
+          "purpose": "stat",
+          "treatment": "ring",
+          "added": true,
+          "summary": "A share as an arc that sweeps to its value, a dot on its tip and the number counting with it.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "value",
+              "type": "number",
+              "note": "0 to 100, a real share"
+            },
+            {
+              "name": "label",
+              "type": "richtext",
+              "maxChars": 28
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 48
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.stat.meter",
+          "kind": "meter",
+          "tier": "t2",
+          "purpose": "stat",
+          "treatment": "meter",
+          "added": true,
+          "summary": "A value on a ticked scale: the fill runs to it while the number counts and rides the fill.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "value",
+              "type": "number"
+            },
+            {
+              "name": "max",
+              "type": "number"
+            },
+            {
+              "name": "unit",
+              "type": "text",
+              "maxChars": 3,
+              "optional": true
+            },
+            {
+              "name": "ends",
+              "type": "text",
+              "maxChars": 12,
+              "minItems": 2,
+              "maxItems": 2,
+              "optional": true,
+              "note": "[low, high] under the track"
+            },
+            {
+              "name": "label",
+              "type": "richtext",
+              "maxChars": 30
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 48
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.stat.waffle",
+          "kind": "waffle",
+          "tier": "t2",
+          "purpose": "stat",
+          "treatment": "waffle",
+          "added": true,
+          "summary": "N in 100 as a 10x10 grid of dots that fill in reading order as the number counts.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "value",
+              "type": "number",
+              "note": "a whole number, 0 to 100"
+            },
+            {
+              "name": "label",
+              "type": "richtext",
+              "maxChars": 26
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 48
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.chart.bar",
+          "kind": "chart",
+          "tier": "t2",
+          "purpose": "data",
+          "treatment": "bar",
+          "summary": "A bar chart; each bar grows on its word, the highlight takes the accent. Always a source.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "points",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 6
+            },
+            {
+              "name": "points[].label",
+              "type": "text",
+              "maxChars": 8
+            },
+            {
+              "name": "unit",
+              "type": "text",
+              "maxChars": 3,
+              "optional": true
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 60
+            },
+            {
+              "name": "points[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.chart.line",
+          "kind": "chart",
+          "tier": "t2",
+          "purpose": "data",
+          "treatment": "line",
+          "summary": "A line chart for change over time; the end value labelled big. Always a source.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "points",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 8
+            },
+            {
+              "name": "points[].label",
+              "type": "text",
+              "maxChars": 6
+            },
+            {
+              "name": "points[].note",
+              "type": "text",
+              "maxChars": 20,
+              "optional": true
+            },
+            {
+              "name": "source",
+              "type": "text",
+              "maxChars": 60
+            },
+            {
+              "name": "points[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.pipeline",
+          "kind": "pipeline",
+          "tier": "t2",
+          "purpose": "process",
+          "summary": "Numbered stages on a track that light as named; unnamed stages wait as dim numbers.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "stages",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 8
+            },
+            {
+              "name": "stages[].label",
+              "type": "text",
+              "maxChars": 14,
+              "optional": true
+            },
+            {
+              "name": "stages[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.timeline",
+          "kind": "timeline",
+          "tier": "t2",
+          "purpose": "process",
+          "treatment": "milestones",
+          "added": true,
+          "summary": "Dated milestones on a track that fills as each is named. Across for four, down for more.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 6
+            },
+            {
+              "name": "items[].date",
+              "type": "text",
+              "maxChars": 8
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 20
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.levels",
+          "kind": "levels",
+          "tier": "t2",
+          "purpose": "structure",
+          "treatment": "layers",
+          "added": true,
+          "summary": "A stack of layers built from the bottom up; each drops onto the stack on its word.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 5,
+              "note": "the first item is the foundation"
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 22
+            },
+            {
+              "name": "items[].note",
+              "type": "text",
+              "maxChars": 8,
+              "optional": true
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.agenda",
+          "kind": "agenda",
+          "tier": "t2",
+          "purpose": "overview",
+          "treatment": "agenda",
+          "added": true,
+          "summary": "A table of contents shown dim up front, an open loop; each part lights on its word.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 5
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 24
+            },
+            {
+              "name": "items[].note",
+              "type": "text",
+              "maxChars": 6,
+              "optional": true
+            },
+            {
+              "name": "active",
+              "type": "number",
+              "optional": true
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.checklist",
+          "kind": "checklist",
+          "tier": "t2",
+          "purpose": "list",
+          "treatment": "checklist",
+          "added": true,
+          "summary": "Boxes that tick as each item is said.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 32,
+              "optional": true
+            },
+            {
+              "name": "items",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 6
+            },
+            {
+              "name": "items[].text",
+              "type": "richtext",
+              "maxChars": 26
+            },
+            {
+              "name": "items[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.flow",
+          "kind": "flow",
+          "tier": "t2",
+          "purpose": "structure",
+          "treatment": "diagram",
+          "summary": "How parts talk: cards joined by lines that draw, a chip riding along what is passed.",
+          "layouts": [
+            "split",
+            "scene",
+            "side",
+            "media"
+          ],
+          "slots": [
+            {
+              "name": "nodes",
+              "type": "list",
+              "minItems": 2,
+              "maxItems": 4
+            },
+            {
+              "name": "nodes[].title",
+              "type": "richtext",
+              "maxChars": 18
+            },
+            {
+              "name": "nodes[].kicker",
+              "type": "text",
+              "maxChars": 14,
+              "optional": true
+            },
+            {
+              "name": "nodes[].lines",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "edges[].chip",
+              "type": "text",
+              "maxChars": 14,
+              "optional": true
+            },
+            {
+              "name": "nodes[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.terminal",
+          "kind": "terminal",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "terminal",
+          "summary": "A terminal that types each line on its spoken word. Real commands only.",
+          "layouts": [
+            "split",
+            "media",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "text",
+              "maxChars": 24,
+              "optional": true
+            },
+            {
+              "name": "lines",
+              "type": "list",
+              "minItems": 1,
+              "maxItems": 5
+            },
+            {
+              "name": "lines[].text",
+              "type": "text",
+              "maxChars": 32,
+              "note": "start with > for output"
+            },
+            {
+              "name": "lines[].at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.t2.prompt",
+          "kind": "prompt",
+          "tier": "t2",
+          "purpose": "evidence",
+          "treatment": "chat-input",
+          "summary": "A plain chat input where a prompt types itself out on its word.",
+          "layouts": [
+            "split",
+            "media",
+            "side"
+          ],
+          "slots": [
+            {
+              "name": "app",
+              "type": "text",
+              "maxChars": 16
+            },
+            {
+              "name": "text",
+              "type": "text",
+              "maxChars": 120
+            },
+            {
+              "name": "at",
+              "type": "anchor",
+              "optional": true,
+              "note": "a spoken phrase; the part lands on its first word"
+            }
+          ],
+          "duration": {
+            "min": 1.5,
+            "max": 5
+          },
+          "preview": true
+        },
+        {
+          "id": "ivory.overlay.lower",
+          "kind": "lower",
+          "tier": "overlay",
+          "purpose": "lower-third",
+          "summary": "A lower third: a serif name or point, a sans line under it, a short rule. No box.",
+          "layouts": [
+            "over"
+          ],
+          "slots": [
+            {
+              "name": "title",
+              "type": "richtext",
+              "maxChars": 36
+            },
+            {
+              "name": "sub",
+              "type": "text",
+              "maxChars": 56,
+              "optional": true
+            }
+          ],
+          "duration": {
+            "min": 2.5,
+            "max": 6
+          },
+          "preview": true
+        }
+      ]
     }
   ]
 }

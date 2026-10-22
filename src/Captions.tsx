@@ -1,9 +1,17 @@
 import React from "react";
 import { H, MEDIA, splitGeom, t } from "./theme";
 import { pal, SCENE } from "./soft";
+import { look, style } from "./style";
 import type { Chunk, Resolved, ResolvedShot } from "./schema";
 
 const clean = (s: string) => s.replace(/^["“'(]+|["”,.;:)]+$/g, "");
+
+// Small words never get the big keyword treatment: the last content word holds instead.
+const FILLER = new Set("a an the and or but so to of in on at by for with from as is are was were be been it its it's this that these those i you we they he she me my our your their them us if then than there here what which who how do does did can will would just really very also into onto about up out not no that's what's there's here's i'm i'll you're you'll we're they're going".split(" "));
+export const isKeyword = (text: string) => {
+  const w = text.replace(/^["“'(]+|["”,.;:!?)]+$/g, "").toLowerCase();
+  return w.length > 0 && !FILLER.has(w);
+};
 
 // Captions hard-swap, with no pop, and appear two frames before the first word
 // (the timing is set in tools/resolve.ts). Their look depends on what is behind them:
@@ -35,6 +43,40 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
           : shot.layout === "punch"
           ? Math.min(H - 420, (0.3 + 0.5 * 0.5) * H + 110)
           : Math.min(H - 420, chin + 170);
+
+  // Keyword captions (Ivory): the one word being said, big, heavy and lowercase, in warm ivory on
+  // the speaker or ink on paper. An accent word is set in Signifier italic. Sized to fit the width.
+  if (look.captions === "keyword") {
+    // A chapter card is its own big word: no caption over it.
+    if (shot.visual?.kind === "chapter") return null;
+    // The latest content word said so far, across chunks; filler words hold the previous one.
+    const said = r.chunks.flatMap((ch) => ch.words).filter((w) => time >= w.start - 2 / 30 && w.start >= shot.start - 0.05 && isKeyword(w.text));
+    const now = said[said.length - 1];
+    if (!now || time > now.end + 1.2) return null;
+    const word = clean(now.text).toLowerCase();
+    const serif = now.accent;
+    const onPaper = onCanvas || scene;
+    const ink = scene ? c.ink : onCanvas ? t.ink : style.color.dark.accent;
+    const size = Math.min(serif ? 190 : 170, (1080 - 180) / Math.max(3, word.length * (serif ? 0.48 : style.font.sansWidth)));
+    return (
+      <div style={{ position: "absolute", left: 90, right: 90, top: y, translate: "0 -50%", textAlign: "center" }}>
+        <span
+          style={{
+            fontFamily: serif ? t.serif : t.sans,
+            fontStyle: serif ? "italic" : "normal",
+            fontWeight: serif ? 400 : 800,
+            fontSize: size,
+            letterSpacing: serif ? -size * 0.02 : -size * 0.045,
+            lineHeight: 1,
+            color: ink,
+            textShadow: onPaper ? "none" : "0 2px 24px rgba(0,0,0,0.35)",
+          }}
+        >
+          {word}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div

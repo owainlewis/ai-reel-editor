@@ -42,6 +42,9 @@ export type StyleTokens = {
     marginWide: number;
   };
   motion: { ease: readonly [number, number, number, number]; enter: number; settle: number; stagger: number; blur: number };
+  // How a style treats the few things that change character between looks. Defaults: chunk
+  // captions, a glow chapter card, a framed chart.
+  look?: { captions?: "chunk" | "keyword"; chapter?: "glow" | "stack"; chart?: "framed" | "bare" };
 };
 
 // ---- Cards ----

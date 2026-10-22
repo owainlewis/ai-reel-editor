@@ -3,8 +3,9 @@
 // style's style.json and the library's registry.json from these.
 import type { StyleDef } from "./catalog";
 import { blueprint } from "./blueprint/style";
+import { ivory } from "./ivory/style";
 
-export const styles: StyleDef[] = [blueprint];
+export const styles: StyleDef[] = [blueprint, ivory];
 
 export const styleById = (id: string) => styles.find((s) => s.id === id);
 

@@ -5,6 +5,7 @@ import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
 import { ChartVisual, PipelineVisual } from "./elements";
+import { look, style } from "./style";
 import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, MeterCard, QuoteCard, RingCard, TimelineCard, WaffleCard } from "./cards";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
@@ -481,7 +482,56 @@ const CtaVisual: React.FC<Props & { v: V<"cta"> }> = ({ slug, shot, time, w, h, 
 };
 
 // A chapter card: the number lands out of a blur over a soft glow, its name tracked out below.
-const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h, v }) => {
+const ChapterVisual: React.FC<Props & { v: V<"chapter"> }> = (p) => (look.chapter === "stack" ? <ChapterStack {...p} /> : <ChapterGlow {...p} />);
+
+// Focus stack (Ivory): a huge numeral held soft and blurred behind one sharp word, both drifting
+// slowly at different speeds, so the frame has depth without any light effects.
+const ChapterStack: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h, v }) => {
+  const c = pal(shot.tone);
+  const back = prog(time, shot.start, 1.1);
+  const word = prog(time, shot.start + 0.25, 0.7);
+  const drift = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
+  const label = v.label.toLowerCase();
+  const size = Math.min(170, (w * 0.92) / Math.max(4, label.length * style.font.sansWidth));
+  const big = Math.min(h * 1.1, w * 1.2);
+  return (
+    <div style={{ position: "relative", width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          position: "absolute",
+          fontFamily: t.serif,
+          fontSize: big,
+          lineHeight: 1,
+          color: c.ink,
+          opacity: 0.5 * back,
+          filter: `blur(${22 + (1 - back) * 20}px)`,
+          scale: String(1.08 - 0.08 * back + 0.05 * drift),
+          translate: `0 ${-drift * 18}px`,
+        }}
+      >
+        {v.number.replace(/^0/, "")}
+      </div>
+      <div
+        style={{
+          position: "relative",
+          fontFamily: t.sans,
+          fontWeight: 800,
+          fontSize: size,
+          letterSpacing: -size * 0.045,
+          lineHeight: 1,
+          color: c.ink,
+          opacity: word,
+          filter: `blur(${(1 - word) * style.motion.blur}px)`,
+          translate: `0 ${(1 - word) * 20 - drift * 6}px`,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+};
+
+const ChapterGlow: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h, v }) => {
   const glow = prog(time, shot.start, 0.9);
   const num = prog(time, shot.start + 0.05, 0.55);
   const label = prog(time, shot.start + 0.3, 0.5);

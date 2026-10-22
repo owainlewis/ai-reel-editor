@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Player, type PlayerRef } from "@remotion/player";
 
 import type { Resolved } from "../src/schema";
+import { style as activeStyle } from "../src/style";
 import type { Review, ShotInfo, Status } from "./model";
 import { Accented, frames, playable, secs, stage, usePlanEvents } from "./shared";
 
@@ -119,6 +120,8 @@ export const Board: React.FC<{ slug: string }> = ({ slug }) => {
   if (error) return <div className="error">{error}</div>;
   if (!data) return <div className="error muted">Loading…</div>;
   const r = playable(data.resolved);
+  // Styles are chosen when the page loads (src/style.ts): reload in this reel's style if it differs.
+  if ((r.style ?? "blueprint") !== activeStyle.id) location.replace(`?style=${r.style ?? "blueprint"}${location.hash}`);
   const total = frames(r);
 
   return (

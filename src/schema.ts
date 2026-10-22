@@ -220,6 +220,8 @@ export const Edit = z.object({
   // reel: 9:16, 1080x1920. youtube: 16:9, 1920x1080, for a rough cut edited by hand: the plan only
   // lays graphics and text over it, sparsely, and never re-cuts the picture.
   canvas: z.enum(["reel", "youtube"]).default("reel"),
+  // The style to render in: a folder in styles/ (blueprint, ivory).
+  style: z.string().default("blueprint"),
   // Word captions. Reels have them; YouTube does not unless asked.
   captions: z.boolean().optional(),
   // react: the default for tool drops. The speaker stays on screen in a split while the
@@ -286,6 +288,7 @@ export type Resolved = {
   grade: { brightness: number; contrast: number; saturate: number };
   split: "half" | "inset";
   canvas: "reel" | "youtube";
+  style?: string;
   captions: boolean;
   // Light copies for the review board's players: 1080p H.264 video and AAC audio. Renders use the originals.
   preview?: { video?: string; audio?: string };

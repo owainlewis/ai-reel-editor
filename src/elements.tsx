@@ -1,6 +1,7 @@
 import React from "react";
 import { interpolate } from "remotion";
 import { pal } from "./soft";
+import { look } from "./style";
 import { clamp, ease, t } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
@@ -37,10 +38,17 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
       {v.title && (
         <div style={{ position: "absolute", left: 20, top: 0, fontFamily: t.mono, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>
       )}
-      {/* Baseline and two faint guides; no boxed axes. */}
-      {[0, 0.5, 1].map((g) => (
-        <div key={g} style={{ position: "absolute", left: 20, width: plotW, top: top + plotH * (1 - g), height: g === 0 ? 2 : 1, background: g === 0 ? c.ink : c.line }} />
-      ))}
+      {/* Framed: a baseline and two faint guides. Bare (Ivory): only the two axes, as thin lines. */}
+      {look.chart === "bare" ? (
+        <>
+          <div style={{ position: "absolute", left: 20, width: plotW, top: top + plotH, height: 2, background: c.ink, opacity: 0.7 }} />
+          <div style={{ position: "absolute", left: 20, width: 2, top: top - 20, height: plotH + 20, background: c.ink, opacity: 0.7 }} />
+        </>
+      ) : (
+        [0, 0.5, 1].map((g) => (
+          <div key={g} style={{ position: "absolute", left: 20, width: plotW, top: top + plotH * (1 - g), height: g === 0 ? 2 : 1, background: g === 0 ? c.ink : c.line }} />
+        ))
+      )}
       {v.type === "bar"
         ? v.points.map((pt, i) => {
             const slot = plotW / n;
@@ -62,12 +70,23 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
         : (() => {
             const xs = v.points.map((_, i) => 20 + 30 + ((plotW - 60 - 260) * i) / Math.max(1, n - 1));
             const pts = v.points.map((pt, i) => `${xs[i]},${y(pt.value)}`).join(" ");
+            // Bare charts draw a smooth curve through the points (Catmull-Rom as cubic Beziers).
+            const P = v.points.map((pt, i) => ({ x: xs[i], y: y(pt.value) }));
+            const smooth = P.map((q, i) => {
+              if (i === 0) return `M${q.x} ${q.y}`;
+              const a = P[i - 2] ?? P[i - 1], b = P[i - 1], d = P[i + 1] ?? q;
+              return `C${b.x + (q.x - a.x) / 6} ${b.y + (q.y - a.y) / 6} ${q.x - (d.x - b.x) / 6} ${q.y - (d.y - b.y) / 6} ${q.x} ${q.y}`;
+            }).join(" ");
             const draw = interpolate(time, [times[0], times[n - 1] + 0.7], [0, 1], { ...clamp, easing: ease });
             const lastOn = p(hi);
             return (
               <>
                 <svg width={w} height={h} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
-                  <polyline points={pts} fill="none" stroke={c.accent} strokeWidth={6} strokeLinejoin="round" strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - draw} />
+                  {look.chart === "bare" ? (
+                    <path d={smooth} fill="none" stroke={c.accent} strokeWidth={5} strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - draw} />
+                  ) : (
+                    <polyline points={pts} fill="none" stroke={c.accent} strokeWidth={6} strokeLinejoin="round" strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - draw} />
+                  )}
                   {v.points.map((pt, i) => (
                     <circle key={i} cx={xs[i]} cy={y(pt.value)} r={i === hi ? 13 : 9} fill={i === hi ? c.accent : c.card} stroke={c.accent} strokeWidth={4} opacity={p(i)} />
                   ))}

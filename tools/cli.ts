@@ -50,9 +50,9 @@ const has = (name: string) => args.includes(`--${name}`);
 const firstFlag = args.findIndex((a) => a.startsWith("--"));
 const positional = firstFlag < 0 ? args : args.slice(0, firstFlag);
 
-const run = (bin: string, argv: string[], opts: { cwd?: string; quiet?: boolean } = {}) => {
+const run = (bin: string, argv: string[], opts: { cwd?: string; quiet?: boolean; env?: Record<string, string> } = {}) => {
   if (!opts.quiet) console.log(`  $ ${bin} ${argv.join(" ")}`.slice(0, 220));
-  const r = spawnSync(bin, argv, { cwd: opts.cwd ?? ROOT, stdio: opts.quiet ? "pipe" : "inherit", encoding: "utf8" });
+  const r = spawnSync(bin, argv, { cwd: opts.cwd ?? ROOT, stdio: opts.quiet ? "pipe" : "inherit", encoding: "utf8", env: { ...process.env, ...opts.env } });
   if (r.status !== 0) throw new Error(`${bin} failed${opts.quiet ? `:\n${(r.stderr || "").slice(-2000)}` : ""}`);
   return r;
 };
@@ -466,6 +466,7 @@ function cmdValidate(slug: string, quiet = false): Resolved {
     grade: plan.grade,
     split: plan.split,
     canvas: plan.canvas,
+    style: plan.style,
     captions: plan.captions ?? !youtube,
     preview: makePreviews(dir, slug, meta.size ?? [1080, 1920]),
     shots,
@@ -494,7 +495,8 @@ function cmdAudio(slug: string) {
   run("uv", ["run", "--quiet", "--with", "numpy", "--with", "scipy", "--with", "soundfile", "python", "-m", "audio.mix", dir]);
 }
 
-const remotion = (argv: string[]) => run("npx", ["remotion", ...argv]);
+// The plan's style reaches the bundle as REMOTION_STYLE (see src/style.ts).
+const remotion = (argv: string[], style = "blueprint") => run("npx", ["remotion", ...argv], { env: { REMOTION_STYLE: style } });
 
 function cmdRender(slug: string) {
   const dir = project(slug);
@@ -503,7 +505,7 @@ function cmdRender(slug: string) {
   const resolved = cmdValidate(slug, true);
   const draft = has("draft");
   const out = join(dir, "renders", draft ? "draft.mp4" : "final.mp4");
-  remotion(["render", "src/index.ts", compositionFor(resolved.canvas).id, out, `--props=${join(dir, "build/edit.resolved.json")}`, ...(draft ? ["--scale=0.5", "--crf=26"] : [])]);
+  remotion(["render", "src/index.ts", compositionFor(resolved.canvas).id, out, `--props=${join(dir, "build/edit.resolved.json")}`, ...(draft ? ["--scale=0.5", "--crf=26"] : [])], resolved.style);
   console.log(`\nRendered ${out} (${resolved.duration.toFixed(1)}s)`);
 }
 
@@ -517,7 +519,7 @@ function cmdStills(slug: string) {
   r.shots.forEach((s, i) => {
     const t = Math.min(s.end - 0.05, s.start + Math.min(0.9, (s.end - s.start) * 0.7));
     remotion(["still", "src/index.ts", compositionFor(r.canvas).id, join(out, `${String(i + 1).padStart(2, "0")}.jpg`), `--props=${join(dir, "build/edit.resolved.json")}`,
-      `--frame=${Math.round(t * FPS)}`, "--scale=0.4", "--log=error"]);
+      `--frame=${Math.round(t * FPS)}`, "--scale=0.4", "--log=error"], r.style);
   });
   ffmpeg(["-pattern_type", "glob", "-i", join(out, "*.jpg"), "-vf", `tile=${Math.min(8, r.shots.length)}x${Math.ceil(r.shots.length / 8)}:padding=8:color=white`, join(dir, "checks/stills.jpg")]);
   console.log(`Contact sheet: ${join(dir, "checks/stills.jpg")}`);

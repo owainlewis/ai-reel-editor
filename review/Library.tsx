@@ -43,7 +43,7 @@ export const Library: React.FC = () => {
       {rows && !rows.length && <div className="empty">No projects yet. Make one with npm run reel -- script or new.</div>}
       <div className="grid">
         {rows?.map((p) => (
-          <div key={p.slug} className="reel-tile" role="link" onClick={() => p.validated && (location.hash = `#/reel/${encodeURIComponent(p.slug)}`)}>
+          <div key={p.slug} className="reel-tile" role="link" onClick={() => p.validated && (location.href = `?style=${p.resolved?.style ?? "blueprint"}#/reel/${encodeURIComponent(p.slug)}`)}>
             <div className="thumb">
               {p.resolved && (
                 <Thumbnail

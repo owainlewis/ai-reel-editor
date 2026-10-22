@@ -2,6 +2,12 @@
 
 The default look and pacing for Owain's reels. A brief from the user wins over anything here.
 
+## Styles
+
+A plan picks its look with `"style"` in `edit.json`: `blueprint` (cool paper, graphite, one blue, the blueprint grid, white cards) or `ivory` (warm off-white, deep green, keyword captions, focus-stack chapters, bare charts, no card chrome). Each style's rules are in `styles/<id>/DESIGN.md`. Fonts are Helvetica and Signifier in every style.
+
+Footage arrives colour graded and with finished vocals from Final Cut. Never grade it and never process the voice; add only music and sound effects.
+
 ## Principles (reels and YouTube)
 
 - Minimal. One idea on screen, lots of space, big type. Motion only to reveal, never to decorate.
