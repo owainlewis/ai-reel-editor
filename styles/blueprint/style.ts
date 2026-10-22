@@ -11,7 +11,7 @@ import type { VisualSpec } from "../../src/schema";
 import { atMax, slotIssuesIn, slotValues, type Card, type Slot, type StyleDef } from "../catalog";
 export { atMax, slotValues, type Card, type Slot };
 import { tokens } from "./tokens";
-import { sampleLogo, samplePage, SAMPLE_PAGE_SIZE, sampleThumb } from "./samples";
+import { sampleArticle, sampleLogo, samplePage, sampleRepo, SAMPLE_ARTICLE_SIZE, SAMPLE_PAGE_SIZE, SAMPLE_REPO_SIZE, sampleThumb } from "./samples";
 
 const T = (maxChars = 32): Slot => ({ name: "title", type: "text", maxChars, optional: true });
 const at = (name: string): Slot => ({ name, type: "anchor", optional: true, note: "a spoken phrase; the part lands on its first word" });
@@ -218,16 +218,16 @@ const catalog: Card[] = [
 
   // ---- t2: beside the speaker ----
   {
-    id: "blueprint.t2.capture",
+    id: "blueprint.t2.capture.card",
     kind: "image",
     tier: "t2",
     purpose: "evidence",
-    treatment: "capture",
-    summary: "A real capture with one camera move and a highlight sweeping the words being said.",
+    treatment: "card",
+    summary: "A real capture in a plain card (a post, a screenshot, a photo), with one camera move and a highlight sweeping the words being said.",
     layouts: ["split", "media", "scene", "side"],
     slots: [
       { name: "src", type: "image", note: "a capture made with reel capture, never a mock-up" },
-      { name: "url", type: "text", maxChars: 60, optional: true },
+      { name: "url", type: "url", maxChars: 60, optional: true },
       { name: "highlight[].label", type: "text", maxChars: 24, optional: true },
       at("highlight[].at"),
     ],
@@ -235,6 +235,80 @@ const catalog: Card[] = [
       visual: { kind: "image", src: samplePage(), size: SAMPLE_PAGE_SIZE, frame: "card", from: [0.04, 0.12, 0.62, 0.62], to: [0.05, 0.5, 0.5, 0.28], highlight: [{ rect: [0.07, 0.565, 0.34, 0.06], label: "Sample callout" }] },
       header: "The *source*",
       scene: "The *source*",
+    },
+  },
+  {
+    id: "blueprint.t2.capture.browser",
+    kind: "image",
+    tier: "t2",
+    purpose: "evidence",
+    treatment: "browser",
+    added: true,
+    summary: "An article or web page in a browser window: its real URL and tab, one camera move down the page to the line being said, a highlight on it.",
+    layouts: ["split", "media", "scene", "side"],
+    slots: [
+      { name: "src", type: "image", note: "reel capture <url> --full; the real page" },
+      { name: "url", type: "url", maxChars: 60, note: "the page's real address" },
+      { name: "title", type: "text", maxChars: 40, optional: true, note: "the page's real title, for the tab" },
+      { name: "icon", type: "image", optional: true, note: "the site's real favicon (reel fetch)" },
+      { name: "highlight[].label", type: "text", maxChars: 24, optional: true },
+      at("highlight[].at"),
+    ],
+    sample: {
+      visual: { kind: "image", src: sampleArticle(), size: SAMPLE_ARTICLE_SIZE, frame: "browser", url: "https://example.com/blog/a-sample-article", title: "A sample article", from: [0.12, 0.1, 0.8, 0.26], to: [0.16, 0.45, 0.66, 0.08], highlight: [{ rect: [0.18, 0.475, 0.56, 0.032] }] },
+      header: "The *article*",
+      scene: "The *article*",
+    },
+  },
+  {
+    id: "blueprint.t2.capture.repo",
+    kind: "image",
+    tier: "t2",
+    purpose: "evidence",
+    treatment: "repo",
+    added: true,
+    summary: "A code repository in a browser window: open on the name and description, then move to the README line that backs the claim.",
+    layouts: ["split", "media", "scene", "side"],
+    slots: [
+      { name: "src", type: "image", note: "reel capture <repo url> --full" },
+      { name: "url", type: "url", maxChars: 60, note: "the repo's address, e.g. github.com/owner/name" },
+      { name: "title", type: "text", maxChars: 40, optional: true, note: "the tab's real title" },
+      { name: "icon", type: "image", optional: true },
+      { name: "highlight[].label", type: "text", maxChars: 24, optional: true },
+      at("highlight[].at"),
+    ],
+    sample: {
+      visual: { kind: "image", src: sampleRepo(), size: SAMPLE_REPO_SIZE, frame: "browser", url: "https://example.com/sample-owner/sample-repo", title: "sample-owner/sample-repo", from: [0.04, 0.07, 0.92, 0.36], to: [0.05, 0.46, 0.84, 0.1], highlight: [{ rect: [0.07, 0.505, 0.72, 0.03], label: "Sample claim" }] },
+      header: "The *repo*",
+      scene: "The *repo*",
+    },
+  },
+  {
+    id: "blueprint.t1.windows",
+    kind: "windows",
+    tier: "t1",
+    purpose: "evidence",
+    treatment: "stack",
+    added: true,
+    summary: "Two or three real pages as stacked browser windows, each landing in front on its word.",
+    layouts: ["split", "scene", "side", "media"],
+    slots: [
+      { name: "items", type: "list", minItems: 2, maxItems: 3 },
+      { name: "items[].src", type: "image", note: "a real capture per page" },
+      { name: "items[].url", type: "url", maxChars: 48 },
+      at("items[].at"),
+    ],
+    sample: {
+      visual: {
+        kind: "windows",
+        items: [
+          { src: samplePage(), url: "https://example.com/first-sample" },
+          { src: sampleArticle(), url: "https://example.org/second-sample" },
+          { src: sampleRepo(), url: "https://example.net/sample-owner/sample-repo" },
+        ].map((it, i) => ({ ...it, size: [SAMPLE_PAGE_SIZE, SAMPLE_ARTICLE_SIZE, SAMPLE_REPO_SIZE][i] })) as never,
+      },
+      header: "Everyone's *writing* about it",
+      scene: "Three *posts*",
     },
   },
   {

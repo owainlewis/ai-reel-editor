@@ -1,6 +1,7 @@
 import React from "react";
 import { Img, interpolate, staticFile } from "remotion";
 import { pal, SoftAccented } from "./soft";
+import { browserGeom } from "./browser";
 import { style } from "./style";
 import { clamp, ease } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
@@ -15,7 +16,8 @@ type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: num
 type V<K extends ResolvedVisual["kind"]> = Extract<ResolvedVisual, { kind: K }> & { times?: number[] };
 export type Box = { x: number; y: number; w: number; h: number };
 // A text and the room it was sized for: `chars` at `size` must fit `room` px on `lines` lines.
-export type Fit = { text: string; size: number; room: number; lines: number; font: "sans" | "mono" | "serif"; tracking: number };
+// `floor` overrides the readable minimum for interface text such as a browser's address.
+export type Fit = { text: string; size: number; room: number; lines: number; font: "sans" | "label" | "serif"; tracking: number; floor?: number };
 // What a layout puts where. `cards` are padded surfaces: `content` is the height of what is stacked
 // inside, which must leave at least `pad` above and below. `parts` are other placed elements.
 export type Geom = { cards: { box: Box; pad: number; content: number }[]; parts: Box[]; texts: Fit[] };
@@ -33,7 +35,7 @@ const timesOf = (v: { times?: number[] }, n: number, start: number) => Array.fro
 // The part that was named last (-1 before the first).
 const current = (times: number[], time: number) => times.filter((x) => time >= x - 0.05).length - 1;
 
-const glyph = (font: Fit["font"]) => (font === "mono" ? F.monoWidth : font === "serif" ? 0.5 : F.sansWidth);
+const glyph = (font: Fit["font"]) => (font === "label" ? F.labelWidth : font === "serif" ? 0.5 : F.sansWidth);
 const chars = (s: string) => s.replace(/\*/g, "").length;
 const widthOf = (s: string, size: number, font: Fit["font"], tracking = 0) => chars(s) * (size * glyph(font) + tracking);
 // Wrapping breaks at words, so text on more than one line gets 15% slack per line.
@@ -52,11 +54,11 @@ const linesOf = (s: string, size: number, room: number, font: Fit["font"] = "san
 const TITLE = { size: 26, tracking: 5, h: 40, gap: 26 };
 const titleH = (title?: string) => (title ? TITLE.h + TITLE.gap : 0);
 const Title: React.FC<{ text: string; y: number; c: ReturnType<typeof pal>; p: number; center?: boolean }> = ({ text, y, c, p, center }) => (
-  <div style={{ position: "absolute", left: 0, right: 0, top: y, height: TITLE.h, display: "flex", alignItems: "center", justifyContent: center ? "center" : "flex-start", fontFamily: F.mono, fontSize: TITLE.size, letterSpacing: TITLE.tracking, textTransform: "uppercase", color: c.muted, opacity: p, whiteSpace: "nowrap" }}>
+  <div style={{ position: "absolute", left: 0, right: 0, top: y, height: TITLE.h, display: "flex", alignItems: "center", justifyContent: center ? "center" : "flex-start", fontFamily: F.label, fontWeight: 500, fontSize: TITLE.size, letterSpacing: TITLE.tracking, textTransform: "uppercase", color: c.muted, opacity: p, whiteSpace: "nowrap" }}>
     {text}
   </div>
 );
-const titleFit = (title: string | undefined, w: number) => (title ? fits([title], TITLE.size, w, "mono", 1, TITLE.tracking) : []);
+const titleFit = (title: string | undefined, w: number) => (title ? fits([title], TITLE.size, w, "label", 1, TITLE.tracking) : []);
 
 const surface = (c: ReturnType<typeof pal>, b: Box, extra: React.CSSProperties = {}): React.CSSProperties => ({
   position: "absolute",
@@ -86,16 +88,16 @@ const rowsGeom = (n: number, title: string | undefined, w: number, h: number, ma
 export const agendaGeom = (v: V<"agenda">, w: number, h: number) => {
   const g = rowsGeom(v.items.length, v.title, w, h, 150);
   const num = Math.round(Math.min(40, g.rowH * 0.3));
-  const numW = num * F.monoWidth * 2 + 40;
+  const numW = num * F.labelWidth * 2 + 40;
   const notes = v.items.map((it) => it.note ?? "");
   const noteSize = 26;
-  const noteW = notes.some(Boolean) ? Math.max(...notes.map((s) => widthOf(s, noteSize, "mono"))) + 28 : 0;
+  const noteW = notes.some(Boolean) ? Math.max(...notes.map((s) => widthOf(s, noteSize, "label"))) + 28 : 0;
   const room = w - g.pad * 2 - numW - noteW;
   const size = fit(v.items.map((it) => it.text), room, Math.min(56, g.rowH * 0.42));
   const geom: Geom = {
     cards: [{ box: g.card, pad: g.pad, content: g.rowH * v.items.length }],
     parts: v.title ? [{ x: 0, y: g.card.y - g.head, w, h: TITLE.h }] : [],
-    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room), ...fits(notes, noteSize, noteW, "mono"), ...fits(["05"], num, numW - 40, "mono")],
+    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room), ...fits(notes, noteSize, noteW, "label"), ...fits(["05"], num, numW - 40, "label")],
   };
   return { ...g, num, numW, noteSize, noteW, size, geom };
 };
@@ -116,11 +118,11 @@ export const AgendaCard: React.FC<Props & { v: V<"agenda"> }> = ({ shot, time, w
           const said = v.active !== undefined ? 1 : prog(time, times[i], 0.4);
           return (
             <div key={i} style={{ height: g.rowH, display: "flex", alignItems: "center", borderTop: i ? `1px solid ${c.line}` : "none" }}>
-              <div style={{ width: g.numW, flex: "none", fontFamily: F.mono, fontWeight: 600, fontSize: g.num, color: on ? c.accentText : c.faint }}>{String(i + 1).padStart(2, "0")}</div>
+              <div style={{ width: g.numW, flex: "none", fontFamily: F.label, fontWeight: 600, fontSize: g.num, color: on ? c.accentText : c.faint }}>{String(i + 1).padStart(2, "0")}</div>
               <div style={{ flex: 1, minWidth: 0, fontFamily: F.sans, fontWeight: 700, fontSize: g.size, letterSpacing: -g.size * 0.02, whiteSpace: "nowrap", color: on ? c.ink : c.muted, opacity: 0.4 + 0.6 * said, filter: `blur(${(1 - said) * 2.5}px)` }}>
                 <SoftAccented text={it.text} c={c} />
               </div>
-              {g.noteW > 0 && <div style={{ width: g.noteW, flex: "none", textAlign: "right", fontFamily: F.mono, fontSize: g.noteSize, color: c.muted, opacity: 0.4 + 0.6 * said }}>{it.note}</div>}
+              {g.noteW > 0 && <div style={{ width: g.noteW, flex: "none", textAlign: "right", fontFamily: F.label, fontWeight: 500, fontSize: g.noteSize, color: c.muted, opacity: 0.4 + 0.6 * said }}>{it.note}</div>}
             </div>
           );
         })}
@@ -199,7 +201,7 @@ export const beforeAfterGeom = (v: V<"beforeafter">, w: number, h: number) => {
   const geom: Geom = {
     cards: boxes.map((box) => ({ box, pad, content })),
     parts: [],
-    texts: [...fits([v.before.label, v.after.label], label.size, room, "mono", 1, label.tracking), ...fits([v.before.value, v.after.value], value, room), ...fits(texts, textSize, room, "sans", 2)],
+    texts: [...fits([v.before.label, v.after.label], label.size, room, "label", 1, label.tracking), ...fits([v.before.value, v.after.value], value, room), ...fits(texts, textSize, room, "sans", 2)],
   };
   return { side, arrow, pad, label, value, textSize, boxes, geom };
 };
@@ -214,7 +216,7 @@ export const BeforeAfterCard: React.FC<Props & { v: V<"beforeafter"> }> = ({ sho
   const arrowAt = g.side ? { x: l.w + g.arrow / 2, y: l.y + l.h / 2 } : { x: w / 2, y: l.y + l.h + g.arrow / 2 };
   const panel = (box: Box, s: { label: string; value: string; text?: string }, after: boolean, p: number) => (
     <div style={{ ...surface(c, box, { border: `${after ? 3 : 1.5}px solid ${after && p > 0.5 ? c.accent : c.line}`, padding: g.pad }), ...land(p, 36), opacity: after ? p : p * (1 - 0.45 * b) }}>
-      <div style={{ height: g.label.h, display: "flex", alignItems: "center", fontFamily: F.mono, fontSize: g.label.size, letterSpacing: g.label.tracking, textTransform: "uppercase", color: after ? c.accentText : c.muted }}>{s.label}</div>
+      <div style={{ height: g.label.h, display: "flex", alignItems: "center", fontFamily: F.label, fontWeight: 500, fontSize: g.label.size, letterSpacing: g.label.tracking, textTransform: "uppercase", color: after ? c.accentText : c.muted }}>{s.label}</div>
       <div style={{ marginTop: g.label.gap, fontFamily: F.sans, fontWeight: 700, fontSize: g.value, lineHeight: 1.05, letterSpacing: -g.value * 0.035, whiteSpace: "nowrap", color: after ? c.ink : b > 0.5 ? c.muted : c.ink }}>
         <SoftAccented text={s.value} c={c} />
       </div>
@@ -260,7 +262,7 @@ export const kpiGeom = (v: V<"kpi">, w: number, h: number) => {
     const valueRoom = room * 0.44;
     labelRoom = room - valueRoom - S.gap;
     label = fit(labels, labelRoom, 36, "sans", 2);
-    value = Math.floor(Math.min(fit(values, valueRoom, 110, "mono"), th - pad * 2));
+    value = Math.floor(Math.min(fit(values, valueRoom, 110, "label"), th - pad * 2));
     const lines = Math.max(...labels.map((s) => linesOf(s, label, labelRoom)));
     content = Math.max(value, lines * label * 1.2);
   } else {
@@ -268,14 +270,14 @@ export const kpiGeom = (v: V<"kpi">, w: number, h: number) => {
     label = fit(labels, room, 34, "sans", 2);
     const lines = Math.max(...labels.map((s) => linesOf(s, label, room)));
     const labelH = lines * label * 1.2;
-    value = Math.floor(Math.min(fit(values, room, 120, "mono"), th - pad * 2 - 14 - labelH));
+    value = Math.floor(Math.min(fit(values, room, 120, "label"), th - pad * 2 - 14 - labelH));
     content = value + 14 + labelH;
   }
   const boxes: Box[] = v.items.map((_, i) => ({ x: (i % cols) * (tw + gap), y: top + Math.floor(i / cols) * (th + gap), w: tw, h: th }));
   const geom: Geom = {
     cards: boxes.map((box) => ({ box, pad, content })),
     parts: [{ x: 0, y: h - 24 * 1.4, w, h: 24 * 1.4 }, ...(v.title ? [{ x: 0, y: top - head, w, h: TITLE.h }] : [])],
-    texts: [...titleFit(v.title, w), ...fits(values, value, mode === "rows" ? room * 0.44 : room, "mono"), ...fits(labels, label, labelRoom, "sans", 2), ...fits([v.source], 24, w, "mono")],
+    texts: [...titleFit(v.title, w), ...fits(values, value, mode === "rows" ? room * 0.44 : room, "label"), ...fits(labels, label, labelRoom, "sans", 2), ...fits([v.source], 24, w, "label")],
   };
   return { mode, boxes, top, head, padX, value, label, geom };
 };
@@ -305,7 +307,7 @@ export const KpiCard: React.FC<Props & { v: V<"kpi"> }> = ({ shot, time, w, h, v
         const roll = interpolate(time, [times[i], times[i] + 0.9], [0, 1], { ...clamp, easing: (x) => 1 - Math.pow(1 - x, 3) });
         const on = i === hi;
         const valueEl = (
-          <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: g.value, lineHeight: 1, letterSpacing: -g.value * 0.03, color: on ? c.accentText : c.ink, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{counted(it.value, roll)}</div>
+          <div style={{ fontFamily: F.label, fontWeight: 600, fontSize: g.value, lineHeight: 1, letterSpacing: -g.value * 0.03, color: on ? c.accentText : c.ink, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{counted(it.value, roll)}</div>
         );
         const labelEl = <div style={{ fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.2, letterSpacing: -0.4, color: c.muted }}>{it.label}</div>;
         return (
@@ -315,7 +317,7 @@ export const KpiCard: React.FC<Props & { v: V<"kpi"> }> = ({ shot, time, w, h, v
           </div>
         );
       })}
-      <div style={{ position: "absolute", left: 0, bottom: 0, fontFamily: F.mono, fontSize: 24, letterSpacing: 0.5, color: c.muted, opacity: enter }}>{v.source}</div>
+      <div style={{ position: "absolute", left: 0, bottom: 0, fontFamily: F.label, fontWeight: 500, fontSize: 24, letterSpacing: 0.5, color: c.muted, opacity: enter }}>{v.source}</div>
     </div>
   );
 };
@@ -348,7 +350,7 @@ export const matrixGeom = (v: V<"matrix">, w: number, h: number) => {
   const geom: Geom = {
     cards: chips.map((ch) => ({ box: ch.box, pad, content: ch.content })),
     parts: [plot, { x: 0, y: head, w, h: chipH }, { x: 0, y: h - chipH, w, h: chipH }],
-    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room, "sans", 2), ...fits([...v.x, ...v.y], axis.size, axisRoom - 40, "mono", 1, axis.tracking)],
+    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room, "sans", 2), ...fits([...v.x, ...v.y], axis.size, axisRoom - 40, "label", 1, axis.tracking)],
   };
   return { head, chipH, plot, chips, pad, dot, size, axis, geom };
 };
@@ -363,7 +365,7 @@ export const MatrixCard: React.FC<Props & { v: V<"matrix"> }> = ({ shot, time, w
   const cx = w / 2;
   const cy = g.plot.y + g.plot.h / 2;
   const chip = (text: string, style_: React.CSSProperties) => (
-    <div style={{ position: "absolute", height: g.chipH, padding: "0 20px", borderRadius: g.chipH / 2, background: c.bg, border: `1px solid ${c.line}`, display: "flex", alignItems: "center", fontFamily: F.mono, fontSize: g.axis.size, letterSpacing: g.axis.tracking, textTransform: "uppercase", color: c.muted, whiteSpace: "nowrap", opacity: lab, ...style_ }}>
+    <div style={{ position: "absolute", height: g.chipH, padding: "0 20px", borderRadius: g.chipH / 2, background: c.bg, border: `1px solid ${c.line}`, display: "flex", alignItems: "center", fontFamily: F.label, fontSize: g.axis.size, letterSpacing: g.axis.tracking, textTransform: "uppercase", color: c.muted, whiteSpace: "nowrap", opacity: lab, ...style_ }}>
       {text}
     </div>
   );
@@ -406,7 +408,7 @@ export const timelineGeom = (v: V<"timeline">, w: number, h: number) => {
   if (across) {
     const slot = w / n;
     const room = slot - 28;
-    const date = fit(dates, room, 32, "mono");
+    const date = fit(dates, room, 32, "label");
     const label = fit(labels, room, 46, "sans", 2);
     const lines = Math.max(...labels.map((s) => linesOf(s, label, room)));
     const block = date * 1.2 + 24 + dot + 28 + lines * label * 1.15;
@@ -416,7 +418,7 @@ export const timelineGeom = (v: V<"timeline">, w: number, h: number) => {
     const geom: Geom = {
       cards: [],
       parts: [{ x: 0, y: top, w, h: block }, ...(v.title ? [{ x: 0, y: top - head, w, h: TITLE.h }] : [])],
-      texts: [...titleFit(v.title, w), ...fits(dates, date, room, "mono"), ...fits(labels, label, room, "sans", 2)],
+      texts: [...titleFit(v.title, w), ...fits(dates, date, room, "label"), ...fits(labels, label, room, "sans", 2)],
     };
     return { across, head, dot, date, label, top, track, xs, ys: [] as number[], rowH: 0, x: 0, geom };
   }
@@ -430,7 +432,7 @@ export const timelineGeom = (v: V<"timeline">, w: number, h: number) => {
   const geom: Geom = {
     cards: [],
     parts: [{ x: 0, y: top, w, h: rowH * n }, ...(v.title ? [{ x: 0, y: top - head, w, h: TITLE.h }] : [])],
-    texts: [...titleFit(v.title, w), ...fits(dates, date, room, "mono"), ...fits(labels, label, room)],
+    texts: [...titleFit(v.title, w), ...fits(dates, date, room, "label"), ...fits(labels, label, room)],
   };
   return { across, head, dot, date, label, top, track: 0, xs: [] as number[], ys, rowH, x, geom };
 };
@@ -463,7 +465,7 @@ export const TimelineCard: React.FC<Props & { v: V<"timeline"> }> = ({ shot, tim
           return (
             <React.Fragment key={i}>
               <div style={{ position: "absolute", left: g.xs[i] - g.dot / 2, top: g.track - g.dot / 2 }}>{dotEl(i)}</div>
-              <div style={{ position: "absolute", left: g.xs[i] - slot / 2 + 14, width: slot - 28, top: g.top, textAlign: "center", fontFamily: F.mono, fontSize: g.date, lineHeight: 1.2, color: i === now ? c.accentText : c.muted, opacity: 0.35 + 0.65 * p }}>{it.date}</div>
+              <div style={{ position: "absolute", left: g.xs[i] - slot / 2 + 14, width: slot - 28, top: g.top, textAlign: "center", fontFamily: F.label, fontWeight: 500, fontSize: g.date, lineHeight: 1.2, color: i === now ? c.accentText : c.muted, opacity: 0.35 + 0.65 * p }}>{it.date}</div>
               <div style={{ position: "absolute", left: g.xs[i] - slot / 2 + 14, width: slot - 28, top: g.track + g.dot / 2 + 28, textAlign: "center", fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.15, letterSpacing: -g.label * 0.02, color: i === now ? c.ink : c.muted, ...land(p, 14), opacity: 0.25 + 0.75 * p }}>
                 <SoftAccented text={it.text} c={c} />
               </div>
@@ -486,7 +488,7 @@ export const TimelineCard: React.FC<Props & { v: V<"timeline"> }> = ({ shot, tim
           <React.Fragment key={i}>
             <div style={{ position: "absolute", left: g.x - g.dot / 2, top: g.ys[i] - g.dot / 2 }}>{dotEl(i)}</div>
             <div style={{ position: "absolute", left: g.x + g.dot / 2 + 36, right: 0, top: g.ys[i], translate: `${(1 - p) * 24}px -50%`, opacity: 0.25 + 0.75 * p }}>
-              <div style={{ fontFamily: F.mono, fontSize: g.date, color: i === now ? c.accentText : c.muted, marginBottom: 6 }}>{it.date}</div>
+              <div style={{ fontFamily: F.label, fontWeight: 500, fontSize: g.date, color: i === now ? c.accentText : c.muted, marginBottom: 6 }}>{it.date}</div>
               <div style={{ fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.1, letterSpacing: -g.label * 0.02, color: i === now ? c.ink : c.muted, whiteSpace: "nowrap" }}>
                 <SoftAccented text={it.text} c={c} />
               </div>
@@ -510,9 +512,9 @@ export const levelsGeom = (v: V<"levels">, w: number, h: number) => {
   const top = head + (h - head - total) / 2;
   const pad = S.cardPadSmall;
   const tag = 24;
-  const tagW = tag * F.monoWidth * 2 + 30;
+  const tagW = tag * F.labelWidth * 2 + 30;
   const notes = v.items.map((it) => it.note ?? "");
-  const noteW = notes.some(Boolean) ? Math.max(...notes.map((s) => widthOf(s, tag, "mono"))) + 24 : 0;
+  const noteW = notes.some(Boolean) ? Math.max(...notes.map((s) => widthOf(s, tag, "label"))) + 24 : 0;
   // The narrowest slab (the top one) sets the room every label must fit.
   const room = w - 2 * step * (n - 1) - pad * 2 - tagW - noteW;
   const size = fit(v.items.map((it) => it.text), room, Math.min(62, slabH * 0.4));
@@ -522,7 +524,7 @@ export const levelsGeom = (v: V<"levels">, w: number, h: number) => {
   const geom: Geom = {
     cards: boxes.map((box) => ({ box, pad: Math.min(pad, padY), content: size * 1.2 })),
     parts: v.title ? [{ x: 0, y: top - head, w, h: TITLE.h }] : [],
-    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room), ...fits(notes, tag, noteW, "mono")],
+    texts: [...titleFit(v.title, w), ...fits(v.items.map((it) => it.text), size, room), ...fits(notes, tag, noteW, "label")],
   };
   return { head, top, pad, tag, tagW, noteW, size, boxes, geom };
 };
@@ -543,11 +545,11 @@ export const LevelsCard: React.FC<Props & { v: V<"levels"> }> = ({ shot, time, w
         const on = i === now;
         return (
           <div key={i} style={{ ...surface(c, b, { borderRadius: S.radiusSmall, border: `${on ? 3 : 1.5}px solid ${on && p > 0.5 ? c.accent : c.line}`, padding: `0 ${g.pad}px` }), opacity: p, filter: `blur(${(1 - p) * M.blur}px)`, translate: `0 ${(1 - p) * -50}px`, display: "flex", alignItems: "center" }}>
-            <div style={{ width: g.tagW, flex: "none", fontFamily: F.mono, fontWeight: 600, fontSize: g.tag, color: on ? c.accentText : c.faint }}>L{i + 1}</div>
+            <div style={{ width: g.tagW, flex: "none", fontFamily: F.label, fontWeight: 600, fontSize: g.tag, color: on ? c.accentText : c.faint }}>L{i + 1}</div>
             <div style={{ flex: 1, minWidth: 0, fontFamily: F.sans, fontWeight: 700, fontSize: g.size, letterSpacing: -g.size * 0.02, whiteSpace: "nowrap", color: on ? c.ink : c.muted }}>
               <SoftAccented text={it.text} c={c} />
             </div>
-            {g.noteW > 0 && <div style={{ width: g.noteW, flex: "none", textAlign: "right", fontFamily: F.mono, fontSize: g.tag, color: c.muted }}>{it.note}</div>}
+            {g.noteW > 0 && <div style={{ width: g.noteW, flex: "none", textAlign: "right", fontFamily: F.label, fontWeight: 500, fontSize: g.tag, color: c.muted }}>{it.note}</div>}
           </div>
         );
       })}
@@ -676,7 +678,7 @@ export const bentoGeom = (v: V<"bento">, w: number, h: number) => {
     const big = i === 0;
     const pad = big ? S.cardPad : S.cardPadSmall;
     const room = b.w - pad * 2;
-    const fitted = { title: fit([cell.title], room, big ? 76 : 54, "sans", 2), text: cell.text ? fit([cell.text], room, big ? 38 : 32, "sans", 3) : 0, value: cell.value ? fit([cell.value], room, big ? 96 : 72, "mono") : 0 };
+    const fitted = { title: fit([cell.title], room, big ? 76 : 54, "sans", 2), text: cell.text ? fit([cell.text], room, big ? 38 : 32, "sans", 3) : 0, value: cell.value ? fit([cell.value], room, big ? 96 : 72, "label") : 0 };
     // The cell's type scales down together until it fits inside the padding, never under the floor.
     const at = (k: number) => ({
       title: Math.max(F.minSize, Math.floor(fitted.title * k)),
@@ -708,7 +710,7 @@ export const bentoGeom = (v: V<"bento">, w: number, h: number) => {
     texts: v.cells.flatMap((cell, i) => [
       ...fits([cell.title], cells[i].title, cells[i].room, "sans", 2),
       ...(cell.text ? fits([cell.text], cells[i].text, cells[i].room, "sans", 3) : []),
-      ...(cell.value ? fits([cell.value], cells[i].value, cells[i].room, "mono") : []),
+      ...(cell.value ? fits([cell.value], cells[i].value, cells[i].room, "label") : []),
     ]),
   };
   return { boxes, cells, geom };
@@ -728,7 +730,7 @@ export const BentoCard: React.FC<Props & { v: V<"bento"> }> = ({ shot, time, w, 
         const on = i === now;
         return (
           <div key={i} style={{ ...surface(c, b, { border: `${on ? 3 : 1.5}px solid ${on && p > 0.5 ? c.accent : c.line}`, padding: m.pad }), ...land(p, 30), display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-            {cell.value && <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: m.value, lineHeight: 1, letterSpacing: -m.value * 0.03, color: i === 0 ? c.accentText : c.ink, marginBottom: 14, whiteSpace: "nowrap" }}>{cell.value}</div>}
+            {cell.value && <div style={{ fontFamily: F.label, fontWeight: 600, fontSize: m.value, lineHeight: 1, letterSpacing: -m.value * 0.03, color: i === 0 ? c.accentText : c.ink, marginBottom: 14, whiteSpace: "nowrap" }}>{cell.value}</div>}
             <div style={{ fontFamily: F.sans, fontWeight: 700, fontSize: m.title, lineHeight: 1.12, letterSpacing: -m.title * 0.025, color: c.ink }}>
               <SoftAccented text={cell.title} c={c} />
             </div>
@@ -749,9 +751,9 @@ const SOURCE = { size: 24, h: 24 * 1.4, gap: 28 };
 const COUNT = 1.6;
 const countEase = (x: number) => 1 - Math.pow(1 - x, 3);
 const countProg = (time: number, at: number) => interpolate(time, [at, at + COUNT], [0, 1], { ...clamp, easing: countEase });
-const sourceFit = (source: string, w: number) => fits([source], SOURCE.size, w, "mono");
+const sourceFit = (source: string, w: number) => fits([source], SOURCE.size, w, "label");
 const Source: React.FC<{ text: string; c: ReturnType<typeof pal>; p: number }> = ({ text, c, p }) => (
-  <div style={{ position: "absolute", left: 0, bottom: 0, fontFamily: F.mono, fontSize: SOURCE.size, letterSpacing: 0.5, color: c.muted, opacity: p, whiteSpace: "nowrap" }}>{text}</div>
+  <div style={{ position: "absolute", left: 0, bottom: 0, fontFamily: F.label, fontWeight: 500, fontSize: SOURCE.size, letterSpacing: 0.5, color: c.muted, opacity: p, whiteSpace: "nowrap" }}>{text}</div>
 );
 
 export const ringGeom = (v: V<"ring">, w: number, h: number) => {
@@ -760,12 +762,12 @@ export const ringGeom = (v: V<"ring">, w: number, h: number) => {
   const room = h - SOURCE.h - SOURCE.gap - labelH - 40;
   const d = Math.floor(Math.min(w * 0.7, room, 560));
   const stroke = Math.round(d * 0.055);
-  const num = fit(["100"], d * 0.5, d * 0.3, "mono");
+  const num = fit(["100"], d * 0.5, d * 0.3, "label");
   const top = (h - SOURCE.h - SOURCE.gap - (d + 40 + labelH)) / 2;
   const geom: Geom = {
     cards: [],
     parts: [{ x: (w - d) / 2, y: top, w: d, h: d }, { x: 0, y: top + d + 40, w, h: labelH }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
-    texts: [...fits(["100"], num, d * 0.5, "mono"), ...fits([v.label], label, w, "sans", 2), ...sourceFit(v.source, w)],
+    texts: [...fits(["100"], num, d * 0.5, "label"), ...fits([v.label], label, w, "sans", 2), ...sourceFit(v.source, w)],
   };
   return { d, stroke, num, label, top, geom };
 };
@@ -790,7 +792,7 @@ export const RingCard: React.FC<Props & { v: V<"ring"> }> = ({ shot, time, w, h,
           <circle cx={g.d / 2} cy={g.d / 2} r={r} fill="none" stroke={c.accent} strokeWidth={g.stroke} strokeLinecap="round" strokeDasharray={`${len * share} ${len}`} transform={`rotate(-90 ${g.d / 2} ${g.d / 2})`} opacity={share > 0.002 ? 1 : 0} />
           {share > 0.002 && <circle cx={g.d / 2 + r * Math.cos(a)} cy={g.d / 2 + r * Math.sin(a)} r={g.stroke * 0.7} fill={c.card} stroke={c.accent} strokeWidth={g.stroke * 0.35} />}
         </svg>
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.mono, fontWeight: 600, fontSize: g.num, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums", filter: `blur(${(1 - prog(time, at, 0.5)) * M.blur}px)` }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F.label, fontWeight: 600, fontSize: g.num, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums", filter: `blur(${(1 - prog(time, at, 0.5)) * M.blur}px)` }}>
           {shown}
           <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.num * 0.55, color: c.accentText, marginLeft: g.num * 0.04 }}>%</span>
         </div>
@@ -806,7 +808,7 @@ export const RingCard: React.FC<Props & { v: V<"ring"> }> = ({ shot, time, w, h,
 export const meterGeom = (v: V<"meter">, w: number, h: number) => {
   const unit = v.unit ?? "";
   const valueText = `${v.max}${unit}`.length > `${v.value}${unit}`.length ? `${v.max}${unit}` : `${v.value}${unit}`;
-  const value = fit([valueText], w, Math.min(150, h * 0.22), "mono");
+  const value = fit([valueText], w, Math.min(150, h * 0.22), "label");
   const label = fit([v.label], w, 44, "sans", 2);
   const labelH = linesOf(v.label, label, w) * label * 1.15;
   const ends = v.ends ?? [`0${unit}`, `${v.max}${unit}`];
@@ -817,7 +819,7 @@ export const meterGeom = (v: V<"meter">, w: number, h: number) => {
   const geom: Geom = {
     cards: [],
     parts: [{ x: 0, y: top, w, h: block }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
-    texts: [...fits([valueText], value, w, "mono"), ...fits([v.label], label, w, "sans", 2), ...fits(ends, SOURCE.size, w / 2 - 20, "mono"), ...sourceFit(v.source, w)],
+    texts: [...fits([valueText], value, w, "label"), ...fits([v.label], label, w, "sans", 2), ...fits(ends, SOURCE.size, w / 2 - 20, "label"), ...sourceFit(v.source, w)],
   };
   return { value, label, labelH, ends, track, top, trackY, geom };
 };
@@ -833,7 +835,7 @@ export const MeterCard: React.FC<Props & { v: V<"meter"> }> = ({ shot, time, w, 
   const tickY = g.trackY + g.track + 18;
   return (
     <div style={{ position: "relative", width: w, height: h }}>
-      <div style={{ position: "absolute", left: share * w, top: g.top, translate: `${share > 0.5 ? "-100%" : "0"} 0`, fontFamily: F.mono, fontWeight: 600, fontSize: g.value, lineHeight: 1, letterSpacing: -g.value * 0.04, color: c.ink, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", opacity: enter }}>
+      <div style={{ position: "absolute", left: share * w, top: g.top, translate: `${share > 0.5 ? "-100%" : "0"} 0`, fontFamily: F.label, fontWeight: 600, fontSize: g.value, lineHeight: 1, letterSpacing: -g.value * 0.04, color: c.ink, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", opacity: enter }}>
         {shown}
         {v.unit && <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.value * 0.55, color: c.accentText }}>{v.unit}</span>}
       </div>
@@ -842,8 +844,8 @@ export const MeterCard: React.FC<Props & { v: V<"meter"> }> = ({ shot, time, w, 
       {Array.from({ length: 11 }, (_, i) => (
         <div key={i} style={{ position: "absolute", left: (w - 2) * (i / 10), top: tickY, width: 2, height: i % 5 === 0 ? 16 : 10, background: c.faint, opacity: prog(time, shot.start + 0.1 + i * 0.03, 0.3) }} />
       ))}
-      <div style={{ position: "absolute", left: 0, top: tickY + 30, fontFamily: F.mono, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[0]}</div>
-      <div style={{ position: "absolute", right: 0, top: tickY + 30, fontFamily: F.mono, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[1]}</div>
+      <div style={{ position: "absolute", left: 0, top: tickY + 30, fontFamily: F.label, fontWeight: 500, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[0]}</div>
+      <div style={{ position: "absolute", right: 0, top: tickY + 30, fontFamily: F.label, fontWeight: 500, fontSize: SOURCE.size, color: c.muted, opacity: enter }}>{g.ends[1]}</div>
       <div style={{ position: "absolute", left: 0, right: 0, top: tickY + 30 + SOURCE.size * 1.3 + 40, fontFamily: F.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.15, letterSpacing: -g.label * 0.02, color: c.ink, ...land(prog(time, at + 0.3), 16) }}>
         <SoftAccented text={v.label} c={c} />
       </div>
@@ -854,7 +856,7 @@ export const MeterCard: React.FC<Props & { v: V<"meter"> }> = ({ shot, time, w, 
 
 export const waffleGeom = (v: V<"waffle">, w: number, h: number) => {
   const wide = w / h >= 1.3;
-  const num = fit(["100%"], wide ? w * 0.36 : w, Math.min(150, h * 0.2), "mono");
+  const num = fit(["100%"], wide ? w * 0.36 : w, Math.min(150, h * 0.2), "label");
   const label = fit([v.label], wide ? w * 0.4 : w, 44, "sans", 2);
   const labelH = linesOf(v.label, label, wide ? w * 0.4 : w) * label * 1.15;
   const avail = h - SOURCE.h - SOURCE.gap;
@@ -867,7 +869,7 @@ export const waffleGeom = (v: V<"waffle">, w: number, h: number) => {
   const geom: Geom = {
     cards: [],
     parts: [{ x: gx, y: gy, w: grid, h: grid }, { x: 0, y: h - SOURCE.h, w, h: SOURCE.h }],
-    texts: [...fits(["100%"], num, wide ? w * 0.36 : w, "mono"), ...fits([v.label], label, wide ? w * 0.4 : w, "sans", 2), ...sourceFit(v.source, w)],
+    texts: [...fits(["100%"], num, wide ? w * 0.36 : w, "label"), ...fits([v.label], label, wide ? w * 0.4 : w, "sans", 2), ...sourceFit(v.source, w)],
   };
   return { wide, num, label, grid, cell, top, gx, gy, geom };
 };
@@ -883,7 +885,7 @@ export const WaffleCard: React.FC<Props & { v: V<"waffle"> }> = ({ shot, time, w
   return (
     <div style={{ position: "relative", width: w, height: h }}>
       <div style={{ position: "absolute", left: 0, top: g.top, width: g.wide ? w * 0.4 : w, textAlign: g.wide ? "left" : "center", ...land(enter, 16) }}>
-        <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: g.num, lineHeight: 1, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ fontFamily: F.label, fontWeight: 600, fontSize: g.num, lineHeight: 1, letterSpacing: -g.num * 0.04, color: c.ink, fontVariantNumeric: "tabular-nums" }}>
           {Math.round(filled)}
           <span style={{ fontFamily: F.serif, fontStyle: "italic", fontWeight: 400, fontSize: g.num * 0.55, color: c.accentText }}>%</span>
         </div>
@@ -918,6 +920,8 @@ export const cardGeom = (v: ResolvedVisual, w: number, h: number): Geom | undefi
     case "logowall": return logowallGeom(v, w, h).geom;
     case "bento": return bentoGeom(v, w, h).geom;
     case "ring": return ringGeom(v, w, h).geom;
+    case "windows": return browserGeom(v, w, h);
+    case "image": return v.frame === "browser" ? browserGeom(v, w, h) : undefined;
     case "meter": return meterGeom(v, w, h).geom;
     case "waffle": return waffleGeom(v, w, h).geom;
     default: return undefined;

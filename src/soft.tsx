@@ -90,12 +90,12 @@ export const SceneCanvas: React.FC<{ tone: Tone; time: number; width?: number; h
   );
 };
 
-// Text with *one accent* in Signifier italic, in the accent colour.
+// Text with *one accent*: in the accent colour, in the same face (the style's `type.accent`).
 export const SoftAccented: React.FC<{ text: string; c: Pal }> = ({ text, c }) => (
   <>
     {text.split(/(\*[^*]+\*)/).map((part, i) =>
       part.startsWith("*") ? (
-        <span key={i} style={{ fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5, color: c.accentText }}>
+        <span key={i} style={style.type.accent === "colour" ? { color: c.accentText } : { fontFamily: t.serif, fontStyle: "italic", fontWeight: 400, letterSpacing: -0.5, color: c.accentText }}>
           {part.slice(1, -1)}
         </span>
       ) : (
@@ -198,7 +198,7 @@ export const GridVisual: React.FC<Props & { v: V<"grid"> }> = ({ slug, shot, tim
             const o = p * (1 - out);
             if (o <= 0) return null;
             return (
-              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: style.color.onAccent, fontFamily: noItems ? t.mono : t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
+              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: style.color.onAccent, fontFamily: t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
                 {gr.label}
               </div>
             );
@@ -342,7 +342,7 @@ export const FunnelVisual: React.FC<Props & { v: V<"funnel"> }> = ({ shot, time,
           opacity: g.n ? prog(time, Math.min(flowT, itemT[0] + 0.2), 0.5) : 1,
         }}
       >
-        {v.target.kicker && <div style={{ height: g.kickerH, fontFamily: t.mono, fontSize: big ? 34 : 28, lineHeight: 1.25, color: c.accentText }}>{v.target.kicker}</div>}
+        {v.target.kicker && <div style={{ height: g.kickerH, fontFamily: t.label, fontWeight: 500, fontSize: big ? 34 : 28, lineHeight: 1.25, color: c.accentText }}>{v.target.kicker}</div>}
         <div style={{ marginTop: 10, height: g.titleH, fontFamily: t.sans, fontWeight: 700, fontSize: big ? 84 : 64, lineHeight: 1.05, letterSpacing: big ? -3 : -2, color: c.ink }}>
           <SoftAccented text={v.target.title} c={c} />
         </div>

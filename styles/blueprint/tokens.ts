@@ -44,22 +44,38 @@ export const tokens = {
       highlight: "rgba(37,99,235,0.18)",
     },
     terminal: "#14161B",
+    // Browser windows around real captures: the bar, the URL field and the open tab, per tone.
+    window: {
+      light: { bar: "#F3F4F6", field: "#E5E7EB", tab: "#FFFFFF", dot: "#CDD1D7" },
+      dark: { bar: "#202328", field: "#2B2F35", tab: "#32373E", dot: "#454A51" },
+    },
     // Text on a filled accent chip or button.
     onAccent: "#FBFAF7",
   },
   font: {
-    // Read from the fonts installed on the rendering machine.
+    // Owain's brand is two families: Helvetica (bold for titles) and Signifier. Labels and numbers
+    // are Helvetica too: small, tracked caps for labels, tabular figures for numbers. Mono is only
+    // for text that is code (terminal lines, file names). Read from the fonts on the rendering machine.
     sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
     serif: 'Signifier, "Iowan Old Style", Georgia, serif',
-    mono: '"SF Mono", "JetBrains Mono", Menlo, monospace',
+    label: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    code: '"SF Mono", "JetBrains Mono", Menlo, monospace',
     // Average glyph width as a share of the font size, for fitting text without measuring it.
-    // Helvetica Neue Bold sits near 0.56; mono is exactly 0.6.
+    // Helvetica Neue Bold sits near 0.56; labels (caps and tabular figures) near 0.6.
     sansWidth: 0.56,
-    monoWidth: 0.6,
+    labelWidth: 0.6,
     // The smallest text a card may set at 1080 px wide, still readable on a phone: 26 px for
-    // words, 24 px for mono labels (titles, axes, sources, tags), which are short and secondary.
+    // words, 24 px for labels (titles, axes, sources, tags), which are short and secondary.
     minSize: 26,
     labelMin: 24,
+  },
+  // The voice. Headlines, headers and titles are one serif, regular, set tight, like a film title:
+  // never bold sans with an italic serif word dropped in (Owain, 2026-10-22: "the sans + serif combo
+  // looks very AI"). Helvetica is for small functional text: labels, numbers, card rows, UI.
+  // An *accent* word changes colour only, never face or style.
+  type: {
+    display: { family: 'Signifier, "Iowan Old Style", Georgia, serif', weight: 400, tracking: -0.035, leading: 1.04 },
+    accent: "colour",
   },
   space: {
     // Split and media panels: side margins, and the gap kept above the seam.

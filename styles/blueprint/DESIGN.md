@@ -8,8 +8,9 @@ The house look for Owain's reels and YouTube graphics, picked from his notes in 
 ## Style prompt
 
 Calm, architectural, real. The frame is cool paper or graphite with a quiet blueprint grid behind
-it, like a drafting sheet. On it sit white cards with real shadows, set in Helvetica Neue Bold,
-with one word in Signifier italic and one clean blue for the thing being said. Graphics go in the
+it, like a drafting sheet. Headlines are set like film titles: one serif, regular, tight, never a bold
+sans with an italic word dropped in. On the page sit white cards with real shadows, small Helvetica
+for the working text, and one clean blue for the thing being said. Graphics go in the
 top half of a 50/50 split with Owain on the bottom half; full-frame scenes are kept for one or two
 big beats. Every graphic shows something real (a capture, an official logo, a sourced number) or is
 an honest diagram. Things not yet said sit dim and soft, then sharpen on their word.
@@ -35,10 +36,13 @@ an honest diagram. Things not yet said sit dim and soft, then sharpen on their w
 
 ## Type
 
-- **Helvetica Neue Bold** for structure: headlines, card titles, values. Tight tracking (about -2% to -4%).
-- **Signifier italic** for one accent word per line (`*word*` in any text slot). On the split header it takes the text's own colour; in scenes and cards it takes `accentText`.
-- **Mono** (SF Mono) for labels: card titles over charts, axes, sources, dates, tags. Uppercase and tracked out when it is a title.
-- Sizes are fitted, not fixed: every card sizes its type so the longest slot at its max fits its room. Nothing under 26 px for words or 24 px for mono labels, at 1080 px wide.
+Owain's brand is two families, Helvetica and Signifier. The voice is cinematic, not "AI deck":
+
+- **Signifier, regular, set tight** (tracking -3.5%) for every headline: the docked header, scene headlines, titles, chapter numbers, the big stat, quotes, media captions. One face per line.
+- **Helvetica Neue** for working text: card rows and titles, labels, numbers (tabular figures), axes, sources, the browser's address. Small labels are medium weight in tracked caps.
+- **Accent words** (`*word*`) change colour only (`accentText`: blue on paper, grey on graphite), never face or style. No italic word dropped into a sans line.
+- **Mono** only for text that is code: terminal lines, file names on a flow's chip.
+- Sizes are fitted, not fixed: every card sizes its type so the longest slot at its max fits its room. Nothing under 26 px for words or 24 px for labels, at 1080 px wide.
 - Scene headlines: 150 px, or 126 px when they need two lines; under 26 characters.
 
 ## Spacing
@@ -89,7 +93,10 @@ Picking a card for a line:
 
 | The line has | Card |
 | --- | --- |
-| a page, repo or post | `t2.capture` |
+| an article or web page | `t2.capture.browser` |
+| a code repository | `t2.capture.repo` |
+| two or three sources at once | `t1.windows` |
+| a post, screenshot or photo | `t2.capture.card` |
 | a few product names | `t2.logos`; many at once: `t1.logowall` |
 | one number | `t1.stat`; two to four: `t2.kpi`; a series: `t2.chart.bar` or `t2.chart.line` |
 | a share or a percentage | `t2.stat.ring`; "N in 100": `t2.stat.waffle`; a value on a scale: `t2.stat.meter` |
@@ -126,6 +133,8 @@ Left out on purpose: the aurora bloom, glass cards, edge lighting, text glow, gr
 glow pulses, drifting groups and `back.out` springs (nothing bounces here).
 
 ## What not to do
+
+- No bold sans headline with one italic serif word. It reads as a template. Headlines are one serif; an accent is colour only.
 
 - No glow, no aurora, no gradients, no neon, no light effects. Depth comes from real shadows and layering.
 - No warm cream, no vermilion or clay: they read as Anthropic's brand.

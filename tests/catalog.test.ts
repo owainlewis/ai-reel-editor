@@ -27,7 +27,7 @@ describe("the Blueprint catalog", () => {
     for (const c of cards) {
       expect(c.slots.length, c.id).toBeGreaterThan(0);
       for (const s of c.slots) {
-        if (s.type === "text" || s.type === "richtext") expect(s.maxChars, `${c.id} ${s.name}`).toBeGreaterThan(0);
+        if (s.type === "text" || s.type === "richtext" || s.type === "url") expect(s.maxChars, `${c.id} ${s.name}`).toBeGreaterThan(0);
         if (s.type === "list") expect(s.maxItems, `${c.id} ${s.name}`).toBeGreaterThan(0);
       }
     }
@@ -100,11 +100,11 @@ const check = (label: string, g: Geom, w: number, h: number) => {
   });
   g.parts.forEach((b, i) => inside(b, `part ${i}`));
   for (const f of g.texts) {
-    const k = f.font === "mono" ? style.font.monoWidth : f.font === "serif" ? 0.5 : style.font.sansWidth;
+    const k = f.font === "label" ? style.font.labelWidth : f.font === "serif" ? 0.5 : style.font.sansWidth;
     const width = f.text.replace(/\*/g, "").length * (f.size * k + f.tracking);
     expect(width, `${label} "${f.text}" at ${f.size}px`).toBeLessThanOrEqual(f.room * f.lines + 0.5);
     // Readable on a phone.
-    expect(f.size, `${label} "${f.text}" size`).toBeGreaterThanOrEqual(f.font === "mono" ? style.font.labelMin : style.font.minSize);
+    expect(f.size, `${label} "${f.text}" size`).toBeGreaterThanOrEqual(f.floor ?? (f.font === "label" ? style.font.labelMin : style.font.minSize));
   }
 };
 
@@ -164,5 +164,14 @@ describe("tokens only", () => {
         .join("\n");
       expect(code.match(/#[0-9A-Fa-f]{3,8}\b|rgba?\(\s*\d/g), f).toBeNull();
     }
+  });
+});
+
+// Owain, 2026-10-22: "the sans + serif combo looks very AI". Headlines are one serif; accents are colour.
+describe("type voice", () => {
+  it("sets headlines in the serif and never switches face for an accent", () => {
+    expect(style.type.display.family).toBe(style.font.serif);
+    expect(style.type.accent).toBe("colour");
+    for (const f of ["../src/Reel.tsx", "../src/Captions.tsx"]) expect(readFileSync(new URL(f, import.meta.url), "utf8"), f).not.toMatch(/fontStyle: [^,]*"italic"/);
   });
 });

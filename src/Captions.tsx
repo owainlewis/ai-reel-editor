@@ -54,20 +54,19 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
     const now = said[said.length - 1];
     if (!now || time > now.end + 1.2) return null;
     const word = clean(now.text).toLowerCase();
-    const serif = now.accent;
     const onPaper = onCanvas || scene;
-    // On the speaker: the near-white used for type on green.
-    const ink = scene ? c.ink : onCanvas ? t.ink : style.color.dark.ink;
-    const size = Math.min(serif ? 190 : 170, (1080 - 180) / Math.max(3, word.length * (serif ? 0.48 : style.font.sansWidth)));
+    // On the speaker: the near-white used for type on green. An accent word keeps the same face and
+    // weight and changes colour only (sage on footage), never switching to the serif.
+    const ink = now.accent ? (onPaper ? c.accentText : style.color.dark.accent) : scene ? c.ink : onCanvas ? t.ink : style.color.dark.ink;
+    const size = Math.min(170, (1080 - 180) / Math.max(3, word.length * style.font.sansWidth));
     return (
       <div style={{ position: "absolute", left: 90, right: 90, top: y, translate: "0 -50%", textAlign: "center" }}>
         <span
           style={{
-            fontFamily: serif ? t.serif : t.sans,
-            fontStyle: serif ? "italic" : "normal",
-            fontWeight: serif ? 400 : 800,
+            fontFamily: t.sans,
+            fontWeight: 800,
             fontSize: size,
-            letterSpacing: serif ? -size * 0.02 : -size * 0.045,
+            letterSpacing: -size * 0.045,
             lineHeight: 1,
             color: ink,
             textShadow: onPaper ? "none" : "0 2px 24px rgba(0,0,0,0.35)",
@@ -96,19 +95,21 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
       }}
     >
       {chunk.words.map((w, i) => {
-        const serif = w.accent || serifAll;
+        // Accent words stand alone as a beat (see chunkWords) but keep the caption's face; on paper
+        // and scenes they take the accent colour. Media captions are the display serif, upright.
+        const serif = serifAll;
+        const accent = w.accent && (scene || onCanvas);
         return (
           <span
             key={i}
             style={{
-              fontFamily: serif ? t.serif : t.sans,
-              fontStyle: serif ? "italic" : "normal",
+              fontFamily: serif ? t.display : t.sans,
               fontWeight: serif ? 400 : 700,
-              fontSize: scene ? (serif ? 70 : 56) : serifAll ? 108 : serif ? 92 : 74,
-              letterSpacing: serif ? -0.5 : scene ? -1 : -1.8,
+              fontSize: scene ? 56 : serifAll ? 108 : 74,
+              letterSpacing: serif ? 108 * style.type.display.tracking : scene ? -1 : -1.8,
               lineHeight: 1.04,
-              color: scene ? (serif ? c.accent : c.ink) : onCanvas ? t.ink : "#FFFFFF",
-              opacity: scene && !serif ? 0.82 : 1,
+              color: accent ? c.accentText : scene ? c.ink : onCanvas ? t.ink : "#FFFFFF",
+              opacity: scene && !accent ? 0.82 : 1,
               textShadow: onCanvas || scene ? "none" : "0 2px 18px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.5)",
             }}
           >

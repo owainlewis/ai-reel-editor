@@ -44,7 +44,7 @@ Pick graphics from the catalog and keep slots under their max. New in Blueprint:
 ## Look: light editorial
 
 - Cool paper canvas (`#ECEEF1`) with a faint dot grid. Ink black type. One clean blue (`#2563EB`) for accents and highlights.
-- Helvetica Neue bold for structure. Signifier italic for one accent word, in the same colour as the text around it.
+- Headlines in Signifier, regular and set tight, like a film title. Helvetica Neue for working text (card rows, labels, numbers). An accent word changes colour only; never an italic serif word inside a bold sans line.
 - White cards with a soft shadow and a thin edge. Real captures sit in a card or a browser frame.
 - No neon, no gradients on type, no emoji, no cartoon icons.
 
@@ -66,7 +66,7 @@ A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` w
 
 - **Cool paper and graphite.** Light scenes are cool paper `#ECEEF1`, dark scenes graphite `#121417`, both with fine film grain. No glow, no gradient backgrounds, no light effects. Depth comes from real shadows and layered cards.
 - **One flat accent:** a clean blue `#2563EB` (Owain's pick over vermilion, which read as Anthropic's brand). It goes on type, lines, dots, chips and highlights only, never as light.
-- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Helvetica Neue Bold with one Signifier italic accent word in blue. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
+- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Signifier regular set tight, with at most one accent word in blue. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
 - **Real content in every graphic.** Grids show real thumbnails captured from the source's own site (`reel fetch --dir captures`, logged in the ledger). Cards list the real fields the script names. Chips are plain words unless a capture shows the real URL. Captures in a scene sit in a card cut to the region being discussed. Never fake a product's UI and never fill space with placeholder shapes.
 - **Fewer elements.** At most one diagram per scene. Build it across beats with `keep: true`, swapping the headline per beat.
 - **One camera move per shot.** One eased move (a capture's `from` to `to`) or a locked camera. The video and the elements move; the camera does not also zoom and pan on other curves.
@@ -77,7 +77,7 @@ A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` w
 
 - Every reel sets `header`: the hook as a short title. It is on screen, large, from the very first frame, then docks as a small header above the panel on every split and media shot. A muted viewer always knows the topic.
 - Start a new chapter with `header` on a shot ("How it *works*", "How to *use* it"). Three or four chapters in a 30 to 60 s reel.
-- Headers state the topic in plain words and one Signifier accent. They never claim more than the source shows.
+- Headers state the topic in plain words, with at most one accent word. They never claim more than the source shows.
 
 ## Split first (talking heads)
 
@@ -102,7 +102,7 @@ Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run
 ## Visuals, in order of preference
 
 1. The user's own b-roll (`broll/` library) or footage of the real thing. B-roll sets mood; it never stands in for evidence.
-2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
+2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words. Articles and pages go in a browser window (`frame: "browser"` with the real `url`, `title` and favicon `icon`); a repo opens on its name and description and moves to the README line that backs the claim; several sources at once are `windows`.
 3. Official logos, on white tiles, each landing on its spoken name.
 4. Designed graphics, from the card catalog (`styles/blueprint/style.json`): `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`, and the Blueprint cards (`kpi`, `timeline`, `levels`, `matrix`, `bento` and the rest). Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
 
@@ -124,8 +124,8 @@ Never:
 ## Captions
 
 - One to three words, broken at punctuation, pauses and cuts. Hard swap, no pop. On screen two frames before the word, never across a cut.
-- On canvas: ink Helvetica bold. On the speaker: white with a soft shadow, on the chest below the chin. On `media` shots: large Signifier italic.
-- Accent words stand alone in Signifier italic. Four to six per reel.
+- On canvas: ink Helvetica bold. On the speaker: white with a soft shadow, on the chest below the chin. On `media` shots: large Signifier, upright.
+- Accent words stand alone as a beat, in the caption's own face (blue on paper and scenes). Four to six per reel.
 - Never over the mouth or chin.
 
 ## Sound

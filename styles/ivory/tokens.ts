@@ -47,17 +47,31 @@ export const tokens = {
       highlight: "rgba(33,59,52,0.16)",
     },
     terminal: "#1A2622",
+    // Browser windows around real captures, warmed to the paper and the pine.
+    window: {
+      light: { bar: "#ECE7DE", field: "#E2DCD1", tab: "#F8F6F1", dot: "#CFC8BB" },
+      dark: { bar: "#1B322C", field: "#264039", tab: "#2C473F", dot: "#42605A" },
+    },
     onAccent: WHITE,
   },
   font: {
     sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
     serif: 'Signifier, "Iowan Old Style", Georgia, serif',
-    // Labels, numbers and axes stay in Helvetica: two fonts, always.
-    mono: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    // Labels, numbers and axes stay in Helvetica: two fonts, always. Mono only for text that is
+    // literally code (terminal lines, file names).
+    label: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    code: '"SF Mono", "JetBrains Mono", Menlo, monospace',
     sansWidth: 0.56,
-    monoWidth: 0.56,
+    labelWidth: 0.6,
     minSize: 26,
     labelMin: 24,
+  },
+  // The voice: headlines, headers and titles in one serif, regular, set tight like a film title;
+  // an accent word changes colour only (Owain, 2026-10-22: "the sans + serif combo looks very AI").
+  // Heavy lowercase Helvetica is for keyword captions and chapter words, never mixed in one line.
+  type: {
+    display: { family: 'Signifier, "Iowan Old Style", Georgia, serif', weight: 400, tracking: -0.035, leading: 1.04 },
+    accent: "colour",
   },
   space: {
     // More air than Blueprint: wider margins and padding.
