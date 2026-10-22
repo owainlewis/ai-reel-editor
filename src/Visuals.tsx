@@ -484,43 +484,53 @@ const ChapterStack: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h,
   const c = pal(shot.tone);
   const back = prog(time, shot.start, 1.1);
   const word = prog(time, shot.start + 0.25, 0.7);
+  const rule = prog(time, shot.start + 0.15, 0.6);
   const drift = interpolate(time, [shot.start, shot.end], [0, 1], clamp);
   const label = v.label.toLowerCase();
-  const size = Math.min(170, (w * 0.92) / Math.max(4, label.length * style.font.sansWidth));
-  const big = Math.min(h * 1.1, w * 1.2);
+  const pad = style.space.panelX;
+  const size = Math.min(150, (w - pad * 2) / Math.max(4, label.length * style.font.sansWidth));
+  const big = Math.min(h * 0.95, w * 1.05);
+  // Off-centre, unlike Noske's centred stack: the blurred numeral sits high and right, bleeding off
+  // the frame (not clipped at the panel, which would leave a hard edge), and the word is set left on
+  // the margin under a short sage rule.
   return (
-    <div style={{ position: "relative", width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", width: w, height: h }}>
       <div
         style={{
           position: "absolute",
+          right: -w * 0.12,
+          top: h * 0.06,
           fontFamily: t.serif,
           fontStyle: "italic",
           fontSize: big,
           lineHeight: 1,
           color: c.ink,
-          opacity: 0.5 * back,
-          filter: `blur(${22 + (1 - back) * 20}px)`,
+          opacity: 0.42 * back,
+          filter: `blur(${20 + (1 - back) * 20}px)`,
           scale: String(1.08 - 0.08 * back + 0.05 * drift),
           translate: `0 ${-drift * 18}px`,
         }}
       >
         {v.number.replace(/^0/, "")}
       </div>
-      <div
-        style={{
-          position: "relative",
-          fontFamily: t.sans,
-          fontWeight: 800,
-          fontSize: size,
-          letterSpacing: -size * 0.045,
-          lineHeight: 1,
-          color: c.ink,
-          opacity: word,
-          filter: `blur(${(1 - word) * style.motion.blur}px)`,
-          translate: `0 ${(1 - word) * 20 - drift * 6}px`,
-        }}
-      >
-        {label}
+      <div style={{ position: "absolute", left: pad, top: h * 0.54 }}>
+        <div style={{ width: 72 * rule, height: 4, background: c.accent, marginBottom: 34 }} />
+        <div
+          style={{
+            fontFamily: t.sans,
+            fontWeight: 800,
+            fontSize: size,
+            letterSpacing: -size * 0.045,
+            lineHeight: 1,
+            color: c.ink,
+            whiteSpace: "nowrap",
+            opacity: word,
+            filter: `blur(${(1 - word) * style.motion.blur}px)`,
+            translate: `0 ${(1 - word) * 20 - drift * 6}px`,
+          }}
+        >
+          {label}
+        </div>
       </div>
     </div>
   );

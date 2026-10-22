@@ -134,7 +134,7 @@ describe("tokens keep the house look", () => {
     const { pal } = await import("../src/soft.tsx");
     expect(t).toMatchObject({ canvas: "#F4F1EA", ink: "#1A2622", accent: "#213B34", highlight: "rgba(33,59,52,0.16)" });
     expect(pal("light")).toMatchObject({ bg: "#F4F1EA", accentText: "#213B34", shadow: "none" });
-    expect(pal("dark")).toMatchObject({ bg: "#213B34", ink: "#F7F3EC", accent: "#B7CDBF", accentText: "#E9EFEA" });
+    expect(pal("dark")).toMatchObject({ bg: "#192E28", ink: "#F7F3EC", accent: "#B7CDBF", accentText: "#E9EFEA" });
   });
 
 });

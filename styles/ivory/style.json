@@ -19,12 +19,12 @@
       "shadow": "none"
     },
     "dark": {
-      "bg": "#213B34",
-      "card": "#213B34",
-      "chip": "#2E4A42",
+      "bg": "#192E28",
+      "card": "#192E28",
+      "chip": "#263F38",
       "ink": "#F7F3EC",
       "muted": "#A9B6B0",
-      "faint": "#3F5A52",
+      "faint": "#34504A",
       "line": "rgba(247,243,236,0.16)",
       "accent": "#B7CDBF",
       "accentText": "#E9EFEA",

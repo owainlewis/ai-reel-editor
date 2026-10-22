@@ -8,6 +8,9 @@ import type { StyleTokens, ToneTokens } from "../catalog";
 // Pine, a little deeper and cooler than Noske's teal-green, and a brighter paper (2026-10-22: "vary
 // a tiny bit to avoid 100% copying Tom Noske"). Text on green and on footage is a near-white warm.
 const GREEN = "#213B34";
+// Scenes sit on a deeper forest green than the accent, darker than Noske's (2026-10-22: "a tiny bit
+// too close to Tom Noske... maybe a slightly darker green").
+const FOREST = "#192E28";
 const IVORY = "#F4F1EA";
 const WHITE = "#F7F3EC";
 
@@ -29,12 +32,12 @@ export const tokens = {
       shadow: "none",
     } satisfies ToneTokens,
     dark: {
-      bg: GREEN,
-      card: GREEN,
-      chip: "#2E4A42",
+      bg: FOREST,
+      card: FOREST,
+      chip: "#263F38",
       ink: WHITE,
       muted: "#A9B6B0",
-      faint: "#3F5A52",
+      faint: "#34504A",
       line: "rgba(247,243,236,0.16)",
       // On green the splash is a soft sage (Noske uses a peach); accent words stay near-white.
       accent: "#B7CDBF",
