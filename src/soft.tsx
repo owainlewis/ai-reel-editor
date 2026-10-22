@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, staticFile } from "remotion";
 import { clamp, ease, t } from "./theme";
+import { ACCENT, style, type ToneTokens } from "./style";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
 // Cool paper and graphite with grain, one clean blue, real content in every graphic. Owain picked
@@ -9,37 +10,13 @@ import type { ResolvedShot, ResolvedVisual } from "./schema";
 // No glow and no gradient backgrounds: depth comes from real shadows and layering only. The blue goes
 // on type, lines, dots, chips and highlights, never as light.
 export type Tone = "light" | "dark";
-export type Pal = { bg: string; card: string; chip: string; ink: string; muted: string; faint: string; line: string; accent: string; accentText: string; shadow: string };
+export type Pal = ToneTokens;
 // `accent` is the blue splash (dots, bars, lines, chips, highlights). `accentText` colours accent
 // words in type: blue on paper, a light grey on graphite, where white and grey read calmer (Owain, 2026-10-21).
+// Both tones come from the active style's tokens (src/style.ts).
 
-export const ACCENT = "#2563EB";
-export const pal = (tone: Tone = "light"): Pal =>
-  tone === "dark"
-    ? {
-        bg: "#121417",
-        card: "#1B1E22",
-        chip: "#262A2F",
-        ink: "#ECEEF1",
-        muted: "#8B9097",
-        faint: "#3A3F45",
-        line: "rgba(236,238,241,0.10)",
-        accent: ACCENT,
-        accentText: "#A6ABB3",
-        shadow: "0 1px 2px rgba(0,0,0,0.45), 0 18px 44px rgba(0,0,0,0.55)",
-      }
-    : {
-        bg: "#ECEEF1",
-        card: "#FFFFFF",
-        chip: "#E2E5EA",
-        ink: "#0E1013",
-        muted: "#6E737B",
-        faint: "#C6CBD2",
-        line: "rgba(14,16,19,0.10)",
-        accent: ACCENT,
-        accentText: ACCENT,
-        shadow: "0 1px 2px rgba(14,16,19,0.06), 0 14px 36px rgba(14,16,19,0.12)",
-      };
+export { ACCENT };
+export const pal = (tone: Tone = "light"): Pal => (tone === "dark" ? style.color.dark : style.color.light);
 
 // Scene geometry: the headline on top, the visual below, captions low.
 export const SCENE = { headTop: 96, headHeight: 340, top: 470, bottom: 1600, caption: 1752 };
@@ -50,23 +27,25 @@ type Props = { slug: string; shot: ResolvedShot; time: number; w: number; h: num
 type V<K extends ResolvedVisual["kind"]> = Extract<ResolvedVisual, { kind: K }> & { times?: number[] };
 export type Box = { x: number; y: number; w: number; h: number; r: number };
 
-const src = (slug: string, p: string) => (/^https?:/.test(p) ? p : staticFile(`${slug}/${p}`));
+// Project files, web URLs, or inline data (the style lab's illustrative samples).
+const src = (slug: string, p: string) => (/^(https?|data):/.test(p) ? p : staticFile(`${slug}/${p}`));
 const prog = (time: number, at: number, dur = 0.45) => interpolate(time, [at, at + dur], [0, 1], { ...clamp, easing: ease });
 
 // The scene background: flat warm colour with fine film grain. Nothing else.
 // Quiet architecture behind every graphic: a hairline grid, the panel's margin guides as long
 // rules, a few crosshairs where lines meet, and registration ticks in the corners. Static and very
 // low contrast, so it gives the frame structure without competing with the graphic.
-export const Blueprint: React.FC<{ tone: Tone; width?: number; height?: number; margin?: number }> = ({ tone, width = 1080, height = 1920, margin = 90 }) => {
-  const ink = tone === "dark" ? "236,238,241" : "14,16,19";
-  const grid = 120;
+export const Blueprint: React.FC<{ tone: Tone; width?: number; height?: number; margin?: number }> = ({ tone, width = 1080, height = 1920, margin = style.grid.marginReel }) => {
+  const g = style.grid;
+  const ink = g.ink[tone];
+  const grid = g.cell;
   const cols = Math.ceil(width / grid);
   const rows = Math.ceil(height / grid);
-  const hair = `rgba(${ink},${tone === "dark" ? 0.05 : 0.045})`;
-  const rule = `rgba(${ink},${tone === "dark" ? 0.1 : 0.09})`;
-  const mark = `rgba(${ink},${tone === "dark" ? 0.22 : 0.2})`;
+  const hair = `rgba(${ink},${g.hair[tone]})`;
+  const rule = `rgba(${ink},${g.rule[tone]})`;
+  const mark = `rgba(${ink},${g.mark[tone]})`;
   const ox = (width % grid) / 2;
-  const tick = 26;
+  const tick = g.tick;
   return (
     <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
       {Array.from({ length: cols + 1 }, (_, i) => <line key={`v${i}`} x1={ox + i * grid} y1={0} x2={ox + i * grid} y2={height} stroke={hair} strokeWidth={1} />)}
@@ -97,7 +76,7 @@ export const SceneCanvas: React.FC<{ tone: Tone; time: number; width?: number; h
   const c = pal(tone);
   return (
     <AbsoluteFill style={{ background: c.bg }}>
-      <Blueprint tone={tone} margin={width && width > height! ? 120 : 60} width={width} height={height} />
+      <Blueprint tone={tone} margin={width && width > height! ? style.grid.marginWide : style.grid.marginScene} width={width} height={height} />
       <AbsoluteFill style={{ opacity: tone === "dark" ? 0.09 : 0.05, mixBlendMode: tone === "dark" ? "screen" : "multiply" }}>
         <svg width="100%" height="100%">
           <filter id={`grain-${tone}`}>
@@ -219,7 +198,7 @@ export const GridVisual: React.FC<Props & { v: V<"grid"> }> = ({ slug, shot, tim
             const o = p * (1 - out);
             if (o <= 0) return null;
             return (
-              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: "#FBFAF7", fontFamily: noItems ? t.mono : t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
+              <div key={i} style={{ position: "absolute", padding: noItems ? "22px 52px" : "12px 34px", borderRadius: 60, background: c.accent, color: style.color.onAccent, fontFamily: noItems ? t.mono : t.sans, fontWeight: 700, fontSize: noItems ? 64 : 44, letterSpacing: noItems ? 0 : -1, opacity: o, filter: `blur(${(1 - o) * 10}px)` }}>
                 {gr.label}
               </div>
             );
@@ -444,7 +423,7 @@ export const TypeVisual: React.FC<Props & { v: V<"type"> }> = ({ shot, time, w, 
           })}
         </div>
         <div style={{ position: "absolute", right: 32, bottom: 32, width: 80, height: 80, borderRadius: 40, background: sent > 0.5 ? c.accent : c.faint, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FBFAF7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={style.color.onAccent} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 19V5M5 12l7-7 7 7" />
           </svg>
         </div>

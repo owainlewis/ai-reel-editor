@@ -13,6 +13,10 @@
 //   npm run reel -- check <slug>
 //   npm run reel -- review [slug] [--no-open]   the review board: watch and note each shot
 //   npm run reel -- feedback <slug>             the open notes from the review board
+//   npm run reel -- styles [--write]            the Blueprint card catalog (--write updates style.json)
+//   npm run reel -- styles stills               contact sheets of every card, light and dark, at sample and max length
+//   npm run reel -- styles new <id>             start a new style folder from Blueprint
+//   npm run reel -- styles feedback             the open notes from the style lab
 //   npm run reel -- index                 split broll/ files into shots, update broll/index.json
 //   npm run reel -- broll [words...]      list library clips, best matches first
 import { createHash } from "node:crypto";
@@ -28,6 +32,8 @@ import { indexLibrary, listLibrary, useClip } from "./broll.ts";
 import { compositionFor } from "../src/canvas.ts";
 import { formatFeedback } from "../review/model.ts";
 import { loadReel } from "../review/store.ts";
+import { slotIssues } from "../styles/blueprint/style.ts";
+import { registry, styleById, styles } from "../styles/index.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FPS = 30;
@@ -402,7 +408,9 @@ function cmdValidate(slug: string, quiet = false): Resolved {
   const seen = new Set<string>();
   for (const s of shots) {
     const v = s.visual;
-    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
+    const srcs = !v ? [] : v.kind === "image" || v.kind === "video" ? [v.src] : v.kind === "logos" || v.kind === "logowall" ? v.items.map((i) => i.src) : v.kind === "cta" && v.src ? [v.src] : [];
+    // The style's cards are sized for their slots' max lengths.
+    if (v && !s.keep) for (const m of slotIssues(v)) issues.push({ level: "warn", message: `"${s.anchor}": ${m}` });
     for (const src of srcs) if (!existsSync(join(dir, src))) issues.push({ level: "error", message: `missing asset ${src}` });
     if (v?.kind === "image" && existsSync(join(dir, v.src))) {
       const size = imageSize(join(dir, v.src));
@@ -579,6 +587,53 @@ function cmdFeedback(slug: string) {
   if (moved.length) console.log(`\nSince the last review: ${moved.join(", ")}. These wait for Owain.`);
 }
 
+// The style library: list the catalog, write style.json and registry.json, start a new style from
+// Blueprint, render contact sheets, print the lab's notes. `--style <id>` picks a style (default blueprint).
+async function cmdStyles(sub?: string) {
+  const def = styleById(flag("style") ?? "blueprint");
+  if (!def) throw new Error(`no style ${flag("style")}; styles: ${styles.map((s) => s.id).join(", ")}`);
+  const dir = join(ROOT, "styles", def.id);
+  if (sub === "new") return newStyle(positional[2]);
+  if (sub === "stills") {
+    const { renderCardSheet } = await import("./stylesheet.ts");
+    return renderCardSheet(ROOT, def, join(dir, "checks"), has("max") ? ["max"] : has("sample") ? ["sample"] : ["sample", "max"]);
+  }
+  if (sub === "feedback") {
+    const { loadStyleReview, formatStyleFeedback } = await import("../review/styles.ts");
+    return console.log(formatStyleFeedback(loadStyleReview(dir, def).review, def.cards));
+  }
+  if (has("write")) {
+    for (const s of styles) writeJson(join(ROOT, "styles", s.id, "style.json"), s);
+    writeJson(join(ROOT, "styles", "registry.json"), registry());
+    console.log(`Wrote style.json for ${styles.map((s) => s.id).join(", ")} and styles/registry.json`);
+  }
+  console.log(`${def.name} (${def.id}): ${def.cards.length} cards\n`);
+  for (const c of def.cards) console.log(`  ${c.id.padEnd(30)} ${c.kind.padEnd(12)} ${c.layouts.join(",").padEnd(30)} ${c.added ? "new  " : "     "}${c.summary}`);
+  console.log(`\nStyle lab: npm run reel -- review, then the style lab. Slots and limits: styles/${def.id}/style.json`);
+}
+
+// A new style folder: Blueprint's tokens and catalog under the new id, and the DESIGN.md skeleton.
+function newStyle(id?: string) {
+  if (!id || !/^[a-z][a-z0-9-]*$/.test(id)) throw new Error("usage: reel styles new <id> (lowercase, e.g. aurora)");
+  const dir = join(ROOT, "styles", id);
+  if (existsSync(dir)) throw new Error(`${dir} exists`);
+  mkdirSync(dir, { recursive: true });
+  const name = id.replace(/(^|-)(\w)/g, (_, d, c) => (d ? " " : "") + c.toUpperCase());
+  const from = (f: string) => readFileSync(join(ROOT, "styles", "blueprint", f), "utf8");
+  writeFileSync(join(dir, "tokens.ts"), from("tokens.ts").replace('id: "blueprint"', `id: "${id}"`).replace('name: "Blueprint"', `name: "${name}"`));
+  writeFileSync(
+    join(dir, "style.ts"),
+    from("style.ts")
+      .replace(/"blueprint\./g, `"${id}.`)
+      .replace(/export const blueprint: StyleDef/, `export const ${id.replace(/-(\w)/g, (_, c) => c.toUpperCase())}: StyleDef`)
+      .replace('number: "01"', `number: "${String(styles.length + 1).padStart(2, "0")}"`),
+  );
+  writeFileSync(join(dir, "samples.ts"), from("samples.ts"));
+  writeFileSync(join(dir, "DESIGN.md"), readFileSync(join(ROOT, "styles", "_template", "DESIGN.md"), "utf8").replace(/<Name>/g, name));
+  console.log(`Made ${dir} from Blueprint. Next: fill DESIGN.md, change tokens.ts, add it to styles/index.ts, then
+  npm run reel -- styles --write --style ${id}   and review it in the style lab. See styles/README.md.`);
+}
+
 async function main() {
   const [, slug, third] = positional;
   switch (cmd) {
@@ -595,10 +650,11 @@ async function main() {
     case "check": return cmdCheck(slug);
     case "review": return cmdReview(slug);
     case "feedback": return cmdFeedback(slug);
+    case "styles": return cmdStyles(slug);
     case "index": return void indexLibrary(ROOT);
     case "broll": return listLibrary(ROOT, positional.slice(1).join(" "));
     default:
-      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 17).join("\n"));
+      console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(0, 21).join("\n"));
   }
 }
 

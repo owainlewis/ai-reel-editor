@@ -48,7 +48,7 @@ export const hash = (s: string) => {
 };
 
 // JSON with sorted keys, so the same plan always hashes the same.
-const stable = (v: unknown): string =>
+export const stable = (v: unknown): string =>
   Array.isArray(v)
     ? `[${v.map(stable).join(",")}]`
     : v && typeof v === "object"
