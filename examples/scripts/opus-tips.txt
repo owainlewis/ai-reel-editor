@@ -1,0 +1,13 @@
+Stop telling Claude to think step by step.
+
+Anthropic published a guide to getting the most out of Opus five point five in Claude Code. Here are four tips from it.
+
+One. Give it the whole task in one message, and name the finish line. Done means the tests pass and the old code is deleted.
+
+Two. Delete the think carefully lines. If you want deeper thinking, turn up the effort setting instead.
+
+Three. Tell it when to stop. Add a rule to your CLAUDE.md: stop before anything destructive, like deleting data or force pushing.
+
+Four. Before you review, ask Claude to review its own diff against main. Only the problems that would block a merge, each with the file, the line and the reason.
+
+And ask it to flag anything it couldn't confirm. That's where your attention should go.

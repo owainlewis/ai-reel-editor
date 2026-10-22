@@ -576,7 +576,9 @@ function cmdCheck(slug: string) {
   // Compare without apostrophes or spaces, so "you're" and "OpenCodeReview" match however Whisper splits them.
   const heard = readFileSync(join(tmp, "render.txt"), "utf8").toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "");
   const orig = readJson<Word[]>(join(dir, "transcript.json")).map((w) => w.text.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "")).filter(Boolean);
-  const missing = orig.filter((w) => !heard.includes(w));
+  // Whisper writes small numbers as digits in one pass and words in another ("1." and "One").
+  const NUMS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+  const missing = orig.filter((w) => !heard.includes(w) && !(/^\d+$/.test(w) && NUMS[+w] && heard.includes(NUMS[+w])));
   console.log(`  words: ${orig.length} in source, ${missing.length} not heard in render${missing.length ? `: ${missing.slice(0, 12).join(", ")}` : ""}`);
   console.log(`  review: checks/opening.jpg, checks/cuts.jpg, checks/stills.jpg`);
 }
