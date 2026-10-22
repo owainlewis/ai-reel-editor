@@ -129,13 +129,14 @@ describe("Blueprint cards: padding, bounds and readable type", () => {
 });
 
 describe("tokens keep the house look", () => {
-  it("give the split canvas and both tones exactly the values the components had before", async () => {
+  it("give the split canvas and both tones Ivory's values (2026-10-22)", async () => {
     const { t } = await import("../src/theme.ts");
     const { pal } = await import("../src/soft.tsx");
-    expect(t).toMatchObject({ canvas: "#ECEEF1", card: "#FFFFFF", ink: "#0E1013", muted: "#6E737B", faint: "#C6CBD2", line: "rgba(14,16,19,0.09)", accent: "#2563EB", highlight: "rgba(37,99,235,0.18)", terminal: "#14161B" });
-    expect(pal("light")).toMatchObject({ bg: "#ECEEF1", chip: "#E2E5EA", line: "rgba(14,16,19,0.10)", accentText: "#2563EB" });
-    expect(pal("dark")).toMatchObject({ bg: "#121417", card: "#1B1E22", ink: "#ECEEF1", accent: "#2563EB", accentText: "#A6ABB3" });
+    expect(t).toMatchObject({ canvas: "#F4F1EA", ink: "#1A2622", accent: "#213B34", highlight: "rgba(33,59,52,0.16)" });
+    expect(pal("light")).toMatchObject({ bg: "#F4F1EA", accentText: "#213B34", shadow: "none" });
+    expect(pal("dark")).toMatchObject({ bg: "#213B34", ink: "#F7F3EC", accent: "#B7CDBF", accentText: "#E9EFEA" });
   });
+
 });
 
 describe("style lab review", () => {

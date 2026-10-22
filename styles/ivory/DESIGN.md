@@ -1,13 +1,14 @@
 # Ivory: design spec
 
-Style 02, a draft. Warm off-white and deep green, after Tom Noske's reels (see `references/reels/noske-*`), with Kallaway's bare curve charts. It shares Blueprint's card catalog; `tokens.ts` and the `look` switches restyle it.
+The house style, and the only one (Owain, 2026-10-22). Warm off-white and pine green, after Tom Noske's reels but deliberately not a copy (see `references/reels/noske-*`), with Kallaway's bare curve charts. It shares Blueprint's card catalog; `tokens.ts` and the `look` switches restyle it.
 
 ## Palette
 
-- Paper `#F2EEE6`: a warm off-white, never pure white.
-- Deep green `#2C4441`: dark scenes, and the accent on paper.
-- Ink `#1C2B27` (green-black) on paper. Ivory `#F2EEE6` on green.
-- The splash on green is a warm ivory-peach `#E6D3C2`. On the speaker, keyword captions use it too.
+- Paper `#F4F1EA`: a warm off-white, a touch brighter than Noske's, never pure white.
+- Pine `#213B34`: dark scenes, and the accent on paper. Deeper and cooler than Noske's teal-green.
+- Ink `#1A2622` (green-black) on paper.
+- Text on green and on footage is a near-white warm `#F7F3EC` (Owain: "a bit more white"). Accent words on green are `#E9EFEA`.
+- The splash on green (dots, lines, chips) is a soft sage `#B7CDBF`, where Noske uses a peach.
 - No blue, no orange, no glow, no gradients.
 
 ## Type
@@ -27,7 +28,7 @@ Helvetica and Signifier, always (Owain, 2026-10-22).
 ## Signature moves
 
 - **Keyword captions:** one heavy lowercase word at a time on the speaker's chest, up to 170 px, fitted to the width. An accent word is set in Signifier italic.
-- **Focus-stack chapters:** a huge Signifier numeral held soft and blurred behind one sharp heavy word. Both drift slowly at different speeds.
+- **Focus-stack chapters:** a huge Signifier italic numeral held soft and blurred behind one sharp heavy word. Both drift slowly at different speeds.
 - **Bare charts:** two thin axes, a smooth curve that draws itself, dots landing on the spoken points. Real numbers with a source, or "Illustration".
 
 ## Motion

@@ -495,8 +495,7 @@ function cmdAudio(slug: string) {
   run("uv", ["run", "--quiet", "--with", "numpy", "--with", "scipy", "--with", "soundfile", "python", "-m", "audio.mix", dir]);
 }
 
-// The plan's style reaches the bundle as REMOTION_STYLE (see src/style.ts).
-const remotion = (argv: string[], style = "blueprint") => run("npx", ["remotion", ...argv], { env: { REMOTION_STYLE: style } });
+const remotion = (argv: string[], _style?: string) => run("npx", ["remotion", ...argv]);
 
 function cmdRender(slug: string) {
   const dir = project(slug);
@@ -592,7 +591,7 @@ function cmdFeedback(slug: string) {
 // The style library: list the catalog, write style.json and registry.json, start a new style from
 // Blueprint, render contact sheets, print the lab's notes. `--style <id>` picks a style (default blueprint).
 async function cmdStyles(sub?: string) {
-  const def = styleById(flag("style") ?? "blueprint");
+  const def = styleById(flag("style") ?? "ivory");
   if (!def) throw new Error(`no style ${flag("style")}; styles: ${styles.map((s) => s.id).join(", ")}`);
   const dir = join(ROOT, "styles", def.id);
   if (sub === "new") return newStyle(positional[2]);

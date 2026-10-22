@@ -8,9 +8,10 @@ describe("soft tech look", () => {
     const src = readFileSync(new URL("../src/soft.tsx", import.meta.url), "utf8");
     expect(src).not.toMatch(/gradient\(/);
   });
-  it("uses one flat accent in both tones", () => {
+  it("uses one flat accent per tone: pine on paper, sage on green", () => {
     expect(pal("light").accent).toBe(ACCENT);
-    expect(pal("dark").accent).toBe(ACCENT);
+    expect(pal("light").accent).toBe("#213B34");
+    expect(pal("dark").accent).toBe("#B7CDBF");
   });
 });
 

@@ -5,8 +5,11 @@
 
 import type { StyleTokens, ToneTokens } from "../catalog";
 
-const GREEN = "#2C4441";
-const IVORY = "#F2EEE6";
+// Pine, a little deeper and cooler than Noske's teal-green, and a brighter paper (2026-10-22: "vary
+// a tiny bit to avoid 100% copying Tom Noske"). Text on green and on footage is a near-white warm.
+const GREEN = "#213B34";
+const IVORY = "#F4F1EA";
+const WHITE = "#F7F3EC";
 
 export const tokens = {
   id: "ivory",
@@ -16,11 +19,11 @@ export const tokens = {
       bg: IVORY,
       // Cards are the paper itself with a hairline: no white boxes, no shadows.
       card: IVORY,
-      chip: "#E7E1D6",
-      ink: "#1C2B27",
+      chip: "#E9E4DA",
+      ink: "#1A2622",
       muted: "#6F7772",
-      faint: "#CFC8BB",
-      line: "rgba(28,43,39,0.14)",
+      faint: "#D0CABD",
+      line: "rgba(26,38,34,0.14)",
       accent: GREEN,
       accentText: GREEN,
       shadow: "none",
@@ -28,23 +31,23 @@ export const tokens = {
     dark: {
       bg: GREEN,
       card: GREEN,
-      chip: "#3A5754",
-      ink: IVORY,
-      muted: "#A7B4AE",
-      faint: "#4D6864",
-      line: "rgba(242,238,230,0.16)",
-      // On green the splash is a warm ivory-peach, like Noske's words over footage.
-      accent: "#E6D3C2",
-      accentText: "#E6D3C2",
+      chip: "#2E4A42",
+      ink: WHITE,
+      muted: "#A9B6B0",
+      faint: "#3F5A52",
+      line: "rgba(247,243,236,0.16)",
+      // On green the splash is a soft sage (Noske uses a peach); accent words stay near-white.
+      accent: "#B7CDBF",
+      accentText: "#E9EFEA",
       shadow: "none",
     } satisfies ToneTokens,
     split: {
-      line: "rgba(28,43,39,0.12)",
+      line: "rgba(26,38,34,0.12)",
       shadow: "none",
-      highlight: "rgba(44,68,65,0.16)",
+      highlight: "rgba(33,59,52,0.16)",
     },
-    terminal: "#1C2B27",
-    onAccent: IVORY,
+    terminal: "#1A2622",
+    onAccent: WHITE,
   },
   font: {
     sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -53,8 +56,8 @@ export const tokens = {
     mono: '"Helvetica Neue", Helvetica, Arial, sans-serif',
     sansWidth: 0.56,
     monoWidth: 0.56,
-    minSize: 28,
-    labelMin: 26,
+    minSize: 26,
+    labelMin: 24,
   },
   space: {
     // More air than Blueprint: wider margins and padding.
@@ -62,8 +65,8 @@ export const tokens = {
     seamGap: 40,
     sceneX: 80,
     headlineX: 90,
-    cardPad: 56,
-    cardPadSmall: 40,
+    cardPad: 50,
+    cardPadSmall: 36,
     gap: 36,
     radius: 6,
     radiusSmall: 4,

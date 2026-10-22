@@ -220,8 +220,8 @@ export const Edit = z.object({
   // reel: 9:16, 1080x1920. youtube: 16:9, 1920x1080, for a rough cut edited by hand: the plan only
   // lays graphics and text over it, sparsely, and never re-cuts the picture.
   canvas: z.enum(["reel", "youtube"]).default("reel"),
-  // The style to render in: a folder in styles/ (blueprint, ivory).
-  style: z.string().default("blueprint"),
+  // The house style. Ivory is the only one; the field is kept so old plans still parse.
+  style: z.string().default("ivory"),
   // Word captions. Reels have them; YouTube does not unless asked.
   captions: z.boolean().optional(),
   // react: the default for tool drops. The speaker stays on screen in a split while the

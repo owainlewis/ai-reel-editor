@@ -2,9 +2,9 @@
 
 The default look and pacing for Owain's reels. A brief from the user wins over anything here.
 
-## Styles
+## Style
 
-A plan picks its look with `"style"` in `edit.json`: `blueprint` (cool paper, graphite, one blue, the blueprint grid, white cards) or `ivory` (warm off-white, deep green, keyword captions, focus-stack chapters, bare charts, no card chrome). Each style's rules are in `styles/<id>/DESIGN.md`. Fonts are Helvetica and Signifier in every style.
+Ivory is the house style and the only one (Owain, 2026-10-22): warm off-white paper, pine green scenes, near-white text on footage, keyword captions, focus-stack chapters, bare charts, no card chrome, no grid. Its rules are in `styles/ivory/DESIGN.md`. Fonts are Helvetica and Signifier, always. Blueprint (`styles/blueprint/`) remains only as the card catalog Ivory's cards are built from; sections below that describe Blueprint's cool paper, blue and grid are history.
 
 Footage arrives colour graded and with finished vocals from Final Cut. Never grade it and never process the voice; add only music and sound effects.
 

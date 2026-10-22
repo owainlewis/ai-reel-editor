@@ -56,7 +56,8 @@ export const Captions: React.FC<{ r: Resolved; shot: ResolvedShot; time: number 
     const word = clean(now.text).toLowerCase();
     const serif = now.accent;
     const onPaper = onCanvas || scene;
-    const ink = scene ? c.ink : onCanvas ? t.ink : style.color.dark.accent;
+    // On the speaker: the near-white used for type on green.
+    const ink = scene ? c.ink : onCanvas ? t.ink : style.color.dark.ink;
     const size = Math.min(serif ? 190 : 170, (1080 - 180) / Math.max(3, word.length * (serif ? 0.48 : style.font.sansWidth)));
     return (
       <div style={{ position: "absolute", left: 90, right: 90, top: y, translate: "0 -50%", textAlign: "center" }}>

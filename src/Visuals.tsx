@@ -500,6 +500,7 @@ const ChapterStack: React.FC<Props & { v: V<"chapter"> }> = ({ shot, time, w, h,
         style={{
           position: "absolute",
           fontFamily: t.serif,
+          fontStyle: "italic",
           fontSize: big,
           lineHeight: 1,
           color: c.ink,

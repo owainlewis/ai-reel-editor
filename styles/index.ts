@@ -2,10 +2,10 @@
 // `npm run reel -- styles new <id>`), added here. `npm run reel -- styles --write` regenerates each
 // style's style.json and the library's registry.json from these.
 import type { StyleDef } from "./catalog";
-import { blueprint } from "./blueprint/style";
 import { ivory } from "./ivory/style";
 
-export const styles: StyleDef[] = [blueprint, ivory];
+// Ivory is the only style. Blueprint (styles/blueprint/) is its card catalog base, not a look.
+export const styles: StyleDef[] = [ivory];
 
 export const styleById = (id: string) => styles.find((s) => s.id === id);
 
