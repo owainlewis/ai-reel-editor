@@ -76,13 +76,21 @@ describe("lintShots", () => {
     const issues = lintShots([shot(0, 4, "split"), shot(4, 5, "full"), shot(5, 6, "full"), shot(6, 7, "full")], 7, "mixed");
     const text = issues.map((i) => i.message).join("\n");
     expect(issues.some((i) => i.level === "error" && /no visual/.test(i.message))).toBe(true);
-    expect(text).toMatch(/holds 4.0s/);
+    expect(text).toMatch(/nothing changes for 4.0s/);
     expect(text).toMatch(/third full shot in a row/);
   });
 
-  it("react: allows longer split holds and runs of splits", () => {
-    const issues = lintShots([shot(0, 4, "split", img), shot(4, 7, "split", img), shot(7, 8, "punch"), shot(8, 10, "split", img)], 10, "react");
+  it("react: allows runs of splits", () => {
+    const issues = lintShots([shot(0, 3, "split", img), shot(3, 6, "split", img), shot(6, 7, "punch"), shot(7, 10, "split", img)], 10, "react");
     expect(issues).toEqual([]);
+  });
+
+  it("allows a long shot while its reveals keep landing, and flags a still stretch over 3 s", () => {
+    const chart = (times: number[]) => ({ kind: "chart", points: [], times }) as never;
+    const ok = lintShots([{ ...shot(0, 6, "split"), visual: chart([2, 4]) }, shot(6, 7, "full")], 7, "mixed");
+    expect(ok.map((i) => i.message).join("\n")).not.toMatch(/nothing changes/);
+    const bad = lintShots([{ ...shot(0, 6, "split"), visual: chart([1]) }, shot(6, 7, "full")], 7, "mixed");
+    expect(bad.map((i) => i.message).join("\n")).toMatch(/nothing changes for 5.0s/);
   });
 
   it("react: warns when the speaker leaves or the source is missing", () => {

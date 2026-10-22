@@ -56,7 +56,7 @@ Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
 | --- | --- | --- | --- |
 | `react` (default) | Tool drop | Face stays on screen in a split for 70 to 85% of the reel. The top panel walks through the real source (site, repo, README, post), panning and highlighting each claim as it is said. Punch in on the hook's stake and the last line. | Split at least 60%. No `media` or `cutaway`. Never two face-only shots in a row. At least 2 source captures. Shots up to about 3.8 s, since a scroll with highlights earns the time. |
 | `film` | Explainers, soft tech direction | Full-frame `scene` shots that build across beats with `keep`, light and dark alternating, the speaker as punctuation. | Something new on screen at least every 3.6 s (reveals and headline swaps count). Back-to-back scenes alternate `tone`. |
-| `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Shots under about 2.8 s. No layout three times in a row. Speaker never away more than 3.5 s. |
+| `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Something changes every 2 to 3 s. No layout three times in a row. Speaker never away more than 3.5 s. |
 
 Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
 
@@ -97,7 +97,7 @@ For a reel with Owain on camera, the 50/50 split is the default home for graphic
 | `media` | visual fills the frame, caption in large serif below | the one visual that matters most |
 | `cutaway` | b-roll edge to edge, white caption low on the frame | human and abstract lines; makes the reel feel shot |
 
-Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run over about 2.8 s. The speaker is never off screen for more than 3.5 s.
+Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run over about 2.8 s. The speaker is never off screen for more than 3.5 s. Something on screen changes every 2 to 3 s (Owain, 2026-10-22).
 
 ## Visuals, in order of preference
 

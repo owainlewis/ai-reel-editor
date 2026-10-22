@@ -246,7 +246,6 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
     if (s.layout === "side" || s.layout === "over") issues.push({ level: "error", message: `"${s.anchor}": ${s.layout} is a YouTube layout; set "canvas": "youtube"` });
   const speaker = (l: string) => l !== "media" && l !== "cutaway" && l !== "scene";
   const total = (pred: (s: ResolvedShot) => boolean) => shots.filter(pred).reduce((t, s) => t + s.end - s.start, 0);
-  const maxHold = format === "react" ? 4.2 : 3.2;
   let away = 0;
   let lastScene: ResolvedShot | undefined;
   shots.forEach((s, i) => {
@@ -284,7 +283,10 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
         issues.push({ level: "warn", message: `${label}: headline "${s.header}" is long for a scene; keep it under 26 characters` });
       return;
     }
-    if (len > maxHold) issues.push({ level: "warn", message: `${label} holds ${len.toFixed(1)}s; keep ${format} shots under ${(maxHold - 0.4).toFixed(1)}s` });
+    // Something changes every 2 to 3 s (Owain, 2026-10-22): a cut, a reveal on its word, a header
+    // swap or a punch-in. A long shot is fine while its reveals keep landing.
+    const still = longestStill(s);
+    if (still > 3) issues.push({ level: "warn", message: `${label}: nothing changes for ${still.toFixed(1)}s; something should change every 2 to 3 s (a cut, a reveal, a header swap or a punch-in)` });
     if (len < 0.4) issues.push({ level: "warn", message: `${label} is only ${len.toFixed(2)}s` });
     if ((s.layout === "split" || s.layout === "media" || s.layout === "cutaway" || s.layout === "scene") && !s.visual)
       issues.push({ level: "error", message: `${label} is ${s.layout} but has no visual` });
@@ -293,8 +295,9 @@ export const lintShots = (shots: ResolvedShot[], duration: number, format: Forma
     away = speaker(s.layout) ? 0 : away + len;
     if (away > 3.5) issues.push({ level: "warn", message: `${label}: speaker off screen for ${away.toFixed(1)}s` });
     const prev = shots[i - 1];
-    const prev2 = shots[i - 2];
-    if (format === "mixed" && prev && prev2 && prev.layout === s.layout && prev2.layout === s.layout)
+    // A keep shot (a header swap over the same visual) continues its shot, so runs count shots that change the picture.
+    const [prev1, prev2] = shots.slice(0, i).filter((x) => !x.keep).reverse();
+    if (format === "mixed" && !s.keep && prev1 && prev2 && prev1.layout === s.layout && prev2.layout === s.layout)
       issues.push({ level: "warn", message: `${label}: third ${s.layout} shot in a row` });
     if (format === "react" && prev && s.layout !== "split" && prev.layout !== "split")
       issues.push({ level: "warn", message: `${label}: two face-only shots in a row; react reels return to the split` });

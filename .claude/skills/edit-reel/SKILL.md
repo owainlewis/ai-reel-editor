@@ -82,7 +82,7 @@ Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in yo
 
 Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb:
 
-- One idea per shot. Average 1.2 to 1.6 s. Nothing over 2.8 s unless a reveal inside it earns the time.
+- One idea per shot. Something on screen changes every 2 to 3 s: a cut, a reveal on its word, a header swap or a punch-in. `validate` warns after 3 s with no change.
 - Every list item, step and logo gets its own `at` so it lands on its word.
 - Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual, cutaway for b-roll edge to edge.
 - A graphic shows the example or relationship. It does not repeat the caption.
