@@ -5,7 +5,7 @@ import { cameraProgress, frameRect, TRANSITION } from "./camera";
 import { clamp, ease, t } from "./theme";
 import { style } from "./style";
 import { FunnelVisual, GridVisual, pal, SoftAccented, TypeVisual } from "./soft";
-import { ChartVisual, PipelineVisual } from "./elements";
+import { ChartVisual, ConstraintVisual, PipelineVisual } from "./elements";
 import { look } from "./style";
 import { BrowserChrome, chromeHeight, WindowsVisual } from "./browser";
 import { AgendaCard, BeforeAfterCard, BentoCard, ChecklistCard, KpiCard, LevelsCard, LogowallCard, MatrixCard, MeterCard, QuoteCard, RingCard, TimelineCard, WaffleCard } from "./cards";
@@ -767,6 +767,7 @@ export const VisualView: React.FC<Props & { v: ResolvedVisual }> = (p) => {
     case "lower": return null;
     case "chart": return <ChartVisual {...p} v={v} />;
     case "pipeline": return <PipelineVisual {...p} v={v} />;
+    case "constraint": return <ConstraintVisual {...p} v={v} />;
     case "agenda": return <AgendaCard {...p} v={v} />;
     case "beforeafter": return <BeforeAfterCard {...p} v={v} />;
     case "kpi": return <KpiCard {...p} v={v} />;

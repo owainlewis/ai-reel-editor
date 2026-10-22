@@ -1820,6 +1820,83 @@
       }
     },
     {
+      "id": "ivory.t2.constraint",
+      "kind": "constraint",
+      "tier": "t2",
+      "purpose": "process",
+      "summary": "The theory of constraints: stages as circles, work flowing through as dots, one narrow bottleneck with a queue piling up in front of it and a trickle out.",
+      "layouts": [
+        "split",
+        "scene",
+        "side",
+        "media"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "text",
+          "maxChars": 32,
+          "optional": true
+        },
+        {
+          "name": "stages",
+          "type": "list",
+          "minItems": 3,
+          "maxItems": 5
+        },
+        {
+          "name": "stages[].label",
+          "type": "text",
+          "maxChars": 10
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "maxChars": 14,
+          "optional": true
+        },
+        {
+          "name": "stages[].at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        },
+        {
+          "name": "at",
+          "type": "anchor",
+          "optional": true,
+          "note": "a spoken phrase; the part lands on its first word"
+        }
+      ],
+      "added": true,
+      "sample": {
+        "visual": {
+          "kind": "constraint",
+          "stages": [
+            {
+              "label": "Ideas"
+            },
+            {
+              "label": "Code"
+            },
+            {
+              "label": "Review"
+            },
+            {
+              "label": "Shipped"
+            }
+          ],
+          "bottleneck": 2
+        },
+        "header": "The *slowest* point",
+        "scene": "The *slowest* point"
+      },
+      "duration": {
+        "min": 1.5,
+        "max": 5
+      }
+    },
+    {
       "id": "ivory.t2.pipeline",
       "kind": "pipeline",
       "tier": "t2",

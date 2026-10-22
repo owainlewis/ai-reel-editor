@@ -64,9 +64,21 @@ export const Visual = z.discriminatedUnion("kind", [
     type: z.enum(["bar", "line"]).default("bar"),
     title: z.string().optional(),
     unit: z.string().optional(),
-    points: z.array(z.object({ label: z.string(), value: z.number(), note: z.string().optional(), at: Anchor.optional() })).min(2).max(8),
+    // `bound`: the value is an upper bound, not a measurement. The bar is a dashed outline and its
+    // label reads "≤", so a chart never presents a limit as a result.
+    points: z.array(z.object({ label: z.string(), value: z.number(), note: z.string().optional(), bound: z.boolean().optional(), at: Anchor.optional() })).min(2).max(8),
     highlight: z.number().optional(),
     source: z.string(),
+  }),
+  // The theory of constraints: stages as circles in a row, work flowing through as dots. Stage
+  // `bottleneck` narrows on `at` (default: just after it lands) and a queue piles up in front of it.
+  z.object({
+    kind: z.literal("constraint"),
+    title: z.string().optional(),
+    stages: z.array(z.object({ label: z.string(), at: Anchor.optional() })).min(3).max(5),
+    bottleneck: z.number().int().min(1),
+    note: z.string().optional(),
+    at: Anchor.optional(),
   }),
   // A process as numbered stages on a track; each lights as it is named. Stages without a label stay
   // as dim numbers, so "six stages" can show all six while naming only the ones that are said.

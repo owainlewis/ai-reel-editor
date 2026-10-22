@@ -53,6 +53,7 @@ export const visualAnchors = (v: VisualSpec): (string | undefined)[] => {
     case "kpi": return v.items.map((it) => it.at);
     case "bento": return v.cells.map((c) => c.at);
     case "pipeline": return v.stages.map((st) => st.at);
+    case "constraint": return [...v.stages.map((st) => st.at), v.at];
     case "flow": return [...v.nodes.map((n) => n.at), ...v.edges.map((e) => e.at)];
     case "grid": return [v.at, ...v.groups.map((g) => g.at)];
     case "funnel": return [...v.items.map((it) => it.at), v.at, ...v.target.lines.map((l) => l.at)];

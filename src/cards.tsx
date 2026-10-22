@@ -907,8 +907,43 @@ export const WaffleCard: React.FC<Props & { v: V<"waffle"> }> = ({ shot, time, w
 };
 
 // The layout of any Blueprint card kind, for tests and the style lab.
+// The constraint diagram's layout (drawn in src/elements.tsx): circles in a row, labels under
+// them, all centred in the panel, and a queue capped to the space in front of the bottleneck.
+export const constraintGeom = (v: V<"constraint">, w: number, h: number) => {
+  const n = v.stages.length;
+  const head = titleH(v.title);
+  const big = Math.min(100, (w - 40) / (n - 1) / 3.4, h * 0.16);
+  // Dots and the queue scale with the circles.
+  const dot = big * 0.075;
+  const qx = big * 0.19;
+  const qy = big * 0.19;
+  const queueRows = 7;
+  const pad = big + 12;
+  const step = (w - pad * 2) / Math.max(1, n - 1);
+  const label = Math.max(F.minSize, fit(v.stages.map((s) => s.label), step - 12, 42, "sans"));
+  const note = F.labelMin;
+  const block = big * 2 + 26 + label * 1.2 + 8 + note * 1.3;
+  const top = head + Math.max(0, (h - head - block) / 2);
+  const cy = top + big;
+  const x = (i: number) => pad + step * i;
+  // Queue columns fit between the bottleneck and the stage before it.
+  // The bottleneck shrinks to 42%, so the gap in front of it is step - big - 0.42 big.
+  const queueCols = Math.max(2, Math.floor((step - big * 1.42 - 18 - 24) / qx) + 1);
+  const geom: Geom = {
+    cards: [],
+    parts: [
+      ...v.stages.map((_, i) => ({ x: x(i) - big, y: cy - big, w: big * 2, h: big * 2 })),
+      { x: x(v.bottleneck) - big * 0.42 - 18 - (queueCols - 1) * qx - dot, y: cy - ((queueRows - 1) / 2) * qy - dot, w: (queueCols - 1) * qx + dot * 2, h: (queueRows - 1) * qy + dot * 2 },
+      { x: 0, y: cy + big + 26, w, h: label * 1.2 + 8 + note * 1.3 },
+    ],
+    texts: [...fits(v.stages.map((s) => s.label), label, step - 12, "sans"), ...fits([v.note ?? "bottleneck"], note, step - 12, "label", 1, 3)],
+  };
+  return { n, big, pad, step, label, note, cy, x, queueCols, top, dot, qx, qy, queueRows, geom };
+};
+
 export const cardGeom = (v: ResolvedVisual, w: number, h: number): Geom | undefined => {
   switch (v.kind) {
+    case "constraint": return constraintGeom(v, w, h).geom;
     case "agenda": return agendaGeom(v, w, h).geom;
     case "checklist": return checklistGeom(v, w, h).geom;
     case "beforeafter": return beforeAfterGeom(v, w, h).geom;

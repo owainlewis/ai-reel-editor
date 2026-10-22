@@ -2,6 +2,7 @@ import React from "react";
 import { interpolate } from "remotion";
 import { pal } from "./soft";
 import { look } from "./style";
+import { constraintGeom } from "./cards";
 import { clamp, ease, t } from "./theme";
 import type { ResolvedShot, ResolvedVisual } from "./schema";
 
@@ -59,8 +60,10 @@ export const ChartVisual: React.FC<Props & { v: V<"chart"> }> = ({ shot, time, w
             const on = i === hi;
             return (
               <React.Fragment key={i}>
-                <div style={{ position: "absolute", left: x, width: bw, top: top + plotH - bh, height: bh, background: on ? c.accent : c.ink, opacity: on ? 1 : 0.85, borderRadius: "6px 6px 0 0" }} />
+                {/* An upper bound is a dashed outline, not a filled bar: a limit, not a result. */}
+                <div style={{ position: "absolute", left: x, width: bw, top: top + plotH - bh, height: bh, background: pt.bound ? "transparent" : on ? c.accent : c.ink, border: pt.bound ? `3px dashed ${on ? c.accent : c.ink}` : "none", borderBottom: "none", boxSizing: "border-box", opacity: on ? 1 : 0.85, borderRadius: "6px 6px 0 0" }} />
                 <div style={{ position: "absolute", left: x - 30, width: bw + 60, top: top + plotH - bh - 66, textAlign: "center", fontFamily: t.label, fontSize: on ? 46 : 38, fontWeight: 600, color: on ? c.accentText : c.ink, opacity: grow }}>
+                  {pt.bound ? "≤" : ""}
                   {fmt(Number.isInteger(pt.value) ? Math.round(pt.value * grow) : pt.value * grow, v.unit)}
                 </div>
                 <div style={{ position: "absolute", left: x - 40, width: bw + 80, top: top + plotH + 16, textAlign: "center", fontFamily: t.sans, fontWeight: 700, fontSize: 30, color: c.muted }}>{pt.label}</div>
@@ -222,6 +225,86 @@ const PipelineColumn: React.FC<Props & { v: V<"pipeline">; times: number[]; reac
               </div>
             )}
           </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
+// The theory of constraints as a picture: work flows left to right as dots through a row of
+// circles. One stage is narrow, the bottleneck: dots arrive faster than it lets them through, so
+// a queue piles up in front of it and only a trickle reaches the output. Stages land on their
+// words; the bottleneck tightens and takes the accent on `at`. Every dot is a pure function of
+// time, so frames render the same every time.
+export const ConstraintVisual: React.FC<Props & { v: V<"constraint"> }> = ({ shot, time, w, h, v }) => {
+  const c = pal(shot.tone);
+  const n = v.stages.length;
+  const times = v.times ?? [];
+  const stageT = v.stages.map((_, i) => times[i] ?? shot.start + 0.15 + i * 0.2);
+  const tightT = times[n] ?? stageT[v.bottleneck] + 0.4;
+  const g = constraintGeom(v, w, h);
+  const { step, cy, big } = g;
+  const tight = prog(time, tightT, 0.7);
+  const r = (i: number) => (i === v.bottleneck ? big - (big - big * 0.42) * tight : big);
+  const x = g.x;
+  const bx = x(v.bottleneck);
+  const flowStart = stageT[0] + 0.3;
+  // Dots: one every 0.11 s, moving at a steady pace. Before the bottleneck tightens every dot
+  // passes; after it, only one in four does and the rest join the queue in front of it.
+  const speed = step * 1.6;
+  const every = 0.11;
+  const count = Math.max(0, Math.floor((time - flowStart) / every) + 1);
+  const dots: { x: number; y: number; o: number; queued: boolean }[] = [];
+  let queued = 0;
+  for (let k = Math.max(0, count - 160); k < count; k++) {
+    const born = flowStart + k * every;
+    const lane = Math.sin(k * 12.9898) * 0.5;
+    const travelled = (time - born) * speed;
+    const arrive = born + (bx - r(v.bottleneck) - x(0)) / speed;
+    const blocked = arrive >= tightT && k % 4 !== 0;
+    const px = x(0) + travelled;
+    if (blocked && px >= bx - r(v.bottleneck) - 14) {
+      // Queue: rows stack back from the bottleneck's mouth, up to the space before the last stage.
+      const slot = queued++;
+      const col = Math.floor(slot / g.queueRows);
+      if (col >= g.queueCols) continue;
+      const row = slot % g.queueRows;
+      dots.push({ x: bx - r(v.bottleneck) - 18 - col * g.qx, y: cy + (row - (g.queueRows - 1) / 2) * g.qy + lane * 4, o: 0.9, queued: true });
+      continue;
+    }
+    // Dots end inside the last stage.
+    if (px > x(n - 1)) continue;
+    // Through the bottleneck, dots squeeze to the centre line.
+    const near = Math.max(0, 1 - Math.abs(px - bx) / (step * 0.5));
+    const spread = (px < bx ? 26 : 18) * (1 - near * 0.85);
+    dots.push({ x: px, y: cy + lane * spread, o: Math.min(1, (time - born) * 3), queued: false });
+  }
+  const enter = prog(time, shot.start, 0.5);
+  return (
+    <div style={{ position: "relative", width: w, height: h, opacity: enter }}>
+      {v.title && <div style={{ position: "absolute", left: 0, right: 0, top: g.top - 66, textAlign: "center", fontFamily: t.label, fontWeight: 500, fontSize: 26, letterSpacing: 5, textTransform: "uppercase", color: c.muted }}>{v.title}</div>}
+      <svg width={w} height={h} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
+        {/* The pipe between stages. */}
+        <line x1={x(0)} y1={cy} x2={x(n - 1)} y2={cy} stroke={c.line} strokeWidth={2} />
+        {v.stages.map((_, i) => {
+          const q = prog(time, stageT[i], 0.5);
+          const neck = i === v.bottleneck;
+          return (
+            <circle key={i} cx={x(i)} cy={cy} r={r(i) * (0.85 + 0.15 * q)} fill={c.card} stroke={neck && tight > 0.05 ? c.accent : c.ink} strokeWidth={neck ? 3 + tight * 2 : 2} opacity={q} />
+          );
+        })}
+        {dots.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y} r={d.queued ? g.dot * 1.1 : g.dot} fill={d.queued ? c.accent : c.ink} opacity={d.o * (d.queued ? 0.85 : 0.75)} />
+        ))}
+      </svg>
+      {v.stages.map((st, i) => {
+        const q = prog(time, stageT[i], 0.5);
+        const neck = i === v.bottleneck;
+        return (
+          <div key={i} style={{ position: "absolute", left: x(i) - step / 2, width: step, top: cy + big + 26, textAlign: "center", opacity: q, filter: `blur(${(1 - q) * 6}px)` }}>
+            <div style={{ fontFamily: t.sans, fontWeight: 700, fontSize: g.label, lineHeight: 1.2, letterSpacing: -0.6, whiteSpace: "nowrap", color: neck && tight > 0.5 ? c.accentText : c.ink }}>{st.label}</div>
+            {neck && <div style={{ marginTop: 8, fontFamily: t.label, fontWeight: 500, fontSize: g.note, letterSpacing: 3, whiteSpace: "nowrap", textTransform: "uppercase", color: c.muted, opacity: tight }}>{v.note ?? "bottleneck"}</div>}
+          </div>
         );
       })}
     </div>

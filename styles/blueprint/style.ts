@@ -486,6 +486,21 @@ const catalog: Card[] = [
     },
   },
   {
+    id: "blueprint.t2.constraint",
+    kind: "constraint",
+    tier: "t2",
+    purpose: "process",
+    summary: "The theory of constraints: stages as circles, work flowing through as dots, one narrow bottleneck with a queue piling up in front of it and a trickle out.",
+    layouts: BOTH,
+    slots: [T(), { name: "stages", type: "list", minItems: 3, maxItems: 5 }, { name: "stages[].label", type: "text", maxChars: 10 }, { name: "note", type: "text", maxChars: 14, optional: true }, at("stages[].at"), at("at")],
+    added: true,
+    sample: {
+      visual: { kind: "constraint", stages: [{ label: "Ideas" }, { label: "Code" }, { label: "Review" }, { label: "Shipped" }], bottleneck: 2 },
+      header: "The *slowest* point",
+      scene: "The *slowest* point",
+    },
+  },
+  {
     id: "blueprint.t2.pipeline",
     kind: "pipeline",
     tier: "t2",
