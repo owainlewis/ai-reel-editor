@@ -2,7 +2,7 @@
 // (see .claude/skills/edit-reel/SKILL.md); these commands do the rest.
 //
 //   npm run reel -- new <slug> <video> [--broll a.mp4 b.mp4]   portrait for reels, landscape for YouTube
-//   npm run reel -- script <slug> <script.txt> [--voice Daniel] [--silent]   a reel from a script, no footage
+//   npm run reel -- script <slug> <script.txt> [--engine kokoro] [--voice am_michael] [--silent]   a reel from a script, no footage
 //   npm run reel -- transcribe <slug>
 //   npm run reel -- tighten <slug> [--cut 7.2-10.9 ...] [--gap 0.55] [--speed 1.05]   trim pauses to a breath, cut ranges; then transcribe again
 //   npm run reel -- capture <slug> <url> --name <name> [--width 1280] [--height 1600] [--full] [--selector css] [--wait ms]
@@ -138,7 +138,8 @@ const writeTranscript = (dir: string, words: Word[]) => {
 function cmdScript(slug: string, file: string) {
   const dir = project(slug);
   for (const d of ["source", "assets/captures", "assets/logos", "assets/broll", "build", "renders", "checks"]) mkdirSync(join(dir, d), { recursive: true });
-  const script = readFileSync(file, "utf8").replace(/\s+/g, " ").trim();
+  const raw = readFileSync(file, "utf8");
+  const script = raw.replace(/\s+/g, " ").trim();
   writeFileSync(join(dir, "script.txt"), script + "\n");
   const voice = join(dir, "source/voice.wav");
   let duration: number;
@@ -147,6 +148,14 @@ function cmdScript(slug: string, file: string) {
     duration = +(words[words.length - 1].end + 0.6).toFixed(3);
     ffmpeg(["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", String(duration), "-c:a", "pcm_s24le", voice]);
     writeTranscript(dir, words);
+  } else if (flag("engine") === "kokoro") {
+    // Kokoro: a local neural voice, far closer to a person than say. Paragraphs keep their breaks.
+    const wav = join(dir, "build/kokoro.wav");
+    writeFileSync(join(dir, "build/script.txt"), raw);
+    run("uv", ["run", "-q", "-p", "3.12", "--with", "kokoro-onnx", "--with", "soundfile", "python", "-I", join(ROOT, "tools/kokoro.py"), join(dir, "build/script.txt"), wav, flag("voice") ?? "am_michael", flag("speed") ?? "1.05"]);
+    ffmpeg(["-i", wav, "-af", "apad=pad_dur=0.6", "-ac", "2", "-ar", "48000", "-c:a", "pcm_s24le", voice]);
+    duration = probeDuration(voice);
+    cmdTranscribe(slug);
   } else {
     const aiff = join(dir, "build/say.aiff");
     run("say", ["-v", flag("voice") ?? "Daniel", "-r", flag("rate") ?? "185", "-o", aiff, "-f", join(dir, "script.txt")]);
