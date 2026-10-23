@@ -272,7 +272,8 @@ function cmdTranscribe(slug: string) {
   console.log("Transcribing with mlx-whisper (large-v3-turbo)");
   run("uvx", ["--from", "mlx-whisper", "mlx_whisper", join(dir, "source/voice.wav"), "--model", "mlx-community/whisper-large-v3-turbo",
     "--language", "en", "--word-timestamps", "True", "--output-format", "json", "--output-dir", tmp, "--initial-prompt", vocab], { quiet: true });
-  const data = readJson<{ segments: { words?: { word: string; start: number; end: number }[] }[] }>(join(tmp, "voice.json"));
+  // Python's json writes NaN for some scores, which JSON.parse rejects; nothing here reads them.
+  const data = JSON.parse(readFileSync(join(tmp, "voice.json"), "utf8").replace(/\bNaN\b/g, "null")) as { segments: { words?: { word: string; start: number; end: number }[] }[] };
   const raw: Word[] = data.segments.flatMap((s) => s.words ?? []).filter((w) => w.word.trim())
     .map((w) => ({ text: w.word.trim(), start: +w.start.toFixed(3), end: +w.end.toFixed(3) }));
   // Whisper invents words in trailing silence (often the last sentence again, at zero length):
