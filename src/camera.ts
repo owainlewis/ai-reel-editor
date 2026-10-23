@@ -23,3 +23,14 @@ export const frameRect = (rect: Rect, iw: number, ih: number, vw: number, vh: nu
   const top = -(y0 + rh / 2) * k + vh / 2;
   return { k, left, top };
 };
+
+// One camera move per shot. Every camera in the reel (a capture's from-to move, the speaker's
+// push-in, a shared-element transition) runs on this one curve, and a shot that enters through a
+// shared element holds its own camera until the transition has landed, so two moves never overlap.
+export const TRANSITION = 0.7;
+export const cameraEase = (x: number) => 1 - Math.pow(1 - x, 3);
+export const cameraProgress = (start: number, end: number, time: number, hold = 0) => {
+  const a = start + hold;
+  if (end <= a) return time >= end ? 1 : 0;
+  return cameraEase(Math.min(1, Math.max(0, (time - a) / (end - a))));
+};

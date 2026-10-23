@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { frameRect } from "../src/camera.ts";
+import { cameraProgress, frameRect, TRANSITION } from "../src/camera.ts";
 
 // A tall page (a README captured at phone width) and two panel shapes.
 const iw = 908;
@@ -40,5 +40,15 @@ describe("frameRect", () => {
 
   it("zooms in on a small region", () => {
     expect(visible([0.2, 0.5, 0.3, 0.01], 960, 900).k).toBeGreaterThan(3);
+  });
+});
+
+describe("cameraProgress", () => {
+  it("holds still through a shared-element transition, then runs one eased move", () => {
+    expect(cameraProgress(0, 3, 0.5, TRANSITION)).toBe(0);
+    expect(cameraProgress(0, 3, 3, TRANSITION)).toBe(1);
+    const mid = cameraProgress(0, 3, 1.85, TRANSITION);
+    expect(mid).toBeGreaterThan(0.5);
+    expect(mid).toBeLessThan(1);
   });
 });

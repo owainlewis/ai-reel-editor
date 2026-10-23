@@ -1,0 +1,41 @@
+If you want your Claude Code to code like a real senior dev, you need to install these 5 free plugins.
+
+First is Agent Skills.
+
+It's a pack of 24 skills built by a former director at Google.
+
+It covers your entire dev cycle.
+
+And it activates the right skill at each stage of coding, all on its own.
+
+Second is Context7.
+
+It gives Claude the latest docs for whatever libraries and tools you're using.
+
+So it never codes against outdated versions again.
+
+Third is Graphify.
+
+It turns your entire codebase into a knowledge graph.
+
+It links every file and function together.
+
+So Claude doesn't need to re-read everything again and again.
+
+Fourth is 21st MCP.
+
+It gives Claude access to over 10,000 professional UI components.
+
+You can add them straight into your project with one command.
+
+Fifth is Strix.
+
+It attacks your vibe coded app like a real hacker.
+
+It finds and fixes any security vulnerabilities left behind.
+
+Together, these five cover the biggest gaps in most Claude Code setups.
+
+Think of it like giving your Claude a full senior engineering team.
+
+Each one fixes a different weak spot.

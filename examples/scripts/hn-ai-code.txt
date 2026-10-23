@@ -1,0 +1,13 @@
+How do you ship AI-written code you don't understand?
+
+That question got over seven hundred comments on Hacker News. Here are the four best answers.
+
+One. Design it yourself. Decide the structure and the abstractions, then let AI fill in the code.
+
+Two. Test more than you used to. The time you save writing code goes into testing it.
+
+Three. Be careful when AI writes both the code and the tests. They can agree with each other and still miss the same thing.
+
+Four. Review it like a principal engineer. You won't know every line, but you must understand the design.
+
+My take: you don't need to read every line. But someone has to be able to explain every change. If nobody can, it isn't ready to ship.

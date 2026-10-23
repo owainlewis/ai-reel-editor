@@ -1,0 +1,11 @@
+A new Harvard study tracked seven hundred companies, and AI isn't making their engineering teams ship much faster.
+
+With AI agents, developers wrote thirty percent more code. But the work those teams actually shipped barely moved.
+
+So where did the speed go? Code review. Review times went up forty nine percent, and nearly twice as many pull requests got sent back for changes.
+
+This matches what I see in a lot of enterprise teams. Engineers are coding faster, but coding was never the bottleneck. Engineers only spend thirty to forty percent of their time writing code. The rest is coordination, handoffs, and review.
+
+It's the theory of constraints. Your system is only ever as fast as its slowest point. So just using AI doesn't automatically make your team move faster.
+
+What I've noticed is that solo developers and small teams move much faster, because they have less coordination, less overhead, and less process. So they get far more out of AI than a big enterprise team.

@@ -1,0 +1,50 @@
+{
+  "title": "Agent setup (script demo)",
+  "format": "mixed",
+  "header": "One agent is *not* enough",
+  "accents": ["mistake", "plans", "builds", "lost", "best"],
+  "music": { "mood": "focus", "level": -20 },
+  "shots": [
+    { "at": "Most people use", "layout": "split", "visual": { "kind": "title", "text": "One agent for *everything*" } },
+    { "at": "That is the mistake", "layout": "punch" },
+    { "at": "Here is the setup", "layout": "split", "header": "The *setup*", "visual": { "kind": "list", "preview": true, "items": [{ "text": "Split the work" }, { "text": "Route the work" }] } },
+    { "at": "Part one", "layout": "media", "header": false, "sfx": "whoosh", "visual": { "kind": "chapter", "number": "01", "label": "Split the work" } },
+    {
+      "at": "One session plans",
+      "layout": "media",
+      "header": "One *plans*",
+      "visual": {
+        "kind": "flow",
+        "nodes": [
+          { "kicker": "Session 1", "title": "Plans", "lines": ["Map the codebase", "Split into tasks"], "at": "plans" },
+          { "kicker": "Session 2", "title": "Builds", "lines": ["Read the plan", "Write the code"], "at": "builds" }
+        ],
+        "edges": [{ "from": 0, "to": 1, "chip": "plan.md", "at": "pass" }]
+      }
+    },
+    { "at": "Another session builds", "layout": "media", "keep": true, "header": "Another *builds*" },
+    { "at": "They pass the work", "layout": "media", "keep": true, "header": "They pass the *work*" },
+    { "at": "so nothing gets lost", "layout": "full" },
+    { "at": "Part two", "layout": "media", "header": false, "sfx": "whoosh", "visual": { "kind": "chapter", "number": "02", "label": "Route the work" } },
+    {
+      "at": "A small router",
+      "layout": "media",
+      "header": "Routed *automatically*",
+      "visual": {
+        "kind": "flow",
+        "root": true,
+        "nodes": [
+          { "kicker": "Router", "title": "Every job", "at": "router" },
+          { "kicker": "Fast model", "title": "Easy jobs", "lines": ["Fix a typo"], "at": "easy" },
+          { "kicker": "Big model", "title": "Hard jobs", "lines": ["New feature"], "at": "hard" }
+        ],
+        "edges": [
+          { "from": 0, "to": 1, "at": "fast" },
+          { "from": 0, "to": 2, "at": "big" }
+        ]
+      }
+    },
+    { "at": "Hard problems still", "layout": "full" },
+    { "at": "Try it on", "layout": "punch" }
+  ]
+}

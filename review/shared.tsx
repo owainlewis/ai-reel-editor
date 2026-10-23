@@ -1,0 +1,61 @@
+import React, { useEffect } from "react";
+import { Reel } from "../src/Reel";
+import { Wide } from "../src/Wide";
+import { compositionFor } from "../src/canvas";
+import type { Resolved } from "../src/schema";
+
+// The board plays light preview copies (see makePreviews in tools/cli.ts): 1080p video and AAC
+// audio from the mix, or the voice before a mix exists, so it is never silent or blank.
+export const playable = (r: Resolved): Resolved => ({
+  ...r,
+  video: r.video && r.preview?.video ? r.preview.video : r.video,
+  audio: r.preview?.audio ?? r.audio ?? `${r.slug}/source/voice.wav`,
+});
+
+// The composition, size and shape a plan plays at: 9:16 reels, 16:9 YouTube.
+export const stage = (r: Resolved) => {
+  const c = compositionFor(r.canvas);
+  return {
+    component: (r.canvas === "youtube" ? Wide : Reel) as React.FC<Resolved>,
+    compositionWidth: c.width,
+    compositionHeight: c.height,
+    aspect: `${c.width} / ${c.height}`,
+    wide: r.canvas === "youtube",
+  };
+};
+
+export const frames = (r: Resolved) => Math.max(1, Math.round(r.duration * r.fps));
+
+// Text with *one accent* in Signifier italic, as in the reels.
+export const Accented: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {text.split(/(\*[^*]+\*)/).map((part, i) =>
+      part.startsWith("*") ? (
+        <span key={i} className="accent">
+          {part.slice(1, -1)}
+        </span>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      ),
+    )}
+  </>
+);
+
+// Calls back when the server sees a reel's plan or renders change.
+export const usePlanEvents = (on: (slug: string) => void) => {
+  useEffect(() => {
+    const es = new EventSource("/api/events");
+    es.onmessage = (e) => on(JSON.parse(e.data).slug);
+    return () => es.close();
+  }, [on]);
+};
+
+export const ago = (ms: number) => {
+  const s = (Date.now() - ms) / 1000;
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  return `${Math.round(s / 86400)} d ago`;
+};
+
+export const secs = (t: number) => `${t.toFixed(1)}s`;

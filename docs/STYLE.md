@@ -2,10 +2,49 @@
 
 The default look and pacing for Owain's reels. A brief from the user wins over anything here.
 
+## Style
+
+Ivory is the house style and the only one (Owain, 2026-10-22): warm off-white paper, pine green scenes, near-white text on footage, keyword captions, focus-stack chapters, bare charts, no card chrome, no grid. Its rules are in `styles/ivory/DESIGN.md`. Fonts are Helvetica and Signifier, always. Blueprint (`styles/blueprint/`) remains only as the card catalog Ivory's cards are built from; sections below that describe Blueprint's cool paper, blue and grid are history.
+
+Footage arrives colour graded and with finished vocals from Final Cut. Never grade it and never process the voice; add only music and sound effects.
+
+## Principles (reels and YouTube)
+
+- Minimal. One idea on screen, lots of space, big type. Motion only to reveal, never to decorate.
+- Monochrome plus one muted accent. No glow, no neon, no gradients, nothing bouncing.
+- Serif for titles, a plain sans for labels. Things not yet said sit blurred and dim, then sharpen.
+- Real content or honest diagrams. An illustrative chart says "Illustration".
+- What we avoid: AI motion that is over the top. See `references/README.md`.
+
+## YouTube (16:9, `"canvas": "youtube"`)
+
+Owain edits the rough cut by hand. The plan only lays graphics and text over it, sparsely, and never re-cuts the picture.
+
+| Layout | What it is |
+| --- | --- |
+| `full` | the picture as cut. Most of the video. |
+| `over` | the picture with a quiet overlay: a `lower` third (serif title, sans line, no box) or a cinematic `title` (one small serif line in the centre, the picture dims a little). |
+| `side` | the visual on warm near-black, the speaker in a small rounded window on the right. One eased move in and out. |
+| `media` | the visual alone. Keep it short; the speaker is away. |
+| `cutaway` | b-roll edge to edge. |
+
+About one graphic every 20 to 60 seconds. Graphics hold 4 to 12 seconds and build with reveals or `keep`. No word captions unless `"captions": true`. `validate` checks these.
+
+## Style library
+
+The look is a named style with a card catalog, modelled on herk-edit-kit's style library. The first is **Blueprint**, in `styles/blueprint/`:
+
+- `tokens.ts`: palette, type, spacing, grid and motion in one place. Components read them through `src/style.ts`; swapping a style is swapping that module.
+- `DESIGN.md`: the spec, how to pick a card for a line, and what not to do.
+- `style.ts` and `style.json`: every visual kind as a card (`blueprint.t1.stat`, `blueprint.t2.kpi`, `blueprint.overlay.lower`), with its tier, purpose, layouts, duration and typed slot limits (`maxChars`, `maxItems`). `t1` is a full-frame scene, `t2` sits beside the speaker, `overlay` sits over the picture.
+- The style lab on the review board plays every card live, light and dark, split and scene, with Approve / Change and a note per card (`styles/blueprint/review.json`, printed by `npm run reel -- styles feedback`).
+
+Pick graphics from the catalog and keep slots under their max. New in Blueprint: `agenda`, `beforeafter`, `kpi`, `matrix`, `timeline`, `levels`, `checklist`, `quote`, `logowall`, `bento`, `ring`, `meter`, `waffle`. More styles go in their own folders; see `styles/README.md`.
+
 ## Look: light editorial
 
-- Warm off-white canvas (`#F2F0EB`) with a faint dot grid. Ink black type. One muted cobalt for highlights.
-- Helvetica Neue bold for structure. Signifier italic for one accent word, in the same colour as the text around it.
+- Cool paper canvas (`#ECEEF1`) with a faint dot grid. Ink black type. One clean blue (`#2563EB`) for accents and highlights.
+- Headlines in Signifier, regular and set tight, like a film title. Helvetica Neue for working text (card rows, labels, numbers). An accent word changes colour only; never an italic serif word inside a bold sans line.
 - White cards with a soft shadow and a thin edge. Real captures sit in a card or a browser frame.
 - No neon, no gradients on type, no emoji, no cartoon icons.
 
@@ -16,15 +55,33 @@ Set `format` in `edit.json`. `validate` checks the rules for the one you pick.
 | Format | Series | Shape | Rules `validate` checks |
 | --- | --- | --- | --- |
 | `react` (default) | Tool drop | Face stays on screen in a split for 70 to 85% of the reel. The top panel walks through the real source (site, repo, README, post), panning and highlighting each claim as it is said. Punch in on the hook's stake and the last line. | Split at least 60%. No `media` or `cutaway`. Never two face-only shots in a row. At least 2 source captures. Shots up to about 3.8 s, since a scroll with highlights earns the time. |
-| `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Shots under about 2.8 s. No layout three times in a row. Speaker never away more than 3.5 s. |
+| `film` | Explainers, soft tech direction | Full-frame `scene` shots that build across beats with `keep`, light and dark alternating, the speaker as punctuation. | Something new on screen at least every 3.6 s (reveals and headline swaps count). Back-to-back scenes alternate `tone`. |
+| `mixed` | How it works, my setup | Every layout: b-roll cutaways, full-frame diagrams, punch-ins. Faster cuts. | Something changes every 2 to 3 s. No layout three times in a row. Speaker never away more than 3.5 s. |
 
 Why react for tool drops: the viewer judges a new tool by its evidence and by the person vouching for it. Keeping both on screen at once does both jobs. It is also the format behind the strongest organic reels in the October 2026 study of @chase.h.ai.
+
+## Soft tech scenes (`film` format, v2)
+
+A calm product-film look, picked by Owain on 2026-10-21. Use `layout: "scene"` with `tone: "light"` or `"dark"`, and alternate them.
+
+- **Cool paper and graphite.** Light scenes are cool paper `#ECEEF1`, dark scenes graphite `#121417`, both with fine film grain. No glow, no gradient backgrounds, no light effects. Depth comes from real shadows and layered cards.
+- **One flat accent:** a clean blue `#2563EB` (Owain's pick over vermilion, which read as Anthropic's brand). It goes on type, lines, dots, chips and highlights only, never as light.
+- **Big headlines.** The scene `header` is 150 px (126 px when it needs two lines), centred, Signifier regular set tight, with at most one accent word in blue. Keep it under 26 characters. Words arrive out of a blur; on a swap the old line dissolves as the new one lands.
+- **Real content in every graphic.** Grids show real thumbnails captured from the source's own site (`reel fetch --dir captures`, logged in the ledger). Cards list the real fields the script names. Chips are plain words unless a capture shows the real URL. Captures in a scene sit in a card cut to the region being discussed. Never fake a product's UI and never fill space with placeholder shapes.
+- **Fewer elements.** At most one diagram per scene. Build it across beats with `keep: true`, swapping the headline per beat.
+- **One camera move per shot.** One eased move (a capture's `from` to `to`) or a locked camera. The video and the elements move; the camera does not also zoom and pan on other curves.
+- **Shared-element transitions.** Use `enter` on two or three cuts per reel: a grid tile grows into the next scene (`tile`), a result card becomes the next card (`card`), the typed input opens into what it made (`input`), or any frame region grows (`rect`). Inside a shot, `type` shrinks the typed prompt into its input.
+- Scene visuals: `grid` (real thumbnails, odometer `count`, `groups` that light on their words), `funnel` (plain-word chips flowing into one result card whose rows land on their words, or the card alone), `type` (kinetic typing that settles into an input), `video` with `loop` (a library's own preview clip in a card at its own shape), `image` captures, `flow` (stacked vertically), `title`.
 
 ## Frame 1 and the header
 
 - Every reel sets `header`: the hook as a short title. It is on screen, large, from the very first frame, then docks as a small header above the panel on every split and media shot. A muted viewer always knows the topic.
 - Start a new chapter with `header` on a shot ("How it *works*", "How to *use* it"). Three or four chapters in a 30 to 60 s reel.
-- Headers state the topic in plain words and one Signifier accent. They never claim more than the source shows.
+- Headers state the topic in plain words, with at most one accent word. They never claim more than the source shows.
+
+## Split first (talking heads)
+
+For a reel with Owain on camera, the 50/50 split is the default home for graphics: the soft tech visuals (typed lines, cards, flows, logos, real captures) sit on paper in the top half and Owain stays on the bottom half, captions on his half. No head cutout. Full-frame scenes are for one or two big beats at most; punch-ins for the hook's stake and the last line.
 
 ## Split size
 
@@ -40,14 +97,16 @@ Why react for tool drops: the viewer judges a new tool by its evidence and by th
 | `media` | visual fills the frame, caption in large serif below | the one visual that matters most |
 | `cutaway` | b-roll edge to edge, white caption low on the frame | human and abstract lines; makes the reel feel shot |
 
-Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run over about 2.8 s. The speaker is never off screen for more than 3.5 s.
+Targets from studying top creator reels: shots average 1.1 to 1.6 s and none run over about 2.8 s. The speaker is never off screen for more than 3.5 s. Something on screen changes every 2 to 3 s (Owain, 2026-10-22).
 
 ## Visuals, in order of preference
 
 1. The user's own b-roll (`broll/` library) or footage of the real thing. B-roll sets mood; it never stands in for evidence.
-2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words.
+2. A real capture of the page, repo or product, framed tight on the part being discussed, with a highlight sweep on the spoken words. Articles and pages go in a browser window (`frame: "browser"` with the real `url`, `title` and favicon `icon`); a repo opens on its name and description and moves to the README line that backs the claim; several sources at once are `windows`.
 3. Official logos, on white tiles, each landing on its spoken name.
-4. Designed graphics: `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`. Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+4. Designed graphics, from the card catalog (`styles/blueprint/style.json`): `steps`, `list`, `compare`, `stat`, `terminal`, `prompt`, `title`, `cta`, and the Blueprint cards (`kpi`, `timeline`, `levels`, `matrix`, `bento` and the rest). Each must have an action (items arrive on their words, a line draws, the old way is struck through). No title card that just sits there.
+
+Data and structure, not only text: when a line has numbers, use `chart` (bar for a few categories, line for change over time; the end value labelled big, a `source` line always); when it has a sequence, use `pipeline` (stages light as they are named) or `steps`; when one thing feeds several, use `flow` with `root`. When the point is a bottleneck (theory of constraints), use `constraint`: stages as circles, work flowing as dots, the slow stage narrowing on its word and a queue building in front of it. A figure that is only an upper bound is a dashed bar (`bound: true`). Give each graphic room: one per panel, generous margins, nothing touching the seam.
 
 Patterns that work (from studying top creator reels):
 - **Agenda callback.** For a numbered reel ("four systems"), show the whole list early with `preview: true`, an open loop. Bring the same list back before each item with `active` on it.
@@ -65,12 +124,14 @@ Never:
 ## Captions
 
 - One to three words, broken at punctuation, pauses and cuts. Hard swap, no pop. On screen two frames before the word, never across a cut.
-- On canvas: ink Helvetica bold. On the speaker: white with a soft shadow, on the chest below the chin. On `media` shots: large Signifier italic.
-- Accent words stand alone in Signifier italic. Four to six per reel.
+- On canvas: ink Helvetica bold. On the speaker: white with a soft shadow, on the chest below the chin. On `media` shots: large Signifier, upright.
+- Accent words stand alone as a beat, in the caption's own face (blue on paper and scenes). Four to six per reel.
 - Never over the mouth or chin.
 
 ## Sound
 
 - Music bed about 20 dB under the voice, ducked under speech. Off when the footage already has music.
-- Sound effects follow visible events only: a soft pop when a logo or item lands, a blip on a highlight, keys on typing. Most cuts get nothing.
+- Sound is rare and tactile: soft whooshes on scene changes, mechanical clicks when something lands, a camera focus beep on a highlight, a real key on typing. At most one sound every 2.5 s apart from typing. Most cuts get nothing. Never drops, glitches, swords, static or synthesised tones.
+- No music is better than generic music. With no track in `music/`, the reel has none. Owain's picks for reels live in `music/reels/`; a talking head wants a steady bed at about `"level": -18`, ducked gently (ratio 3, slow release) so it never pumps.
+- Pace comes from trimming dead air, not from stretching the voice: `reel tighten` trims pauses over 0.55 s to a natural breath (0.2 s) with click-free joins. `--speed` is capped at 1.05.
 - Master at -14 LUFS integrated, true peak at or under -1 dBTP. The last word is never faded.

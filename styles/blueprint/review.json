@@ -1,0 +1,238 @@
+{
+  "version": 1,
+  "style": "blueprint",
+  "notes": "",
+  "cards": {
+    "blueprint.t1.chapter": {
+      "hash": "078dcb1fe46cb8",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.title": {
+      "hash": "04ae598524b72d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.stat": {
+      "hash": "0da7a48d985561",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-22T06:12:01.952Z",
+      "history": []
+    },
+    "blueprint.t1.quote": {
+      "hash": "1cb3e253c2a486",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.bento": {
+      "hash": "05e60f892baa4d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.matrix": {
+      "hash": "1e84d99ba315e8",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.logowall": {
+      "hash": "08691527c9f030",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.grid": {
+      "hash": "0d0b21a1e42f57",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.funnel": {
+      "hash": "101592865d4b98",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.type": {
+      "hash": "1b0fbffa192819",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t1.cta": {
+      "hash": "0574915e480c8d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.capture": {
+      "hash": "1aeda1c8bb936d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.video": {
+      "hash": "057b575c36718e",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:46:38.445Z",
+      "history": []
+    },
+    "blueprint.t2.logos": {
+      "hash": "0c19e3b1b2ae45",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.list": {
+      "hash": "045973cf459c94",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.steps": {
+      "hash": "11606ded8df525",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.compare": {
+      "hash": "0ce2388056873c",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.beforeafter": {
+      "hash": "19dca43dba94cf",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.kpi": {
+      "hash": "00e50451e9113d",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.stat.ring": {
+      "hash": "06216d6c139eef",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.stat.meter": {
+      "hash": "112608a9ad006c",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.stat.waffle": {
+      "hash": "0c538eece6cce4",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.chart.bar": {
+      "hash": "175406f1950dad",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.chart.line": {
+      "hash": "19bef302588487",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.pipeline": {
+      "hash": "01355b115d7112",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.timeline": {
+      "hash": "10d330251f1ced",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.levels": {
+      "hash": "015d798486a973",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.agenda": {
+      "hash": "10badcbc417ae4",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.checklist": {
+      "hash": "061bb7decf1832",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.flow": {
+      "hash": "039a18178ec9a5",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.terminal": {
+      "hash": "1166d50cabd8c8",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.t2.prompt": {
+      "hash": "1835ba71604491",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    },
+    "blueprint.overlay.lower": {
+      "hash": "1d9a524570f66a",
+      "status": "waiting",
+      "comment": "",
+      "at": "2026-10-21T21:58:07.837Z",
+      "history": []
+    }
+  }
+}

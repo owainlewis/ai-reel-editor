@@ -18,6 +18,15 @@ npm run reel -- transcribe <slug>
 - Read `projects/<slug>/transcript.txt` end to end. Fix misheard names in `transcript.json` (tools, companies, people). Never change what was said.
 - Look at `checks/frame.jpg` and measure the face: centre x, centre y and head height (crown to chin) as fractions of the frame. These go in `face`.
 - If the footage already has music under it, set `"music": false`.
+- A rough take (dead air, long hesitations, a signpost sentence that delays the point): tighten it before planning. Every silence over 0.35 s shrinks to a short beat; `--cut a-b` drops a range in seconds of the original take, for a false start or a sentence that only slows the hook. The originals are kept, so it can be rerun. Then transcribe again.
+
+```sh
+npm run reel -- tighten <slug> --cut 7.2-10.9
+npm run reel -- transcribe <slug>
+```
+
+- Whisper sometimes invents a repeat of the last sentence at zero length and splits numbers ("2" ",500"). Delete the repeat and join the number in `transcript.json`.
+- 4K landscape footage stays 4K, so 9:16 reels cut from it are sharp. Keep the speaker centred.
 
 ## 2. Research before you design
 
@@ -73,10 +82,11 @@ Write `projects/<slug>/edit.json` (schema: `src/schema.ts`). First decide, in yo
 
 Then shots. Each shot starts on a spoken phrase (`at`), in order. Rules of thumb:
 
-- One idea per shot. Average 1.2 to 1.6 s. Nothing over 2.8 s unless a reveal inside it earns the time.
+- One idea per shot. Something on screen changes every 2 to 3 s: a cut, a reveal on its word, a header swap or a punch-in. `validate` warns after 3 s with no change.
 - Every list item, step and logo gets its own `at` so it lands on its word.
 - Mix layouts: split for evidence, full for the speaker's conviction, punch for emphasis and the last line, media for the single most important visual, cutaway for b-roll edge to edge.
 - A graphic shows the example or relationship. It does not repeat the caption.
+- **Pick graphics from the card catalog** (`styles/blueprint/style.json`, or `npm run reel -- styles` for the list; the "Picking a card" table in `styles/blueprint/DESIGN.md` maps a line to a card). Fill each card's slots with real content and keep every slot within its limits (`maxChars`, `maxItems`): the card is sized and tested for that length, and `validate` warns past it. Sharing a source: an article or page goes in `t2.capture.browser`, a repo in `t2.capture.repo` (with the real `url`, the page's `title` and its favicon `icon` from `reel fetch`), several at once in `t1.windows`. Reach past text cards: a number gets `stat`, `kpi` or `chart`, a share `ring` or `waffle`, a value on a scale `meter`; a sequence `pipeline` or `timeline`; layers `levels`; a trade-off `matrix`; a feature set `bento`.
 - `accents`: four to six words in the whole reel, the ones that carry the meaning.
 
 ### Framing captures
@@ -86,6 +96,8 @@ For `image` visuals, `from` and `to` are rectangles `[x, y, w, h]` in 0 to 1 ima
 - End tight. `validate` warns when page text would be too small to read on a phone.
 - Use `highlight` with an `at` to sweep a marker over the exact words being spoken. Add a `label` for a callout tag.
 - The rect is the region that must stay visible; the camera widens it to the panel's shape with the page around it. You don't need to match the panel's proportions.
+
+Before a new card kind or a style change lands in a reel, Owain reviews it in the style lab (`npm run reel -- review`, then "Blueprint style lab"); `npm run reel -- styles feedback` prints his notes and `npm run reel -- styles stills` renders a contact sheet of every card.
 
 ## 5. Check before rendering
 
@@ -106,6 +118,38 @@ npm run reel -- check <slug>      # cut strips, opening frames, loudness, word c
 Read `checks/opening.jpg` (the first 2.5 s) and `checks/cuts.jpg` (frames each side of every cut). Look for one-frame flashes, captions in the wrong style, empty panels. Loudness should be -14 LUFS, true peak at or under -1 dBTP.
 
 Send the user the MP4. Say plainly what you checked and what you could not (you cannot hear the mix; say so).
+
+## 6b. Review board
+
+Owain reviews shot by shot on the board, not by watching renders:
+
+```sh
+npm run reel -- review <slug>     # opens http://localhost:4317 with every shot playing in the Player, no render needed
+```
+
+Each shot gets Approve or Change and a note; the whole reel gets a notes box. Everything saves to `projects/<slug>/review.json`, keyed by a shot id (from its anchor) and a hash of the shot. Start the board for Owain after `validate` when a draft is ready; it reloads by itself when `build/edit.resolved.json` changes.
+
+When Owain says he left comments ("left comments, let's amend"):
+
+1. `npm run reel -- feedback <slug>` prints the open changes: the whole-reel notes, then each shot to change with its time, what is said in it and the note. Ignore approved and waiting shots.
+2. Apply every change in `edit.json`. Change only the shots named, so approved shots keep their review. Changing a shot's anchor changes its neighbour's length too, and both go back to waiting.
+3. `npm run reel -- validate <slug>`. The board reloads; every changed shot goes back to "waiting" and its old note moves to history. Whole-reel notes move to history once the reel changes, so apply them in the same pass.
+4. A note Owain has given before, or one that would apply to any reel, goes in `docs/RULES.md` (section 7), and into a check or component where it can be.
+5. Run `feedback` again to confirm nothing is still open, then tell Owain which shots to re-review, by number.
+
+## 6c. YouTube longform (16:9)
+
+Owain cuts the raw footage by hand. You add graphics and text to his rough cut; never re-cut it.
+
+```sh
+npm run reel -- new <slug> rough-cut.mp4      # landscape stays landscape; 4K stays 4K
+npm run reel -- transcribe <slug>
+```
+
+- Set `"canvas": "youtube"` in `edit.json`. Measure `face` on `checks/frame.jpg` for the side window.
+- Read the whole transcript first and pick the moments that earn a graphic: a number, a list, a structure, a before and after, a chapter. About one every 20 to 60 s. Everything else is `full`.
+- Start with `{ "at": "<first words>", "layout": "full" }`, then add `over` (lower thirds, chapter titles), `side` (a visual with the speaker in a window) and a return to `full` after each graphic.
+- Review it on the board (`npm run reel -- review <slug>`), then `render`.
 
 ## 7. Turn notes into rules
 

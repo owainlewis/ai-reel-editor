@@ -1,21 +1,26 @@
 import { Easing } from "remotion";
+import { style } from "./style";
 
 // Light editorial. Helvetica for structure, Signifier italic for one accent word.
-// Both are read from the fonts installed on the rendering machine.
+// The values come from the active style's tokens (src/style.ts); this is the split canvas's view of them.
+const paper = style.color.light;
 export const t = {
-  sans: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-  serif: 'Signifier, "Iowan Old Style", Georgia, serif',
-  mono: '"SF Mono", "JetBrains Mono", Menlo, monospace',
-  canvas: "#F2F0EB",
-  card: "#FFFFFF",
-  ink: "#121212",
-  muted: "#74777E",
-  faint: "#B8B6B0",
-  line: "rgba(18,18,18,0.09)",
-  accent: "#2D4FA3",
-  highlight: "rgba(45,79,163,0.18)",
-  terminal: "#14161B",
-  shadow: "0 2px 4px rgba(20,20,30,0.04), 0 18px 50px rgba(20,20,30,0.12)",
+  sans: style.font.sans,
+  serif: style.font.serif,
+  // Labels and numbers (Helvetica); `mono` is only for code.
+  label: style.font.label,
+  display: style.type.display.family,
+  mono: style.font.code,
+  canvas: paper.bg,
+  card: paper.card,
+  ink: paper.ink,
+  muted: paper.muted,
+  faint: paper.faint,
+  line: style.color.split.line,
+  accent: style.color.light.accent,
+  highlight: style.color.split.highlight,
+  terminal: style.color.terminal,
+  shadow: style.color.split.shadow,
 };
 
 const W_ = 1080;
@@ -38,5 +43,5 @@ export const HEADER = { top: 64, height: 120 };
 // Media layout: the visual fills most of the frame, caption below it.
 export const MEDIA = { panelTop: 200, panelBottom: 1260, caption: 1400 };
 
-export const ease = Easing.bezier(0.16, 1, 0.3, 1);
+export const ease = Easing.bezier(...style.motion.ease);
 export const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;

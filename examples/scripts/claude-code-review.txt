@@ -1,0 +1,19 @@
+Claude writes about ninety percent of Claude Code's own code. So how does the team review all of it? Six layers.
+
+One. Claude proves the work before anyone looks. It runs the tests, the build and the linter, and a second agent reviews the diff.
+
+Two. Automated checks. Lint, types, tests and the build. If any fail, the change can't merge.
+
+Three. AI review. Agents hunt for bugs, and other agents vote on each finding.
+
+Four. A separate security review. Open findings block the merge.
+
+Five. Human approval, scaled by risk. Low risk needs no human once the checks pass. Medium needs one person. High needs two.
+
+Six. A merge queue, feature flags and a gradual release.
+
+And under all of it, fast rollback. A flag turns off without a deploy.
+
+It works. Merged pull requests more than doubled, and the share that got reverted fell by more than forty percent.
+
+So stop trying to read every line. Build layers you trust.
